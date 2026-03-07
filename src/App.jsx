@@ -10,14 +10,10 @@ import {
 const AuthContext = createContext(null);
 function useAuth() { return useContext(AuthContext); }
 
-// Bank-note guilloche pattern — data URIs in brand colours
-const PATTERN_GREEN = `url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232d6a4f'%3E%3Cpath d='M21.18 20c.36-.13.72-.26 1.09-.4.36-.14 1.6-.6 1.77-.66C33.64 15.35 39.65 14 50 14c10.27 0 15.36 1.22 24.63 4.93.96.38 1.87.74 2.75 1.07h6.23c-2.51-.73-5.14-1.69-8.23-2.93C65.89 13.28 60.56 12 50 12c-10.63 0-16.86 1.4-26.66 5.06-.17.06-1.41.53-1.77.66-2.47.92-4.66 1.68-6.72 2.28h6.33zm0-20C13.26 2.89 8.08 4 0 4V2c5.74 0 9.95-.57 14.85-2h6.33zM77.38 0C85.24 2.97 90.5 4 100 4V2c-6.84 0-11.39-.54-16.4-2h-6.22zM0 14c8.44 0 13.72-1.21 22.27-4.4.36-.14 1.6-.6 1.77-.66C33.64 5.35 39.65 4 50 4c10.27 0 15.36 1.22 24.63 4.93C84.11 12.72 89.44 14 100 14v-2c-10.27 0-15.36-1.22-24.63-4.93C65.89 3.28 60.56 2 50 2 39.37 2 33.14 3.4 23.34 7.06c-.17.06-1.41.53-1.77.66C13.22 10.84 8.16 12 0 12v2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`;
-const PATTERN_WHITE = `url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff'%3E%3Cpath d='M21.18 20c.36-.13.72-.26 1.09-.4.36-.14 1.6-.6 1.77-.66C33.64 15.35 39.65 14 50 14c10.27 0 15.36 1.22 24.63 4.93.96.38 1.87.74 2.75 1.07h6.23c-2.51-.73-5.14-1.69-8.23-2.93C65.89 13.28 60.56 12 50 12c-10.63 0-16.86 1.4-26.66 5.06-.17.06-1.41.53-1.77.66-2.47.92-4.66 1.68-6.72 2.28h6.33zm0-20C13.26 2.89 8.08 4 0 4V2c5.74 0 9.95-.57 14.85-2h6.33zM77.38 0C85.24 2.97 90.5 4 100 4V2c-6.84 0-11.39-.54-16.4-2h-6.22zM0 14c8.44 0 13.72-1.21 22.27-4.4.36-.14 1.6-.6 1.77-.66C33.64 5.35 39.65 4 50 4c10.27 0 15.36 1.22 24.63 4.93C84.11 12.72 89.44 14 100 14v-2c-10.27 0-15.36-1.22-24.63-4.93C65.89 3.28 60.56 2 50 2 39.37 2 33.14 3.4 23.34 7.06c-.17.06-1.41.53-1.77.66C13.22 10.84 8.16 12 0 12v2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`;
-const PATTERN_GOLD = `url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4942a'%3E%3Cpath d='M21.18 20c.36-.13.72-.26 1.09-.4.36-.14 1.6-.6 1.77-.66C33.64 15.35 39.65 14 50 14c10.27 0 15.36 1.22 24.63 4.93.96.38 1.87.74 2.75 1.07h6.23c-2.51-.73-5.14-1.69-8.23-2.93C65.89 13.28 60.56 12 50 12c-10.63 0-16.86 1.4-26.66 5.06-.17.06-1.41.53-1.77.66-2.47.92-4.66 1.68-6.72 2.28h6.33zm0-20C13.26 2.89 8.08 4 0 4V2c5.74 0 9.95-.57 14.85-2h6.33zM77.38 0C85.24 2.97 90.5 4 100 4V2c-6.84 0-11.39-.54-16.4-2h-6.22zM0 14c8.44 0 13.72-1.21 22.27-4.4.36-.14 1.6-.6 1.77-.66C33.64 5.35 39.65 4 50 4c10.27 0 15.36 1.22 24.63 4.93C84.11 12.72 89.44 14 100 14v-2c-10.27 0-15.36-1.22-24.63-4.93C65.89 3.28 60.56 2 50 2 39.37 2 33.14 3.4 23.34 7.06c-.17.06-1.41.53-1.77.66C13.22 10.84 8.16 12 0 12v2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`;
-const PatternBg = ({color="green",opacity=0.04,size="200px 40px"}) => {
-  const bg = color==="white"?PATTERN_WHITE:color==="gold"?PATTERN_GOLD:PATTERN_GREEN;
-  return <div style={{position:"absolute",inset:0,backgroundImage:bg,backgroundSize:size,opacity,pointerEvents:"none"}}/>;
-};
+// Topography background pattern — served as static files from /public
+const TopoBg = ({dark=false}) => (
+  <div style={{position:"fixed",inset:0,backgroundImage:`url(${dark?"/topography-dark.svg":"/topography-light.svg"})`,backgroundSize:"600px 600px",pointerEvents:"none",zIndex:0}}/>
+);
 
 // CONSTANTS
 // ═══════════════════════════════════════════════════
@@ -277,8 +273,7 @@ function AuthModal({ onClose, onAuth, mode: initMode }) {
   return (
     <div style={{ position:"fixed",inset:0,zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:24 }} onClick={onClose}>
       <div style={{ position:"absolute",inset:0,background:"rgba(26,31,46,0.6)",backdropFilter:"blur(4px)" }}/>
-      <div onClick={e=>e.stopPropagation()} style={{ position:"relative",background:"#fff",borderRadius:20,padding:"40px 36px",maxWidth:440,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.2)",overflow:"hidden" }}>
-        <PatternBg color="green" opacity={0.03} size="150px 30px" />
+      <div onClick={e=>e.stopPropagation()} style={{ position:"relative",background:"#fff",borderRadius:20,padding:"40px 36px",maxWidth:440,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.2)" }}>
         <button onClick={onClose} style={{position:"absolute",top:16,right:16,background:"none",border:"none",fontSize:"1.2rem",color:"#6b7280",cursor:"pointer"}}>×</button>
 
         {mode === "register" && !magicSent && (
@@ -368,7 +363,6 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
   const auth = useAuth();
   return (
     <div style={{ minHeight: "100vh", padding: "80px 24px 60px", position: "relative" }}>
-      <PatternBg color="green" opacity={0.04} />
       <div style={{ maxWidth: 700, margin: "0 auto", position: "relative" }}>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
           <Badge>Free process cost calculator</Badge>
@@ -452,7 +446,6 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
   const removeRole=(i)=>{if(roles.length>1)setRoles(roles.filter((_,j)=>j!==i));};
   return (
     <div style={{maxWidth:640,margin:"0 auto",padding:"120px 24px 80px",position:"relative"}}>
-      <div style={{position:"absolute",top:0,left:"-50%",right:"-50%",height:200,backgroundImage:PATTERN_GREEN,backgroundSize:"200px 40px",opacity:0.03,pointerEvents:"none"}}/>
       <Badge>Step 1 of 3</Badge>
       <h2 style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Set up your team and process</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:36,lineHeight:1.7}}>Define the roles and their fully-loaded hourly rates. UK averages are pre-filled.</p>
@@ -496,7 +489,6 @@ function BuildScreen({ roles, steps, setSteps, processName, onNext, onBack }) {
 
   return (
     <div style={{maxWidth:780,margin:"0 auto",padding:"120px 24px 80px",position:"relative"}}>
-      <div style={{position:"absolute",top:0,left:"-50%",right:"-50%",height:200,backgroundImage:PATTERN_GREEN,backgroundSize:"200px 40px",opacity:0.03,pointerEvents:"none"}}/>
       <Badge>Step 2 of 3</Badge>
       <h2 style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Map the steps in "{processName}"</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:32,lineHeight:1.7}}>Walk through the process from start to finish. Estimates are fine.</p>
@@ -568,9 +560,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
     <div style={{padding:"120px 24px 80px"}}>
       {showAuth && <AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={(user)=>{setShowAuth(false);onSave();}} />}
 
-      <div style={{background:"#1a1f2e",borderRadius:20,padding:"60px 40px",textAlign:"center",color:"#fff",maxWidth:800,margin:"0 auto 40px",position:"relative",overflow:"hidden",...anim(0)}}>
-        <PatternBg color="white" opacity={0.04} />
-        <div style={{position:"relative"}}>
+      <div style={{background:"#1a1f2e",borderRadius:20,padding:"60px 40px",textAlign:"center",color:"#fff",maxWidth:800,margin:"0 auto 40px",...anim(0)}}>
         <Badge>Your results</Badge>
         <h2 style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(1.5rem,3.5vw,2rem)",fontWeight:700,lineHeight:1.2,margin:"20px 0 8px",color:"#fff"}}>Each "{processName}" costs you</h2>
         <div style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(3rem,8vw,4.5rem)",fontWeight:700,color:"#6ee7a8",letterSpacing:"-0.02em",margin:"8px 0"}}>£{totalCost.toFixed(0)}</div>
@@ -583,7 +573,6 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
               <div style={{fontSize:"0.75rem",color:"rgba(255,255,255,0.4)",marginTop:4}}>{item.sub}</div>
             </div>
           ))}
-        </div>
         </div>
       </div>
 
@@ -633,15 +622,12 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
           <Card style={{background:"#faf0d6",border:"1px solid #e8dbb8"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#8a6a1e",marginBottom:8}}>Most expensive role</div><div style={{fontFamily:"'Fraunces',serif",fontSize:"1.3rem",fontWeight:700,color:"#8a6a1e"}}>{roleBreakdown[0]?.name}</div><div style={{fontSize:"0.8rem",color:"#8a6a1e",marginTop:4}}>£{roleBreakdown[0]?.cost.toFixed(0)} per run</div></Card>
         </div>
 
-        <div style={{background:"#1a1f2e",borderRadius:16,padding:"40px 36px",textAlign:"center",color:"#fff",marginTop:32,position:"relative",overflow:"hidden",...anim(0.5)}}>
-          <PatternBg color="gold" opacity={0.06} />
-          <div style={{position:"relative"}}>
+        <div style={{background:"#1a1f2e",borderRadius:16,padding:"40px 36px",textAlign:"center",color:"#fff",marginTop:32,...anim(0.5)}}>
           <h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1.4rem",fontWeight:700,marginBottom:12}}>This is one process. <em style={{fontStyle:"italic",color:"#c4942a",fontWeight:500}}>What about the rest?</em></h3>
           <p style={{color:"rgba(255,255,255,0.6)",fontSize:"0.95rem",maxWidth:440,margin:"0 auto 24px",lineHeight:1.7}}>A full Workthru operational audit maps 3–5 core processes across your entire practice, with stakeholder interviews and a prioritised automation roadmap.</p>
           <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
             <a href="https://cal.com/workthru/15min?overlayCalendar=true&source=costclock" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,padding:"14px 28px",borderRadius:10,background:"#fff",color:"#1a1f2e",fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"1rem",textDecoration:"none"}}>Book a free discovery call →</a>
             <a href="https://www.workthru.co.uk" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,padding:"14px 28px",borderRadius:10,border:"1.5px solid rgba(255,255,255,0.25)",color:"#fff",fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"0.92rem",textDecoration:"none"}}>Learn more about Workthru</a>
-          </div>
           </div>
         </div>
 
@@ -761,7 +747,8 @@ export default function CostClock() {
 
   return (
     <AuthContext.Provider value={authCtx}>
-      <div style={{background:"#faf9f7",minHeight:"100vh"}}>
+      <div style={{background:"#faf9f7",minHeight:"100vh",position:"relative"}}>
+        <TopoBg />
         {showAuth&&<AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={handleAuth}/>}
 
         {screen!=="welcome"&&(
