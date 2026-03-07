@@ -57,11 +57,22 @@ export async function signOut() {
 // Process CRUD
 export async function saveProcess(userId, processData) {
   if (!supabase) return null
-  const { data, error } = await supabase
-    .from('processes')
-    .upsert({ user_id: userId, ...processData, updated_at: new Date().toISOString() })
-    .select()
-  return { data, error }
+  const { id, ...rest } = processData
+
+  if (id) {
+    const { data, error } = await supabase
+      .from('processes')
+      .update({ ...rest, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+    return { data, error }
+  } else {
+    const { data, error } = await supabase
+      .from('processes')
+      .insert({ user_id: userId, ...rest, updated_at: new Date().toISOString() })
+      .select()
+    return { data, error }
+  }
 }
 
 export async function loadProcesses(userId) {
