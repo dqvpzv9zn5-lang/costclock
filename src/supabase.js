@@ -60,6 +60,7 @@ export async function saveProcess(userId, processData) {
   const { id, ...rest } = processData
 
   if (id) {
+    // Update existing
     const { data, error } = await supabase
       .from('processes')
       .update({ ...rest, updated_at: new Date().toISOString() })
@@ -67,6 +68,7 @@ export async function saveProcess(userId, processData) {
       .select()
     return { data, error }
   } else {
+    // Insert new
     const { data, error } = await supabase
       .from('processes')
       .insert({ user_id: userId, ...rest, updated_at: new Date().toISOString() })
