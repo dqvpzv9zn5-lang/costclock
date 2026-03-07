@@ -362,35 +362,39 @@ function AuthModal({ onClose, onAuth, mode: initMode }) {
 function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved, onSignIn }) {
   const auth = useAuth();
   return (
-    <div style={{ minHeight: "100vh", padding: "80px 24px 60px", position: "relative" }}>
-      <div style={{ maxWidth: 700, margin: "0 auto", position: "relative" }}>
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
+    <div style={{ minHeight: "100vh", padding: "60px 24px 60px", position: "relative" }}>
+      <div style={{ maxWidth: 960, margin: "0 auto", position: "relative" }}>
+        <div style={{ textAlign: "center", marginBottom: 36 }}>
+          <div style={{marginBottom:20}}>
+            <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.5rem",color:"#1a1f2e",letterSpacing:"-0.02em"}}>cost<span style={{color:"#2d6a4f"}}>clock</span></span>
+            <span style={{fontSize:"0.75rem",color:"#6b7280",fontFamily:"'DM Sans',sans-serif",fontWeight:400,marginLeft:10}}>by workthru</span>
+          </div>
           <Badge>Free process cost calculator</Badge>
-          <h1 style={{ fontFamily:"'Fraunces',serif",fontSize:"clamp(2rem,5vw,3rem)",fontWeight:700,lineHeight:1.15,letterSpacing:"-0.025em",margin:"24px 0 16px",color:"#1a1f2e" }}>
+          <h1 style={{ fontFamily:"'Fraunces',serif",fontSize:"clamp(1.8rem,4.5vw,2.6rem)",fontWeight:700,lineHeight:1.15,letterSpacing:"-0.025em",margin:"16px 0 12px",color:"#1a1f2e" }}>
             Find out what your processes <em style={{fontStyle:"italic",color:"#2d6a4f",fontWeight:500}}>really cost</em>
           </h1>
-          <p style={{ fontSize:"1.1rem",color:"#3d4455",lineHeight:1.7,maxWidth:560,margin:"0 auto" }}>
+          <p style={{ fontSize:"1rem",color:"#3d4455",lineHeight:1.7,maxWidth:520,margin:"0 auto" }}>
             Map any business process step by step, assign who does what, and see the true fully-loaded cost. Register to save your work and get a free AI-powered analysis.
           </p>
         </div>
 
         {auth.user && savedProcesses.length > 0 && (
-          <div style={{ marginBottom: 40 }}>
-            <h3 style={{ fontFamily:"'Fraunces',serif",fontSize:"1.05rem",fontWeight:700,marginBottom:14 }}>Your saved processes</h3>
+          <div style={{ marginBottom: 28 }}>
+            <h3 style={{ fontFamily:"'Fraunces',serif",fontSize:"1rem",fontWeight:700,marginBottom:10 }}>Your saved processes</h3>
             <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
               {savedProcesses.map((p,idx)=>{
                 const {totalCost,annualCost}=calcCosts(p.roles||DEFAULT_ROLES,p.steps,p.annual_volume||p.annualVolume);
                 return (
-                  <Card key={p.id||idx} hover onClick={()=>onLoadSaved(idx)} style={{padding:"18px 22px",cursor:"pointer"}}>
+                  <Card key={p.id||idx} hover onClick={()=>onLoadSaved(idx)} style={{padding:"14px 20px",cursor:"pointer"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
                       <div>
-                        <div style={{fontWeight:600,fontSize:"0.95rem"}}>{p.name||p.processName}</div>
-                        <div style={{fontSize:"0.78rem",color:"#6b7280",marginTop:2}}>{(p.steps||[]).length} steps · {p.annual_volume||p.annualVolume}×/year · £{annualCost.toLocaleString("en-GB",{maximumFractionDigits:0})}/year</div>
+                        <div style={{fontWeight:600,fontSize:"0.92rem"}}>{p.name||p.processName}</div>
+                        <div style={{fontSize:"0.75rem",color:"#6b7280",marginTop:2}}>{(p.steps||[]).length} steps · {p.annual_volume||p.annualVolume}×/year · £{annualCost.toLocaleString("en-GB",{maximumFractionDigits:0})}/year</div>
                       </div>
                       <div style={{display:"flex",alignItems:"center",gap:16}}>
                         <div style={{textAlign:"right"}}>
-                          <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,color:"#2d6a4f",fontSize:"1.1rem"}}>£{totalCost.toFixed(0)}</div>
-                          <div style={{fontSize:"0.72rem",color:"#6b7280"}}>per run</div>
+                          <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,color:"#2d6a4f",fontSize:"1.05rem"}}>£{totalCost.toFixed(0)}</div>
+                          <div style={{fontSize:"0.7rem",color:"#6b7280"}}>per run</div>
                         </div>
                         <button onClick={e=>{e.stopPropagation();onDeleteSaved(idx);}} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1rem",padding:4}}>×</button>
                       </div>
@@ -403,31 +407,31 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
         )}
 
         {!auth.user && (
-          <div style={{textAlign:"center",marginBottom:32}}>
-            <button onClick={onSignIn} style={{fontSize:"0.85rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+          <div style={{textAlign:"center",marginBottom:24}}>
+            <button onClick={onSignIn} style={{fontSize:"0.82rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
               Already have an account? Sign in to load your saved processes →
             </button>
           </div>
         )}
 
-        <div style={{marginBottom:40}}>
-          <h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1.05rem",fontWeight:700,marginBottom:6}}>Start from a template</h3>
-          <p style={{fontSize:"0.88rem",color:"#6b7280",marginBottom:14}}>Pre-built process maps with realistic data. Adjust rates and volume to match your firm.</p>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:12}}>
+        <div style={{marginBottom:32}}>
+          <h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1rem",fontWeight:700,marginBottom:6}}>Start from a template</h3>
+          <p style={{fontSize:"0.85rem",color:"#6b7280",marginBottom:12}}>Pre-built process maps with realistic data. Adjust rates and volume to match your firm.</p>
+          <div className="template-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
             {TEMPLATES.map(t=>(
-              <Card key={t.id} hover onClick={()=>onTemplate(t)} style={{padding:"20px 22px",cursor:"pointer"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                  <span style={{fontWeight:600,fontSize:"0.95rem"}}>{t.name}</span>
-                  <span style={{fontSize:"0.68rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:t.id==="custom"?"#f3f1ed":"#d4ede2",color:t.id==="custom"?"#6b7280":"#1b4332",flexShrink:0,marginLeft:8}}>{t.industry}</span>
+              <Card key={t.id} hover onClick={()=>onTemplate(t)} style={{padding:"18px 20px",cursor:"pointer"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                  <span style={{fontWeight:600,fontSize:"0.9rem"}}>{t.name}</span>
+                  <span style={{fontSize:"0.65rem",fontWeight:600,padding:"2px 8px",borderRadius:100,background:t.id==="custom"?"#f3f1ed":"#d4ede2",color:t.id==="custom"?"#6b7280":"#1b4332",flexShrink:0,marginLeft:8}}>{t.industry}</span>
                 </div>
-                <p style={{fontSize:"0.8rem",color:"#6b7280",lineHeight:1.55,marginBottom:8}}>{t.description}</p>
-                {t.steps.length>0&&<div style={{fontSize:"0.75rem",color:"#3d4455"}}>{t.steps.length} steps · {t.steps.filter(s=>s.automatable).length} automatable</div>}
+                <p style={{fontSize:"0.78rem",color:"#6b7280",lineHeight:1.5,marginBottom:6}}>{t.description}</p>
+                {t.steps.length>0&&<div style={{fontSize:"0.72rem",color:"#3d4455"}}>{t.steps.length} steps · {t.steps.filter(s=>s.automatable).length} automatable</div>}
               </Card>
             ))}
           </div>
         </div>
 
-        <div style={{display:"flex",gap:40,justifyContent:"center",flexWrap:"wrap",paddingTop:36,borderTop:"1px solid #e5e2dc"}}>
+        <div style={{display:"flex",gap:40,justifyContent:"center",flexWrap:"wrap",paddingTop:28,borderTop:"1px solid #e5e2dc"}}>
           {[{num:"£847",label:"Average onboarding cost per client"},{num:"18.5 hrs",label:"Staff time per onboarding"},{num:"42%",label:"Of steps typically automatable"}].map((s,i)=>(
             <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
               <strong style={{fontFamily:"'Fraunces',serif",fontSize:"1.4rem",fontWeight:700,color:"#2d6a4f"}}>{s.num}</strong>
