@@ -484,18 +484,66 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
   );
 }
 
-function BuildScreen({ roles, steps, setSteps, processName, onNext, onBack }) {
+function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolume, setAnnualVolume, onNext, onBack, fromTemplate }) {
+  const [rolesOpen, setRolesOpen] = useState(false);
   const addStep=()=>setSteps([...steps,{id:Date.now(),name:"",roleId:roles[0]?.id||"",minutes:15,friction:"low",automatable:false}]);
   const updateStep=(i,f,v)=>{const u=[...steps];u[i]={...u[i],[f]:v};setSteps(u);};
   const removeStep=(i)=>setSteps(steps.filter((_,j)=>j!==i));
+  const addRole=()=>{const c=["#2d6a4f","#40916c","#52b788","#74c69d","#95d5b2"];setRoles([...roles,{id:`r-${Date.now()}`,name:"New Role",rate:40,color:c[roles.length%c.length]}]);};
+  const updateRole=(i,f,v)=>{const u=[...roles];u[i]={...u[i],[f]:v};setRoles(u);};
+  const removeRole=(i)=>{if(roles.length>1)setRoles(roles.filter((_,j)=>j!==i));};
   const totalMinutes=steps.reduce((s,st)=>s+st.minutes,0);
   const totalCost=steps.reduce((s,st)=>{const r=roles.find(rl=>rl.id===st.roleId);return s+(r?(st.minutes/60)*r.rate:0);},0);
 
   return (
     <div style={{maxWidth:780,margin:"0 auto",padding:"120px 24px 80px",position:"relative"}}>
-      <Badge>Step 2 of 3</Badge>
+      <Badge>Step {fromTemplate ? "1" : "2"} of {fromTemplate ? "2" : "3"}</Badge>
       <h2 style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Map the steps in "{processName}"</h2>
-      <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:32,lineHeight:1.7}}>Walk through the process from start to finish. Estimates are fine.</p>
+      <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:20,lineHeight:1.7}}>Walk through the process from start to finish. Estimates are fine.</p>
+
+      {/* Collapsible roles & settings panel */}
+      <Card style={{marginBottom:20,padding:0,overflow:"hidden"}}>
+        <button onClick={()=>setRolesOpen(!rolesOpen)} style={{width:"100%",display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <span style={{fontSize:"0.82rem",fontWeight:600,color:"#1a1f2e"}}>Team roles & rates</span>
+            <div style={{display:"flex",gap:6}}>
+              {roles.map(r=>(
+                <span key={r.id} style={{fontSize:"0.68rem",fontWeight:600,padding:"2px 8px",borderRadius:100,background:`${r.color}15`,color:r.color}}>
+                  {r.name.split(" ")[0]} £{r.rate}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:"0.72rem",color:"#6b7280"}}>{annualVolume}×/year</span>
+            <span style={{fontSize:"0.8rem",color:"#6b7280",transform:rolesOpen?"rotate(180deg)":"rotate(0)",transition:"transform 0.2s"}}>▾</span>
+          </div>
+        </button>
+        {rolesOpen && (
+          <div style={{padding:"0 20px 20px",borderTop:"1px solid #e5e2dc"}}>
+            <div style={{display:"flex",alignItems:"center",gap:12,marginTop:16,marginBottom:12}}>
+              <span style={{fontSize:"0.82rem",color:"#3d4455"}}>How many times per year?</span>
+              <NumberInput value={annualVolume} onChange={setAnnualVolume} suffix="/year"/>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280"}}>Hourly rates (fully loaded)</label>
+              <button onClick={addRole} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>+ Add role</button>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {roles.map((role,i)=>(
+                <div key={role.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:8,background:"#faf9f7"}}>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:role.color,flexShrink:0}}/>
+                  <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:1,minWidth:100,padding:"4px 8px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.85rem",outline:"none",background:"transparent"}}/>
+                  <NumberInput value={role.rate} onChange={v=>updateRole(i,"rate",v)} prefix="£" suffix="/hr"/>
+                  {roles.length>1&&<button onClick={()=>removeRole(i)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"0.9rem",padding:"0 2px"}}>×</button>}
+                </div>
+              ))}
+            </div>
+            <p style={{fontSize:"0.72rem",color:"#6b7280",marginTop:8}}>Fully-loaded rates include salary, employer NI, pension, and overhead allocation.</p>
+          </div>
+        )}
+      </Card>
+
       <div style={{position:"sticky",top:64,zIndex:50,background:"rgba(250,249,247,0.95)",backdropFilter:"blur(12px)",borderRadius:12,border:"1px solid #e5e2dc",padding:"14px 20px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
         <div style={{display:"flex",gap:24,flexWrap:"wrap"}}>
           <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Steps: <strong style={{color:"#1a1f2e"}}>{steps.length}</strong></span>
@@ -531,7 +579,7 @@ function BuildScreen({ roles, steps, setSteps, processName, onNext, onBack }) {
       </div>
       <button onClick={addStep} style={{width:"100%",padding:16,marginTop:12,borderRadius:12,border:"2px dashed #e5e2dc",background:"transparent",color:"#6b7280",fontSize:"0.9rem",fontWeight:500,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>+ Add step</button>
       <div style={{marginTop:32,display:"flex",justifyContent:"space-between"}}>
-        <Button onClick={onBack}>← Back</Button>
+        <Button onClick={onBack}>← {fromTemplate ? "Templates" : "Back"}</Button>
         <Button primary onClick={onNext} disabled={steps.filter(s=>s.name.trim()).length===0}>See the results →</Button>
       </div>
     </div>
@@ -778,7 +826,7 @@ export default function CostClock() {
 
         {screen==="welcome"&&<WelcomeScreen onTemplate={handleTemplate} savedProcesses={saved} onLoadSaved={handleLoad} onDeleteSaved={handleDelete} onSignIn={()=>setShowAuth(true)}/>}
         {screen==="setup"&&<SetupScreen roles={roles} setRoles={setRoles} processName={processName} setProcessName={setProcessName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("build")} onBack={reset}/>}
-        {screen==="build"&&<BuildScreen roles={roles} steps={steps} setSteps={setSteps} processName={processName} onNext={()=>setScreen("results")} onBack={()=>setScreen("setup")}/>}
+        {screen==="build"&&<BuildScreen roles={roles} setRoles={setRoles} steps={steps} setSteps={setSteps} processName={processName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("results")} onBack={()=>setScreen(templateUsed?"welcome":"setup")} fromTemplate={!!templateUsed}/>}
         {screen==="results"&&<ResultsScreen roles={roles} steps={steps} processName={processName} annualVolume={annualVolume} templateUsed={templateUsed} onBack={()=>setScreen("build")} onReset={reset} onSave={handleSave} isSaved={savedIdx!==null}/>}
 
         <footer style={{padding:"30px 24px",textAlign:"center",fontSize:"0.78rem",color:"#6b7280",borderTop:"1px solid #e5e2dc"}}>
