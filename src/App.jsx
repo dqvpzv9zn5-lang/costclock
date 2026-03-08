@@ -248,13 +248,13 @@ function Card({ children, style, hover, onClick }) {
 function NumberInput({ value, onChange, prefix, suffix, min=0 }) {
   return <div style={{display:"flex",alignItems:"center",gap:4}}>
     {prefix&&<span style={{fontSize:"0.85rem",color:"#6b7280",fontWeight:500}}>{prefix}</span>}
-    <input type="number" value={value} min={min} onChange={e=>onChange(Number(e.target.value)||0)} style={{width:70,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#faf9f7",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.95rem",color:"#1a1f2e",outline:"none",textAlign:"center"}}/>
+    <input type="number" value={value} min={min} onChange={e=>onChange(Number(e.target.value)||0)} style={{width:70,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.95rem",color:"#1a1f2e",outline:"none",textAlign:"center"}}/>
     {suffix&&<span style={{fontSize:"0.8rem",color:"#6b7280"}}>{suffix}</span>}
   </div>;
 }
 
 function Select({ value, onChange, options, style }) {
-  return <select value={value} onChange={e=>onChange(e.target.value)} style={{padding:"8px 12px",borderRadius:8,border:"1px solid #e5e2dc",background:"#faf9f7",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",color:"#1a1f2e",outline:"none",cursor:"pointer",...style}}>
+  return <select value={value} onChange={e=>onChange(e.target.value)} style={{padding:"8px 12px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",color:"#1a1f2e",outline:"none",cursor:"pointer",...style}}>
     {options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
   </select>;
 }
@@ -494,7 +494,7 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:36,lineHeight:1.7}}>Define the roles and their fully-loaded hourly rates. UK averages are pre-filled.</p>
       <Card style={{marginBottom:20}}>
         <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280",display:"block",marginBottom:10}}>Process name</label>
-        <input type="text" value={processName} onChange={e=>setProcessName(e.target.value)} placeholder="e.g. Client Onboarding" style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #e5e2dc",background:"#faf9f7",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",marginBottom:16,boxSizing:"border-box"}}/>
+        <input type="text" value={processName} onChange={e=>setProcessName(e.target.value)} placeholder="e.g. Client Onboarding" style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",marginBottom:16,boxSizing:"border-box"}}/>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <span style={{fontSize:"0.85rem",color:"#3d4455"}}>How many times per year?</span>
           <NumberInput value={annualVolume} onChange={setAnnualVolume} suffix="/year"/>
@@ -570,7 +570,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               {roles.map((role,i)=>{const rc=getRoleColor(role,roles);return(
-                <div key={role.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:8,background:"#faf9f7"}}>
+                <div key={role.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:8,background:"#EFEFEF"}}>
                   <div style={{width:8,height:8,borderRadius:"50%",background:rc,flexShrink:0}}/>
                   <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:1,minWidth:100,padding:"4px 8px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.85rem",outline:"none",background:"transparent"}}/>
                   <NumberInput value={role.rate} onChange={v=>updateRole(i,"rate",v)} prefix="£" suffix="/hr"/>
@@ -837,7 +837,7 @@ export default function CostClock() {
 
   return (
     <AuthContext.Provider value={authCtx}>
-      <div style={{background:"#faf9f7",minHeight:"100vh",position:"relative"}}>
+      <div style={{background:"#EFEFEF",minHeight:"100vh",position:"relative"}}>
         <TopoBg />
         {showAuth&&<AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={handleAuth}/>}
 
