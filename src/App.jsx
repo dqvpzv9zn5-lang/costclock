@@ -535,7 +535,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
   const totalCost=steps.reduce((s,st)=>{const r=roles.find(rl=>rl.id===st.roleId);return s+(r?(st.minutes/60)*r.rate:0);},0);
 
   return (
-    <div style={{maxWidth:780,margin:"0 auto",padding:"120px 24px 80px",position:"relative"}}>
+    <div style={{maxWidth:900,margin:"0 auto",padding:"120px 24px 80px",position:"relative"}}>
       <Badge>Step {fromTemplate ? "1" : "2"} of {fromTemplate ? "2" : "3"}</Badge>
       <h2 style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Map the steps in "{processName}"</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:20,lineHeight:1.7}}>Walk through the process from start to finish. Estimates are fine.</p>
@@ -601,13 +601,13 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
                 <div style={{display:"flex",gap:10,marginTop:12,flexWrap:"wrap",alignItems:"center"}}>
                   <Select value={step.roleId} onChange={v=>updateStep(idx,"roleId",v)} options={roles.map(r=>({value:r.id,label:r.name}))} style={{minWidth:130}}/>
                   <NumberInput value={step.minutes} onChange={v=>updateStep(idx,"minutes",v)} suffix="min" min={1}/>
-                  <Select value={step.friction} onChange={v=>updateStep(idx,"friction",v)} options={FRICTION_LEVELS.map(f=>({value:f.value,label:f.label}))} style={{minWidth:90}}/>
+                  <Select value={step.friction} onChange={v=>updateStep(idx,"friction",v)} options={FRICTION_LEVELS.map(f=>({value:f.value,label:`${f.label} friction`}))} style={{minWidth:110}}/>
                   <Select value={step.workType||"manual"} onChange={v=>updateStep(idx,"workType",v)} options={WORK_TYPES.map(w=>({value:w.value,label:`${w.icon} ${w.short}`}))} style={{minWidth:100,background:wt.bg,color:wt.color,fontWeight:600,border:`1px solid ${wt.color}30`}}/>
                 </div>
               </div>
-              <div style={{textAlign:"right",minWidth:60}}>
-                <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.05rem",color:rc}}>£{cost.toFixed(0)}</div>
-                <div style={{fontSize:"0.72rem",color:"#6b7280"}}>{step.minutes}m</div>
+              <div style={{textAlign:"right",minWidth:70}}>
+                <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.3rem",color:rc}}>£{cost.toFixed(0)}</div>
+                <div style={{fontSize:"0.75rem",color:"#6b7280"}}>{step.minutes}m</div>
               </div>
               <button onClick={()=>removeStep(idx)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1.1rem",padding:"0 4px",alignSelf:"flex-start"}}>×</button>
             </div>
