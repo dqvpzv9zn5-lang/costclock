@@ -18,11 +18,42 @@ const TopoBg = ({dark=false}) => (
 // CONSTANTS
 // ═══════════════════════════════════════════════════
 const DEFAULT_ROLES = [
-  { id: "partner", name: "Partner / Owner", rate: 125, color: "#1b4332" },
-  { id: "manager", name: "Manager", rate: 75, color: "#2d6a4f" },
-  { id: "senior", name: "Senior / Qualified", rate: 45, color: "#40916c" },
-  { id: "junior", name: "Junior / Trainee", rate: 32, color: "#52b788" },
-  { id: "admin", name: "Admin / Support", rate: 28, color: "#74c69d" },
+  { id: "partner", name: "Partner / Owner", rate: 125 },
+  { id: "manager", name: "Manager", rate: 75 },
+  { id: "senior", name: "Senior / Qualified", rate: 45 },
+  { id: "junior", name: "Junior / Trainee", rate: 32 },
+  { id: "admin", name: "Admin / Support", rate: 28 },
+];
+
+// Dynamic role colors: red (expensive) → amber → green (cheap)
+function getRoleColor(role, allRoles) {
+  if (!allRoles || allRoles.length === 0) return "#6b7280";
+  const rates = allRoles.map(r => r.rate).sort((a, b) => b - a);
+  const maxRate = rates[0];
+  const minRate = rates[rates.length - 1];
+  if (maxRate === minRate) return "#c4942a";
+  const t = (role.rate - minRate) / (maxRate - minRate); // 1 = most expensive, 0 = cheapest
+  // Interpolate: green(0) → amber(0.5) → red(1)
+  if (t <= 0.5) {
+    const p = t * 2;
+    const r = Math.round(45 + p * (196 - 45));
+    const g = Math.round(106 + p * (148 - 106));
+    const b = Math.round(79 + p * (42 - 79));
+    return `rgb(${r},${g},${b})`;
+  } else {
+    const p = (t - 0.5) * 2;
+    const r = Math.round(196 + p * (184 - 196));
+    const g = Math.round(148 + p * (74 - 148));
+    const b = Math.round(42 + p * (90 - 42));
+    return `rgb(${r},${g},${b})`;
+  }
+}
+
+// Work type categories — replaces binary "automatable" flag
+const WORK_TYPES = [
+  { value: "manual", label: "Manual / Repetitive", short: "Manual", color: "#c4942a", bg: "#faf0d6", icon: "⟳", saveable: true, desc: "Same thing every time — data entry, standard emails, filing" },
+  { value: "waiting", label: "Waiting / Chasing", short: "Waiting", color: "#b84a5a", bg: "#f5e0e3", icon: "⏳", saveable: true, desc: "Blocked on someone else — chasing docs, awaiting approval" },
+  { value: "decision", label: "Decision / Judgement", short: "Decision", color: "#2d6a4f", bg: "#d4ede2", icon: "◆", saveable: false, desc: "Needs human expertise — review, sign-off, advisory" },
 ];
 
 const FRICTION_LEVELS = [
@@ -40,118 +71,118 @@ const TEMPLATES = [
     description: "Full 21-step client onboarding from enquiry to first deliverable.",
     annualVolume: 80,
     steps: [
-      { name: "Enquiry received & logged", roleId: "admin", minutes: 10, friction: "low", automatable: true },
-      { name: "Initial qualification call", roleId: "partner", minutes: 20, friction: "medium", automatable: false },
-      { name: "Send information pack", roleId: "admin", minutes: 15, friction: "low", automatable: true },
-      { name: "Follow-up & scheduling", roleId: "admin", minutes: 25, friction: "high", automatable: true },
-      { name: "Prepare fee proposal", roleId: "manager", minutes: 45, friction: "medium", automatable: true },
-      { name: "Internal review & sign-off", roleId: "partner", minutes: 15, friction: "low", automatable: false },
-      { name: "Send proposal to client", roleId: "admin", minutes: 10, friction: "low", automatable: true },
-      { name: "Client review period (chasing)", roleId: "admin", minutes: 30, friction: "high", automatable: true },
-      { name: "Engagement letter signing", roleId: "admin", minutes: 20, friction: "high", automatable: true },
-      { name: "ID verification request", roleId: "admin", minutes: 15, friction: "medium", automatable: true },
-      { name: "AML screening", roleId: "manager", minutes: 30, friction: "medium", automatable: true },
-      { name: "Risk assessment", roleId: "manager", minutes: 20, friction: "low", automatable: false },
-      { name: "Compliance sign-off", roleId: "partner", minutes: 10, friction: "low", automatable: false },
-      { name: "Send document request list", roleId: "senior", minutes: 20, friction: "medium", automatable: true },
-      { name: "Chase missing documents", roleId: "admin", minutes: 45, friction: "very-high", automatable: true },
-      { name: "Upload & organise documents", roleId: "junior", minutes: 30, friction: "medium", automatable: true },
-      { name: "Create client in practice mgmt", roleId: "admin", minutes: 20, friction: "medium", automatable: true },
-      { name: "Set up in Xero / accounting software", roleId: "senior", minutes: 30, friction: "medium", automatable: true },
-      { name: "Configure recurring tasks & deadlines", roleId: "manager", minutes: 20, friction: "low", automatable: true },
-      { name: "Assign team & notify", roleId: "manager", minutes: 10, friction: "low", automatable: true },
-      { name: "Welcome call with client", roleId: "manager", minutes: 30, friction: "low", automatable: false },
+      { name: "Enquiry received & logged", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Initial qualification call", roleId: "partner", minutes: 20, friction: "medium", workType: "decision" },
+      { name: "Send information pack", roleId: "admin", minutes: 15, friction: "low", workType: "manual" },
+      { name: "Follow-up & scheduling", roleId: "admin", minutes: 25, friction: "high", workType: "waiting" },
+      { name: "Prepare fee proposal", roleId: "manager", minutes: 45, friction: "medium", workType: "manual" },
+      { name: "Internal review & sign-off", roleId: "partner", minutes: 15, friction: "low", workType: "decision" },
+      { name: "Send proposal to client", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Client review period (chasing)", roleId: "admin", minutes: 30, friction: "high", workType: "waiting" },
+      { name: "Engagement letter signing", roleId: "admin", minutes: 20, friction: "high", workType: "manual" },
+      { name: "ID verification request", roleId: "admin", minutes: 15, friction: "medium", workType: "manual" },
+      { name: "AML screening", roleId: "manager", minutes: 30, friction: "medium", workType: "manual" },
+      { name: "Risk assessment", roleId: "manager", minutes: 20, friction: "low", workType: "decision" },
+      { name: "Compliance sign-off", roleId: "partner", minutes: 10, friction: "low", workType: "decision" },
+      { name: "Send document request list", roleId: "senior", minutes: 20, friction: "medium", workType: "manual" },
+      { name: "Chase missing documents", roleId: "admin", minutes: 45, friction: "very-high", workType: "waiting" },
+      { name: "Upload & organise documents", roleId: "junior", minutes: 30, friction: "medium", workType: "manual" },
+      { name: "Create client in practice mgmt", roleId: "admin", minutes: 20, friction: "medium", workType: "manual" },
+      { name: "Set up in Xero / accounting software", roleId: "senior", minutes: 30, friction: "medium", workType: "manual" },
+      { name: "Configure recurring tasks & deadlines", roleId: "manager", minutes: 20, friction: "low", workType: "manual" },
+      { name: "Assign team & notify", roleId: "manager", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Welcome call with client", roleId: "manager", minutes: 30, friction: "low", workType: "decision" },
     ],
   },
   {
     id: "tax-return", name: "Tax Return Filing", industry: "Accounting",
     description: "End-to-end tax return from data collection to HMRC submission.", annualVolume: 200,
     steps: [
-      { name: "Send tax return checklist to client", roleId: "admin", minutes: 10, friction: "low", automatable: true },
-      { name: "Chase client for information", roleId: "admin", minutes: 30, friction: "very-high", automatable: true },
-      { name: "Review documents received", roleId: "senior", minutes: 20, friction: "medium", automatable: false },
-      { name: "Request missing information", roleId: "senior", minutes: 15, friction: "high", automatable: true },
-      { name: "Prepare tax computation", roleId: "senior", minutes: 90, friction: "low", automatable: false },
-      { name: "Manager review", roleId: "manager", minutes: 30, friction: "low", automatable: false },
-      { name: "Amend and finalise", roleId: "senior", minutes: 20, friction: "low", automatable: false },
-      { name: "Partner sign-off", roleId: "partner", minutes: 10, friction: "low", automatable: false },
-      { name: "Send to client for approval", roleId: "admin", minutes: 10, friction: "low", automatable: true },
-      { name: "Chase client approval", roleId: "admin", minutes: 20, friction: "high", automatable: true },
-      { name: "File with HMRC", roleId: "senior", minutes: 15, friction: "low", automatable: true },
-      { name: "Confirm filing & archive", roleId: "admin", minutes: 10, friction: "low", automatable: true },
+      { name: "Send tax return checklist to client", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Chase client for information", roleId: "admin", minutes: 30, friction: "very-high", workType: "waiting" },
+      { name: "Review documents received", roleId: "senior", minutes: 20, friction: "medium", workType: "decision" },
+      { name: "Request missing information", roleId: "senior", minutes: 15, friction: "high", workType: "manual" },
+      { name: "Prepare tax computation", roleId: "senior", minutes: 90, friction: "low", workType: "decision" },
+      { name: "Manager review", roleId: "manager", minutes: 30, friction: "low", workType: "decision" },
+      { name: "Amend and finalise", roleId: "senior", minutes: 20, friction: "low", workType: "decision" },
+      { name: "Partner sign-off", roleId: "partner", minutes: 10, friction: "low", workType: "decision" },
+      { name: "Send to client for approval", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Chase client approval", roleId: "admin", minutes: 20, friction: "high", workType: "waiting" },
+      { name: "File with HMRC", roleId: "senior", minutes: 15, friction: "low", workType: "manual" },
+      { name: "Confirm filing & archive", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
     ],
   },
   {
     id: "new-matter-legal", name: "New Matter Opening", industry: "Legal",
     description: "Opening a new legal matter from instruction to active case management.", annualVolume: 120,
     steps: [
-      { name: "Receive instruction & log enquiry", roleId: "admin", minutes: 15, friction: "low", automatable: true },
-      { name: "Conflict of interest check", roleId: "manager", minutes: 25, friction: "medium", automatable: true },
-      { name: "Client ID verification & AML", roleId: "admin", minutes: 20, friction: "medium", automatable: true },
-      { name: "Prepare engagement letter", roleId: "manager", minutes: 30, friction: "medium", automatable: true },
-      { name: "Send letter & chase signature", roleId: "admin", minutes: 20, friction: "high", automatable: true },
-      { name: "Open matter in case management", roleId: "admin", minutes: 15, friction: "medium", automatable: true },
-      { name: "Set up in accounts system", roleId: "admin", minutes: 10, friction: "medium", automatable: true },
-      { name: "Request client documents", roleId: "senior", minutes: 15, friction: "medium", automatable: true },
-      { name: "Chase missing documents", roleId: "admin", minutes: 35, friction: "very-high", automatable: true },
-      { name: "Initial file review", roleId: "senior", minutes: 45, friction: "low", automatable: false },
-      { name: "Assign fee earner & notify team", roleId: "manager", minutes: 10, friction: "low", automatable: true },
-      { name: "Set key dates & court deadlines", roleId: "senior", minutes: 15, friction: "medium", automatable: true },
+      { name: "Receive instruction & log enquiry", roleId: "admin", minutes: 15, friction: "low", workType: "manual" },
+      { name: "Conflict of interest check", roleId: "manager", minutes: 25, friction: "medium", workType: "manual" },
+      { name: "Client ID verification & AML", roleId: "admin", minutes: 20, friction: "medium", workType: "manual" },
+      { name: "Prepare engagement letter", roleId: "manager", minutes: 30, friction: "medium", workType: "manual" },
+      { name: "Send letter & chase signature", roleId: "admin", minutes: 20, friction: "high", workType: "waiting" },
+      { name: "Open matter in case management", roleId: "admin", minutes: 15, friction: "medium", workType: "manual" },
+      { name: "Set up in accounts system", roleId: "admin", minutes: 10, friction: "medium", workType: "manual" },
+      { name: "Request client documents", roleId: "senior", minutes: 15, friction: "medium", workType: "manual" },
+      { name: "Chase missing documents", roleId: "admin", minutes: 35, friction: "very-high", workType: "waiting" },
+      { name: "Initial file review", roleId: "senior", minutes: 45, friction: "low", workType: "decision" },
+      { name: "Assign fee earner & notify team", roleId: "manager", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Set key dates & court deadlines", roleId: "senior", minutes: 15, friction: "medium", workType: "manual" },
     ],
   },
   {
     id: "placement-recruitment", name: "Candidate Placement", industry: "Recruitment",
     description: "From sourcing through to placement confirmation and invoicing.", annualVolume: 60,
     steps: [
-      { name: "Receive job brief from client", roleId: "manager", minutes: 20, friction: "low", automatable: false },
-      { name: "Post job across boards", roleId: "admin", minutes: 25, friction: "medium", automatable: true },
-      { name: "Screen incoming applications", roleId: "senior", minutes: 45, friction: "medium", automatable: false },
-      { name: "Shortlist & contact candidates", roleId: "senior", minutes: 30, friction: "low", automatable: false },
-      { name: "Schedule interviews", roleId: "admin", minutes: 20, friction: "high", automatable: true },
-      { name: "Prep candidates for interview", roleId: "senior", minutes: 15, friction: "low", automatable: false },
-      { name: "Collect interview feedback", roleId: "admin", minutes: 15, friction: "medium", automatable: true },
-      { name: "Request references", roleId: "admin", minutes: 10, friction: "low", automatable: true },
-      { name: "Chase references", roleId: "admin", minutes: 30, friction: "very-high", automatable: true },
-      { name: "Right-to-work & compliance docs", roleId: "admin", minutes: 20, friction: "high", automatable: true },
-      { name: "Prepare offer & negotiate", roleId: "manager", minutes: 30, friction: "low", automatable: false },
-      { name: "Generate contract & send", roleId: "admin", minutes: 15, friction: "medium", automatable: true },
-      { name: "Raise invoice to client", roleId: "admin", minutes: 10, friction: "low", automatable: true },
+      { name: "Receive job brief from client", roleId: "manager", minutes: 20, friction: "low", workType: "decision" },
+      { name: "Post job across boards", roleId: "admin", minutes: 25, friction: "medium", workType: "manual" },
+      { name: "Screen incoming applications", roleId: "senior", minutes: 45, friction: "medium", workType: "decision" },
+      { name: "Shortlist & contact candidates", roleId: "senior", minutes: 30, friction: "low", workType: "decision" },
+      { name: "Schedule interviews", roleId: "admin", minutes: 20, friction: "high", workType: "manual" },
+      { name: "Prep candidates for interview", roleId: "senior", minutes: 15, friction: "low", workType: "decision" },
+      { name: "Collect interview feedback", roleId: "admin", minutes: 15, friction: "medium", workType: "manual" },
+      { name: "Request references", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Chase references", roleId: "admin", minutes: 30, friction: "very-high", workType: "waiting" },
+      { name: "Right-to-work & compliance docs", roleId: "admin", minutes: 20, friction: "high", workType: "manual" },
+      { name: "Prepare offer & negotiate", roleId: "manager", minutes: 30, friction: "low", workType: "decision" },
+      { name: "Generate contract & send", roleId: "admin", minutes: 15, friction: "medium", workType: "manual" },
+      { name: "Raise invoice to client", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
     ],
   },
   {
     id: "tenant-onboarding", name: "Tenant Onboarding", industry: "Property Management",
     description: "New tenant from viewing through to move-in.", annualVolume: 100,
     steps: [
-      { name: "Enquiry received & respond", roleId: "admin", minutes: 10, friction: "low", automatable: true },
-      { name: "Schedule & conduct viewing", roleId: "senior", minutes: 30, friction: "low", automatable: false },
-      { name: "Application form & ID collection", roleId: "admin", minutes: 20, friction: "medium", automatable: true },
-      { name: "Referencing check", roleId: "admin", minutes: 15, friction: "medium", automatable: true },
-      { name: "Chase outstanding references", roleId: "admin", minutes: 25, friction: "high", automatable: true },
-      { name: "Prepare tenancy agreement", roleId: "manager", minutes: 25, friction: "medium", automatable: true },
-      { name: "Send agreement & chase signature", roleId: "admin", minutes: 20, friction: "high", automatable: true },
-      { name: "Collect deposit & first month rent", roleId: "admin", minutes: 15, friction: "medium", automatable: true },
-      { name: "Register deposit with scheme", roleId: "admin", minutes: 10, friction: "low", automatable: true },
-      { name: "Inventory / check-in report", roleId: "senior", minutes: 60, friction: "low", automatable: false },
-      { name: "Set up in property management system", roleId: "admin", minutes: 15, friction: "medium", automatable: true },
-      { name: "Key handover & welcome pack", roleId: "admin", minutes: 20, friction: "low", automatable: false },
+      { name: "Enquiry received & respond", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Schedule & conduct viewing", roleId: "senior", minutes: 30, friction: "low", workType: "decision" },
+      { name: "Application form & ID collection", roleId: "admin", minutes: 20, friction: "medium", workType: "manual" },
+      { name: "Referencing check", roleId: "admin", minutes: 15, friction: "medium", workType: "manual" },
+      { name: "Chase outstanding references", roleId: "admin", minutes: 25, friction: "high", workType: "waiting" },
+      { name: "Prepare tenancy agreement", roleId: "manager", minutes: 25, friction: "medium", workType: "manual" },
+      { name: "Send agreement & chase signature", roleId: "admin", minutes: 20, friction: "high", workType: "waiting" },
+      { name: "Collect deposit & first month rent", roleId: "admin", minutes: 15, friction: "medium", workType: "manual" },
+      { name: "Register deposit with scheme", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Inventory / check-in report", roleId: "senior", minutes: 60, friction: "low", workType: "decision" },
+      { name: "Set up in property management system", roleId: "admin", minutes: 15, friction: "medium", workType: "manual" },
+      { name: "Key handover & welcome pack", roleId: "admin", minutes: 20, friction: "low", workType: "decision" },
     ],
   },
   {
     id: "client-review-ifa", name: "Annual Client Review", industry: "Financial Advice",
     description: "Ongoing client review cycle from preparation to implementation.", annualVolume: 150,
     steps: [
-      { name: "Pull client valuations from platforms", roleId: "admin", minutes: 25, friction: "high", automatable: true },
-      { name: "Prepare review pack", roleId: "senior", minutes: 30, friction: "medium", automatable: true },
-      { name: "Schedule review meeting", roleId: "admin", minutes: 15, friction: "medium", automatable: true },
-      { name: "Adviser pre-read & preparation", roleId: "partner", minutes: 20, friction: "low", automatable: false },
-      { name: "Conduct review meeting", roleId: "partner", minutes: 60, friction: "low", automatable: false },
-      { name: "Write up meeting notes & actions", roleId: "senior", minutes: 25, friction: "medium", automatable: false },
-      { name: "Draft suitability letter", roleId: "senior", minutes: 45, friction: "medium", automatable: true },
-      { name: "Compliance review of letter", roleId: "manager", minutes: 20, friction: "low", automatable: false },
-      { name: "Send letter to client for approval", roleId: "admin", minutes: 10, friction: "low", automatable: true },
-      { name: "Chase client approval", roleId: "admin", minutes: 20, friction: "high", automatable: true },
-      { name: "Submit platform transactions", roleId: "admin", minutes: 20, friction: "medium", automatable: true },
-      { name: "Confirm completion & update CRM", roleId: "admin", minutes: 10, friction: "low", automatable: true },
+      { name: "Pull client valuations from platforms", roleId: "admin", minutes: 25, friction: "high", workType: "manual" },
+      { name: "Prepare review pack", roleId: "senior", minutes: 30, friction: "medium", workType: "manual" },
+      { name: "Schedule review meeting", roleId: "admin", minutes: 15, friction: "medium", workType: "manual" },
+      { name: "Adviser pre-read & preparation", roleId: "partner", minutes: 20, friction: "low", workType: "decision" },
+      { name: "Conduct review meeting", roleId: "partner", minutes: 60, friction: "low", workType: "decision" },
+      { name: "Write up meeting notes & actions", roleId: "senior", minutes: 25, friction: "medium", workType: "decision" },
+      { name: "Draft suitability letter", roleId: "senior", minutes: 45, friction: "medium", workType: "manual" },
+      { name: "Compliance review of letter", roleId: "manager", minutes: 20, friction: "low", workType: "decision" },
+      { name: "Send letter to client for approval", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Chase client approval", roleId: "admin", minutes: 20, friction: "high", workType: "waiting" },
+      { name: "Submit platform transactions", roleId: "admin", minutes: 20, friction: "medium", workType: "manual" },
+      { name: "Confirm completion & update CRM", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
     ],
   },
   {
@@ -163,27 +194,35 @@ const TEMPLATES = [
 // ═══════════════════════════════════════════════════
 // UTILITY
 // ═══════════════════════════════════════════════════
+function isSaveable(step) {
+  const wt = WORK_TYPES.find(w => w.value === step.workType);
+  // Backwards compat: if step has old automatable field, use it
+  if (!wt && step.automatable !== undefined) return step.automatable;
+  return wt ? wt.saveable : false;
+}
+
 function calcCosts(roles, steps, annualVolume) {
   const totalCost = steps.reduce((s, st) => { const r = roles.find(rl => rl.id === st.roleId); return s + (r ? (st.minutes / 60) * r.rate : 0); }, 0);
-  const autoCost = steps.filter(s => s.automatable).reduce((s, st) => { const r = roles.find(rl => rl.id === st.roleId); return s + (r ? (st.minutes / 60) * r.rate : 0); }, 0);
-  return { totalCost, annualCost: totalCost * annualVolume, potentialSaving: autoCost * annualVolume * 0.7 };
+  const saveableCost = steps.filter(s => isSaveable(s)).reduce((s, st) => { const r = roles.find(rl => rl.id === st.roleId); return s + (r ? (st.minutes / 60) * r.rate : 0); }, 0);
+  return { totalCost, annualCost: totalCost * annualVolume, potentialSaving: saveableCost * annualVolume * 0.7 };
 }
 
 function generateReport(processName, roles, steps, annualVolume) {
   const { totalCost, annualCost, potentialSaving } = calcCosts(roles, steps, annualVolume);
   const totalMinutes = steps.reduce((s, st) => s + st.minutes, 0);
-  const autoSteps = steps.filter(s => s.automatable);
+  const saveableSteps = steps.filter(s => isSaveable(s));
   let t = `COSTCLOCK — PROCESS COST REPORT\nGenerated by CostClock (costclock.workthru.co.uk)\n${"═".repeat(56)}\n\n`;
   t += `Process:          ${processName}\nAnnual volume:    ${annualVolume}× per year\n\n`;
   t += `KEY FINDINGS\n${"─".repeat(40)}\n`;
   t += `Cost per run:          £${totalCost.toFixed(0)}\nTime per run:          ${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m\n`;
   t += `Annual cost:           £${annualCost.toLocaleString("en-GB",{maximumFractionDigits:0})}\n`;
-  t += `Automatable steps:     ${autoSteps.length} of ${steps.length}\nPotential annual saving: £${potentialSaving.toLocaleString("en-GB",{maximumFractionDigits:0})}\n\n`;
+  t += `Saving opportunities:  ${saveableSteps.length} of ${steps.length} steps\nPotential annual saving: £${potentialSaving.toLocaleString("en-GB",{maximumFractionDigits:0})}\n\n`;
   t += `STEP BREAKDOWN\n${"─".repeat(40)}\n`;
   steps.forEach((st, i) => {
     const r = roles.find(rl => rl.id === st.roleId);
     const c = r ? (st.minutes/60)*r.rate : 0;
-    t += `\n${String(i+1).padStart(2)}. ${st.name}\n    Owner: ${r?.name||"—"}  ·  Time: ${st.minutes}m  ·  Cost: £${c.toFixed(0)}  ·  Friction: ${st.friction}${st.automatable?"  ·  ✓ Automatable":""}\n`;
+    const wt = WORK_TYPES.find(w => w.value === st.workType);
+    t += `\n${String(i+1).padStart(2)}. ${st.name}\n    Owner: ${r?.name||"—"}  ·  Time: ${st.minutes}m  ·  Cost: £${c.toFixed(0)}  ·  Friction: ${st.friction}  ·  ${wt?.label||"Manual"}${isSaveable(st)?"  ★ Saving opportunity":""}\n`;
   });
   t += `\n${"═".repeat(56)}\n\nThis is one process. What about the rest?\nBook a free call: cal.com/workthru/15min\nworkthru.co.uk\n`;
   return t;
@@ -425,14 +464,14 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
                   <span style={{fontSize:"0.65rem",fontWeight:600,padding:"2px 8px",borderRadius:100,background:t.id==="custom"?"#f3f1ed":"#d4ede2",color:t.id==="custom"?"#6b7280":"#1b4332",flexShrink:0,marginLeft:8}}>{t.industry}</span>
                 </div>
                 <p style={{fontSize:"0.78rem",color:"#6b7280",lineHeight:1.5,marginBottom:6}}>{t.description}</p>
-                {t.steps.length>0&&<div style={{fontSize:"0.72rem",color:"#3d4455"}}>{t.steps.length} steps · {t.steps.filter(s=>s.automatable).length} automatable</div>}
+                {t.steps.length>0&&<div style={{fontSize:"0.72rem",color:"#3d4455"}}>{t.steps.length} steps · {t.steps.filter(s=>isSaveable(s)).length} saving opportunities</div>}
               </Card>
             ))}
           </div>
         </div>
 
         <div style={{display:"flex",gap:40,justifyContent:"center",flexWrap:"wrap",paddingTop:28,borderTop:"1px solid #e5e2dc"}}>
-          {[{num:"£847",label:"Average onboarding cost per client"},{num:"18.5 hrs",label:"Staff time per onboarding"},{num:"42%",label:"Of steps typically automatable"}].map((s,i)=>(
+          {[{num:"£847",label:"Average onboarding cost per client"},{num:"18.5 hrs",label:"Staff time per onboarding"},{num:"42%",label:"Of steps have saving potential"}].map((s,i)=>(
             <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
               <strong style={{fontFamily:"'Fraunces',serif",fontSize:"1.4rem",fontWeight:700,color:"#2d6a4f"}}>{s.num}</strong>
               <span style={{fontSize:"0.78rem",color:"#6b7280",fontWeight:500,maxWidth:140,textAlign:"center"}}>{s.label}</span>
@@ -486,7 +525,7 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
 
 function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolume, setAnnualVolume, onNext, onBack, fromTemplate }) {
   const [rolesOpen, setRolesOpen] = useState(false);
-  const addStep=()=>setSteps([...steps,{id:Date.now(),name:"",roleId:roles[0]?.id||"",minutes:15,friction:"low",automatable:false}]);
+  const addStep=()=>setSteps([...steps,{id:Date.now(),name:"",roleId:roles[0]?.id||"",minutes:15,friction:"low",workType:"manual"}]);
   const updateStep=(i,f,v)=>{const u=[...steps];u[i]={...u[i],[f]:v};setSteps(u);};
   const removeStep=(i)=>setSteps(steps.filter((_,j)=>j!==i));
   const addRole=()=>{const c=["#2d6a4f","#40916c","#52b788","#74c69d","#95d5b2"];setRoles([...roles,{id:`r-${Date.now()}`,name:"New Role",rate:40,color:c[roles.length%c.length]}]);};
@@ -507,11 +546,11 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <span style={{fontSize:"0.82rem",fontWeight:600,color:"#1a1f2e"}}>Team roles & rates</span>
             <div style={{display:"flex",gap:6}}>
-              {roles.map(r=>(
-                <span key={r.id} style={{fontSize:"0.68rem",fontWeight:600,padding:"2px 8px",borderRadius:100,background:`${r.color}15`,color:r.color}}>
+              {roles.map(r=>{const rc=getRoleColor(r,roles);return(
+                <span key={r.id} style={{fontSize:"0.68rem",fontWeight:600,padding:"2px 8px",borderRadius:100,background:`${rc}15`,color:rc}}>
                   {r.name.split(" ")[0]} £{r.rate}
                 </span>
-              ))}
+              )})}
             </div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -530,14 +569,14 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
               <button onClick={addRole} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>+ Add role</button>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              {roles.map((role,i)=>(
+              {roles.map((role,i)=>{const rc=getRoleColor(role,roles);return(
                 <div key={role.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:8,background:"#faf9f7"}}>
-                  <div style={{width:8,height:8,borderRadius:"50%",background:role.color,flexShrink:0}}/>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:rc,flexShrink:0}}/>
                   <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:1,minWidth:100,padding:"4px 8px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.85rem",outline:"none",background:"transparent"}}/>
                   <NumberInput value={role.rate} onChange={v=>updateRole(i,"rate",v)} prefix="£" suffix="/hr"/>
                   {roles.length>1&&<button onClick={()=>removeRole(i)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"0.9rem",padding:"0 2px"}}>×</button>}
                 </div>
-              ))}
+              )})}
             </div>
             <p style={{fontSize:"0.72rem",color:"#6b7280",marginTop:8}}>Fully-loaded rates include salary, employer NI, pension, and overhead allocation.</p>
           </div>
@@ -550,26 +589,24 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
           <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Time: <strong style={{color:"#1a1f2e"}}>{totalMinutes>=60?`${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m`:`${totalMinutes}m`}</strong></span>
           <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Cost: <strong style={{fontFamily:"'Fraunces',serif",color:"#2d6a4f"}}>£{totalCost.toFixed(0)}</strong></span>
         </div>
-        <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Automatable: <strong style={{color:"#2d6a4f"}}>{steps.filter(s=>s.automatable).length}/{steps.length}</strong></span>
+        <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Saving opportunities: <strong style={{color:"#c4942a"}}>{steps.filter(s=>isSaveable(s)).length}/{steps.length}</strong></span>
       </div>
       <div style={{display:"flex",flexDirection:"column",gap:10}}>
-        {steps.map((step,idx)=>{const role=roles.find(r=>r.id===step.roleId);const cost=role?(step.minutes/60)*role.rate:0;return(
-          <Card key={step.id} style={{padding:"18px 22px",borderLeft:`4px solid ${role?.color||"#e5e2dc"}`}}>
+        {steps.map((step,idx)=>{const role=roles.find(r=>r.id===step.roleId);const rc=role?getRoleColor(role,roles):"#e5e2dc";const cost=role?(step.minutes/60)*role.rate:0;const wt=WORK_TYPES.find(w=>w.value===step.workType)||WORK_TYPES[0];return(
+          <Card key={step.id} style={{padding:"18px 22px",borderLeft:`4px solid ${rc}`}}>
             <div style={{display:"flex",gap:12,alignItems:"flex-start",flexWrap:"wrap"}}>
               <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.9rem",color:"#6b7280",minWidth:24}}>{idx+1}</span>
               <div style={{flex:1,minWidth:200}}>
                 <input type="text" value={step.name} onChange={e=>updateStep(idx,"name",e.target.value)} placeholder="What happens at this step?" style={{width:"100%",padding:"6px 0",border:"none",borderBottom:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",background:"transparent"}}/>
-                <div style={{display:"flex",gap:12,marginTop:12,flexWrap:"wrap",alignItems:"center"}}>
+                <div style={{display:"flex",gap:10,marginTop:12,flexWrap:"wrap",alignItems:"center"}}>
                   <Select value={step.roleId} onChange={v=>updateStep(idx,"roleId",v)} options={roles.map(r=>({value:r.id,label:r.name}))} style={{minWidth:140}}/>
                   <NumberInput value={step.minutes} onChange={v=>updateStep(idx,"minutes",v)} suffix="min" min={1}/>
                   <Select value={step.friction} onChange={v=>updateStep(idx,"friction",v)} options={FRICTION_LEVELS.map(f=>({value:f.value,label:`${f.label} friction`}))} style={{minWidth:120}}/>
-                  <label style={{display:"flex",alignItems:"center",gap:6,fontSize:"0.82rem",color:step.automatable?"#2d6a4f":"#6b7280",fontWeight:step.automatable?600:400,cursor:"pointer"}}>
-                    <input type="checkbox" checked={step.automatable} onChange={e=>updateStep(idx,"automatable",e.target.checked)} style={{accentColor:"#2d6a4f"}}/> Automatable
-                  </label>
+                  <Select value={step.workType||"manual"} onChange={v=>updateStep(idx,"workType",v)} options={WORK_TYPES.map(w=>({value:w.value,label:`${w.icon} ${w.short}`}))} style={{minWidth:110,background:wt.bg,color:wt.color,fontWeight:600,border:`1px solid ${wt.color}30`}}/>
                 </div>
               </div>
               <div style={{textAlign:"right",minWidth:60}}>
-                <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.05rem",color:"#2d6a4f"}}>£{cost.toFixed(0)}</div>
+                <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.05rem",color:rc}}>£{cost.toFixed(0)}</div>
                 <div style={{fontSize:"0.72rem",color:"#6b7280"}}>{step.minutes}m</div>
               </div>
               <button onClick={()=>removeStep(idx)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1.1rem",padding:"0 4px",alignSelf:"flex-start"}}>×</button>
@@ -596,11 +633,11 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
   const {totalCost,annualCost,potentialSaving}=calcCosts(roles,steps,annualVolume);
   const totalMinutes=steps.reduce((s,st)=>s+st.minutes,0);
   const totalHours=totalMinutes/60;
-  const autoSteps=steps.filter(s=>s.automatable);
-  const autoMins=autoSteps.reduce((s,st)=>s+st.minutes,0);
+  const saveableSteps=steps.filter(s=>isSaveable(s));
+  const saveableMins=saveableSteps.reduce((s,st)=>s+st.minutes,0);
   const highFriction=steps.filter(s=>s.friction==="high"||s.friction==="very-high");
 
-  const roleBreakdown=roles.map(role=>{const rs=steps.filter(s=>s.roleId===role.id);const m=rs.reduce((s,st)=>s+st.minutes,0);return{...role,mins:m,cost:(m/60)*role.rate,stepCount:rs.length};}).filter(r=>r.stepCount>0).sort((a,b)=>b.cost-a.cost);
+  const roleBreakdown=roles.map(role=>{const rc=getRoleColor(role,roles);const rs=steps.filter(s=>s.roleId===role.id);const m=rs.reduce((s,st)=>s+st.minutes,0);return{...role,color:rc,mins:m,cost:(m/60)*role.rate,stepCount:rs.length};}).filter(r=>r.stepCount>0).sort((a,b)=>b.cost-a.cost);
   const maxRC=Math.max(...roleBreakdown.map(r=>r.cost));
 
   const handleSave=()=>{if(!auth.user){setShowAuth(true);}else{onSave();}};
@@ -654,15 +691,15 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
           <div style={{padding:"20px 24px 0"}}><h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1.05rem",fontWeight:700,marginBottom:4}}>Full step breakdown</h3></div>
           <div style={{overflowX:"auto"}}>
             <table style={{width:"100%",borderCollapse:"collapse"}}>
-              <thead><tr>{["Step","Owner","Time","Cost","Friction","Auto?"].map(h=><th key={h} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"12px 16px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600}}>{h}</th>)}</tr></thead>
+              <thead><tr>{["Step","Owner","Time","Cost","Friction","Type"].map(h=><th key={h} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"12px 16px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600}}>{h}</th>)}</tr></thead>
               <tbody>{steps.map(step=>{const role=roles.find(r=>r.id===step.roleId);const cost=role?(step.minutes/60)*role.rate:0;return(
                 <tr key={step.id} style={{borderBottom:"1px solid #e5e2dc"}}>
                   <td style={{padding:"14px 16px",fontSize:"0.88rem",fontWeight:500,color:"#1a1f2e"}}>{step.name}</td>
                   <td style={{padding:"14px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{role?.name||"—"}</td>
                   <td style={{padding:"14px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{step.minutes}m</td>
-                  <td style={{padding:"14px 16px",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.9rem",color:"#2d6a4f"}}>£{cost.toFixed(0)}</td>
+                  <td style={{padding:"14px 16px",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.9rem",color:role?getRoleColor(role,roles):"#2d6a4f"}}>£{cost.toFixed(0)}</td>
                   <td style={{padding:"14px 16px"}}><FrictionBadge level={step.friction}/></td>
-                  <td style={{padding:"14px 16px",color:step.automatable?"#2d6a4f":"#e5e2dc",fontWeight:700,fontSize:"0.9rem"}}>{step.automatable?"✓":"—"}</td>
+                  <td style={{padding:"14px 16px"}}>{(()=>{const wt=WORK_TYPES.find(w=>w.value===step.workType)||WORK_TYPES[0];return <span style={{fontSize:"0.72rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:wt.bg,color:wt.color}}>{wt.icon} {wt.short}</span>;})()}</td>
                 </tr>);})}</tbody>
             </table>
           </div>
@@ -670,7 +707,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
 
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:16,marginBottom:20,...anim(0.4)}}>
           <Card style={{background:"#f5e0e3",border:"1px solid #e5c4c9"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#b84a5a",marginBottom:8}}>High-friction steps</div><div style={{fontFamily:"'Fraunces',serif",fontSize:"1.8rem",fontWeight:700,color:"#b84a5a"}}>{highFriction.length}</div><div style={{fontSize:"0.8rem",color:"#8a4a57",marginTop:4}}>of {steps.length} steps</div></Card>
-          <Card style={{background:"#d4ede2",border:"1px solid #b0d9c9"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#1b4332",marginBottom:8}}>Automatable steps</div><div style={{fontFamily:"'Fraunces',serif",fontSize:"1.8rem",fontWeight:700,color:"#1b4332"}}>{autoSteps.length}</div><div style={{fontSize:"0.8rem",color:"#2d6a4f",marginTop:4}}>saving {autoMins}m per run</div></Card>
+          <Card style={{background:"#faf0d6",border:"1px solid #e8dbb8"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#8a6a1e",marginBottom:8}}>Saving opportunities</div><div style={{fontFamily:"'Fraunces',serif",fontSize:"1.8rem",fontWeight:700,color:"#8a6a1e"}}>{saveableSteps.length}</div><div style={{fontSize:"0.8rem",color:"#8a6a1e",marginTop:4}}>saving {saveableMins}m per run</div></Card>
           <Card style={{background:"#faf0d6",border:"1px solid #e8dbb8"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#8a6a1e",marginBottom:8}}>Most expensive role</div><div style={{fontFamily:"'Fraunces',serif",fontSize:"1.3rem",fontWeight:700,color:"#8a6a1e"}}>{roleBreakdown[0]?.name}</div><div style={{fontSize:"0.8rem",color:"#8a6a1e",marginTop:4}}>£{roleBreakdown[0]?.cost.toFixed(0)} per run</div></Card>
         </div>
 
