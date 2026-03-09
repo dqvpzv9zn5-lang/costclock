@@ -280,9 +280,46 @@ function SalaryInput({ value, onChange }) {
 }
 
 function Select({ value, onChange, options, style }) {
-  return <select value={value} onChange={e=>onChange(e.target.value)} style={{padding:"8px 40px 8px 12px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",color:"#1a1f2e",outline:"none",cursor:"pointer",...style}}>
-    {options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
-  </select>;
+  const customSelectStyle = {
+    // 1. Remove the stubborn native arrow
+    WebkitAppearance: "none",
+    MozAppearance: "none",
+    appearance: "none",
+
+    // 2. Add a custom SVG arrow (Dark color to match your #1a1f2e text)
+    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a1f2e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "14px",
+    
+    // 3. Position the arrow 12px from the right and centered vertically
+    backgroundPosition: "right 12px center",
+
+    // 4. Your original styles (adjusted right padding to 32px so text doesn't hit the arrow)
+    padding: "8px 32px 8px 12px",
+    borderRadius: 8,
+    border: "1px solid #e5e2dc",
+    background: "#EFEFEF",
+    fontFamily: "'DM Sans',sans-serif",
+    fontSize: "0.88rem",
+    color: "#1a1f2e",
+    outline: "none",
+    cursor: "pointer",
+    ...style
+  };
+
+  return (
+    <select 
+      value={value} 
+      onChange={e => onChange(e.target.value)} 
+      style={customSelectStyle}
+    >
+      {options.map(o => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  );
 }
 
 function Button({ children, primary, small, onClick, style, disabled }) {
