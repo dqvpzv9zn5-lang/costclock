@@ -254,7 +254,7 @@ function Card({ children, style, hover, onClick }) {
 function NumberInput({ value, onChange, prefix, suffix, min=0 }) {
   return <div style={{display:"flex",alignItems:"center",gap:4}}>
     {prefix&&<span style={{fontSize:"0.85rem",color:"#6b7280",fontWeight:500}}>{prefix}</span>}
-    <input type="number" value={value} min={min} onChange={e=>onChange(Number(e.target.value)||0)} style={{width:70,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.95rem",color:"#1a1f2e",outline:"none",textAlign:"center"}}/>
+    <input type="number" value={value} min={min} onChange={e=>onChange(Number(e.target.value)||0)} style={{width:70,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.95rem",color:"#1a1f2e",outline:"none",textAlign:"center"}}/>
     {suffix&&<span style={{fontSize:"0.8rem",color:"#6b7280"}}>{suffix}</span>}
   </div>;
 }
