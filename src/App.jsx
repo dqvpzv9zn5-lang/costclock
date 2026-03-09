@@ -17,12 +17,18 @@ const TopoBg = ({dark=false}) => (
 
 // CONSTANTS
 // ═══════════════════════════════════════════════════
+const BURDEN_MULTIPLIER = 1.3; // Employer NI + pension + overhead
+const PRODUCTIVE_HOURS = 1650; // 220 working days × 7.5 hours
+
+function salaryToRate(salary) { return Math.round((salary * BURDEN_MULTIPLIER) / PRODUCTIVE_HOURS * 100) / 100; }
+function rateToSalary(rate) { return Math.round((rate * PRODUCTIVE_HOURS) / BURDEN_MULTIPLIER); }
+
 const DEFAULT_ROLES = [
-  { id: "partner", name: "Partner / Owner", rate: 125 },
-  { id: "manager", name: "Manager", rate: 75 },
-  { id: "senior", name: "Senior / Qualified", rate: 45 },
-  { id: "junior", name: "Junior / Trainee", rate: 32 },
-  { id: "admin", name: "Admin / Support", rate: 28 },
+  { id: "partner", name: "Partner / Owner", salary: 150000, rate: salaryToRate(150000) },
+  { id: "manager", name: "Manager", salary: 55000, rate: salaryToRate(55000) },
+  { id: "senior", name: "Senior / Qualified", salary: 38000, rate: salaryToRate(38000) },
+  { id: "junior", name: "Junior / Trainee", salary: 25000, rate: salaryToRate(25000) },
+  { id: "admin", name: "Admin / Support", salary: 22000, rate: salaryToRate(22000) },
 ];
 
 // Dynamic role colors: red (expensive) → amber → green (cheap)
@@ -484,37 +490,55 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
 }
 
 function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolume, setAnnualVolume, onNext, onBack }) {
-  const addRole=()=>{const c=["#2d6a4f","#40916c","#52b788","#74c69d","#95d5b2"];setRoles([...roles,{id:`r-${Date.now()}`,name:"New Role",rate:40,color:c[roles.length%c.length]}]);};
-  const updateRole=(i,f,v)=>{const u=[...roles];u[i]={...u[i],[f]:v};setRoles(u);};
+  const addRole=()=>{setRoles([...roles,{id:`r-${Date.now()}`,name:"New Role",salary:35000,rate:salaryToRate(35000)}]);};
+  const updateRole=(i,f,v)=>{
+    const u=[...roles];
+    if(f==="salary"){u[i]={...u[i],salary:v,rate:salaryToRate(v)};}
+    else if(f==="rate"){u[i]={...u[i],rate:v,salary:rateToSalary(v)};}
+    else{u[i]={...u[i],[f]:v};}
+    setRoles(u);
+  };
   const removeRole=(i)=>{if(roles.length>1)setRoles(roles.filter((_,j)=>j!==i));};
   return (
     <div style={{maxWidth:640,margin:"0 auto",padding:"120px 24px 80px",position:"relative"}}>
       <Badge>Step 1 of 3</Badge>
       <h2 style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Set up your team and process</h2>
-      <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:36,lineHeight:1.7}}>Define the roles and their fully-loaded hourly rates. UK averages are pre-filled.</p>
+      <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:36,lineHeight:1.7}}>Define the roles in your team. Enter their annual salary and we'll calculate the true fully-loaded hourly cost.</p>
       <Card style={{marginBottom:20}}>
         <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280",display:"block",marginBottom:10}}>Process name</label>
-        <input type="text" value={processName} onChange={e=>setProcessName(e.target.value)} placeholder="e.g. Client Onboarding" style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #e5e2dc",background:"#faf9f7",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",marginBottom:16,boxSizing:"border-box"}}/>
+        <input type="text" value={processName} onChange={e=>setProcessName(e.target.value)} placeholder="e.g. Client Onboarding" style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",marginBottom:16,boxSizing:"border-box"}}/>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <span style={{fontSize:"0.85rem",color:"#3d4455"}}>How many times per year?</span>
           <NumberInput value={annualVolume} onChange={setAnnualVolume} suffix="/year"/>
         </div>
       </Card>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-        <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280"}}>Team roles & hourly rates</label>
+        <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280"}}>Team roles</label>
         <button onClick={addRole} style={{fontSize:"0.8rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>+ Add role</button>
       </div>
       <div style={{display:"flex",flexDirection:"column",gap:8}}>
-        {roles.map((role,i)=>(
-          <Card key={role.id} style={{padding:"16px 20px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-            <div style={{width:10,height:10,borderRadius:"50%",background:role.color,flexShrink:0}}/>
-            <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:1,minWidth:140,padding:"6px 10px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",outline:"none",background:"transparent"}}/>
-            <NumberInput value={role.rate} onChange={v=>updateRole(i,"rate",v)} prefix="£" suffix="/hr"/>
-            {roles.length>1&&<button onClick={()=>removeRole(i)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1rem",padding:4}}>×</button>}
+        {roles.map((role,i)=>{const rc=getRoleColor(role,roles);return(
+          <Card key={role.id} style={{padding:"16px 20px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+              <div style={{width:10,height:10,borderRadius:"50%",background:rc,flexShrink:0}}/>
+              <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:1,minWidth:140,padding:"6px 10px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",fontWeight:600,outline:"none",background:"transparent"}}/>
+              {roles.length>1&&<button onClick={()=>removeRole(i)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1rem",padding:4}}>×</button>}
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:12,paddingLeft:20}}>
+              <div style={{display:"flex",alignItems:"center",gap:4}}>
+                <span style={{fontSize:"0.78rem",color:"#6b7280"}}>Salary</span>
+                <NumberInput value={role.salary||rateToSalary(role.rate)} onChange={v=>updateRole(i,"salary",v)} prefix="£"/>
+              </div>
+              <div style={{fontSize:"0.78rem",color:"#6b7280"}}>→</div>
+              <div style={{display:"flex",alignItems:"center",gap:4}}>
+                <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1rem",color:rc}}>£{Math.round(role.rate)}/hr</span>
+                <span style={{fontSize:"0.72rem",color:"#6b7280"}}>fully loaded</span>
+              </div>
+            </div>
           </Card>
-        ))}
+        )})}
       </div>
-      <p style={{fontSize:"0.78rem",color:"#6b7280",marginTop:12,lineHeight:1.6}}>Fully-loaded rates include salary, employer NI, pension, and overhead allocation.</p>
+      <p style={{fontSize:"0.72rem",color:"#6b7280",marginTop:10,lineHeight:1.6}}>Hourly rates are calculated automatically: annual salary × {BURDEN_MULTIPLIER} (employer NI, pension & overhead) ÷ {PRODUCTIVE_HOURS.toLocaleString()} productive hours per year.</p>
       <div style={{marginTop:32,display:"flex",justifyContent:"space-between"}}>
         <Button onClick={onBack}>← Back</Button>
         <Button primary onClick={onNext} disabled={!processName}>Next: Map the steps →</Button>
@@ -528,8 +552,14 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
   const addStep=()=>setSteps([...steps,{id:Date.now(),name:"",roleId:roles[0]?.id||"",minutes:15,friction:"low",workType:"manual"}]);
   const updateStep=(i,f,v)=>{const u=[...steps];u[i]={...u[i],[f]:v};setSteps(u);};
   const removeStep=(i)=>setSteps(steps.filter((_,j)=>j!==i));
-  const addRole=()=>{const c=["#2d6a4f","#40916c","#52b788","#74c69d","#95d5b2"];setRoles([...roles,{id:`r-${Date.now()}`,name:"New Role",rate:40,color:c[roles.length%c.length]}]);};
-  const updateRole=(i,f,v)=>{const u=[...roles];u[i]={...u[i],[f]:v};setRoles(u);};
+  const addRole=()=>{setRoles([...roles,{id:`r-${Date.now()}`,name:"New Role",salary:35000,rate:salaryToRate(35000)}]);};
+  const updateRole=(i,f,v)=>{
+    const u=[...roles];
+    if(f==="salary"){u[i]={...u[i],salary:v,rate:salaryToRate(v)};}
+    else if(f==="rate"){u[i]={...u[i],rate:v,salary:rateToSalary(v)};}
+    else{u[i]={...u[i],[f]:v};}
+    setRoles(u);
+  };
   const removeRole=(i)=>{if(roles.length>1)setRoles(roles.filter((_,j)=>j!==i));};
   const totalMinutes=steps.reduce((s,st)=>s+st.minutes,0);
   const totalCost=steps.reduce((s,st)=>{const r=roles.find(rl=>rl.id===st.roleId);return s+(r?(st.minutes/60)*r.rate:0);},0);
@@ -548,7 +578,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
             <div style={{display:"flex",gap:6}}>
               {roles.map(r=>{const rc=getRoleColor(r,roles);return(
                 <span key={r.id} style={{fontSize:"0.68rem",fontWeight:600,padding:"2px 8px",borderRadius:100,background:`${rc}15`,color:rc}}>
-                  {r.name.split(" ")[0]} £{r.rate}
+                  {r.name.split(" ")[0]} £{Math.round(r.rate)}/hr
                 </span>
               )})}
             </div>
@@ -560,25 +590,37 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
         </button>
         {rolesOpen && (
           <div style={{padding:"0 20px 20px",borderTop:"1px solid #e5e2dc"}}>
-            <div style={{display:"flex",alignItems:"center",gap:12,marginTop:16,marginBottom:12}}>
+            <div style={{display:"flex",alignItems:"center",gap:12,marginTop:16,marginBottom:16}}>
               <span style={{fontSize:"0.82rem",color:"#3d4455"}}>How many times per year?</span>
               <NumberInput value={annualVolume} onChange={setAnnualVolume} suffix="/year"/>
             </div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280"}}>Hourly rates (fully loaded)</label>
+              <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280"}}>Team roles</label>
               <button onClick={addRole} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>+ Add role</button>
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {roles.map((role,i)=>{const rc=getRoleColor(role,roles);return(
-                <div key={role.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:8,background:"#faf9f7"}}>
-                  <div style={{width:8,height:8,borderRadius:"50%",background:rc,flexShrink:0}}/>
-                  <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:1,minWidth:100,padding:"4px 8px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.85rem",outline:"none",background:"transparent"}}/>
-                  <NumberInput value={role.rate} onChange={v=>updateRole(i,"rate",v)} prefix="£" suffix="/hr"/>
-                  {roles.length>1&&<button onClick={()=>removeRole(i)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"0.9rem",padding:"0 2px"}}>×</button>}
+                <div key={role.id} style={{padding:"12px 14px",borderRadius:10,background:"#EFEFEF",border:"1px solid #e5e2dc"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                    <div style={{width:10,height:10,borderRadius:"50%",background:rc,flexShrink:0}}/>
+                    <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:1,minWidth:100,padding:"4px 8px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",fontWeight:600,outline:"none",background:"#fff"}}/>
+                    {roles.length>1&&<button onClick={()=>removeRole(i)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"0.9rem",padding:"0 4px"}}>×</button>}
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:12,paddingLeft:20}}>
+                    <div style={{display:"flex",alignItems:"center",gap:4}}>
+                      <span style={{fontSize:"0.75rem",color:"#6b7280"}}>Salary</span>
+                      <NumberInput value={role.salary||rateToSalary(role.rate)} onChange={v=>updateRole(i,"salary",v)} prefix="£"/>
+                    </div>
+                    <div style={{fontSize:"0.75rem",color:"#6b7280"}}>→</div>
+                    <div style={{display:"flex",alignItems:"center",gap:4}}>
+                      <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.95rem",color:rc}}>£{Math.round(role.rate)}/hr</span>
+                      <span style={{fontSize:"0.68rem",color:"#6b7280"}}>fully loaded</span>
+                    </div>
+                  </div>
                 </div>
               )})}
             </div>
-            <p style={{fontSize:"0.72rem",color:"#6b7280",marginTop:8}}>Fully-loaded rates include salary, employer NI, pension, and overhead allocation.</p>
+            <p style={{fontSize:"0.72rem",color:"#6b7280",marginTop:10,lineHeight:1.6}}>Hourly rates are calculated automatically: annual salary × {BURDEN_MULTIPLIER} (employer NI, pension & overhead) ÷ {PRODUCTIVE_HOURS.toLocaleString()} productive hours per year.</p>
           </div>
         )}
       </Card>
