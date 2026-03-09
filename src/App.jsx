@@ -254,7 +254,7 @@ function Card({ children, style, hover, onClick }) {
 function NumberInput({ value, onChange, prefix, suffix, min=0 }) {
   return <div style={{display:"flex",alignItems:"center",gap:4}}>
     {prefix&&<span style={{fontSize:"0.85rem",color:"#6b7280",fontWeight:500}}>{prefix}</span>}
-    <input type="number" value={value} min={min} onChange={e=>onChange(Number(e.target.value)||0)} style={{width:70,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.95rem",color:"#1a1f2e",outline:"none",textAlign:"center"}}/>
+    <input type="number" value={value} min={min} onChange={e=>onChange(Number(e.target.value)||0)} style={{width:70,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"cost.95rem",color:"#1a1f2e",outline:"none",textAlign:"center"}}/>
     {suffix&&<span style={{fontSize:"0.8rem",color:"#6b7280"}}>{suffix}</span>}
   </div>;
 }
@@ -468,7 +468,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
       <div style={{ maxWidth: 960, margin: "0 auto", position: "relative" }}>
         <div style={{ textAlign: "center", marginBottom: 36 }}>
           <div style={{marginBottom:20}}>
-            <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.5rem",color:"#1a1f2e",letterSpacing:"-0.02em"}}>cost<span style={{color:"#2d6a4f"}}>clock</span></span>
+            <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"2.5rem",color:"#1a1f2e",letterSpacing:"-0.02em"}}>cost<span style={{color:"#2d6a4f"}}>clock</span></span>
             <span style={{fontSize:"0.75rem",color:"#6b7280",fontFamily:"'DM Sans',sans-serif",fontWeight:400,marginLeft:10}}>by workthru</span>
           </div>
           <Badge>Free process cost calculator</Badge>
