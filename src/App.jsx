@@ -280,16 +280,19 @@ function SalaryInput({ value, onChange }) {
 }
 
 function Select({ value, onChange, options, style }) {
-  const arrowColor = "%231a1f2e"; // This is #1a1f2e encoded for URLs
+  // 1. Determine the arrow color (defaults to dark if not provided in style)
+  const arrowColor = (style && style.color) ? encodeURIComponent(style.color) : "%231a1f2e";
   
+  // 2. Determine the background color (defaults to light grey if not provided)
+  const bgColor = (style && style.background) || "#f2f2f2";
+
   const selectStyle = {
     WebkitAppearance: "none",
     MozAppearance: "none",
     appearance: "none",
 
-    // Combined color and image into the background shorthand
-    // 'right 12px center' handles the spacing you wanted
-    background: `#f2f2f2 url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='${arrowColor}' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 12px center`,
+    // We build the background dynamically so the arrow always stays
+    background: `${bgColor} url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='${arrowColor}' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 12px center`,
     
     backgroundSize: "12px",
     padding: "8px 32px 8px 12px",
@@ -300,8 +303,14 @@ function Select({ value, onChange, options, style }) {
     color: "#1a1f2e",
     outline: "none",
     cursor: "pointer",
-    ...style
+    ...style, // Any extra styles (like font-weight) will merge here
+    
+    // Safety: ensure background isn't accidentally nuked by the spread above
+    background: undefined, 
   };
+
+  // Explicitly set the background one last time to be safe
+  selectStyle.background = `${bgColor} url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='${arrowColor}' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 12px center`;
 
   return (
     <select value={value} onChange={e => onChange(e.target.value)} style={selectStyle}>
@@ -313,7 +322,6 @@ function Select({ value, onChange, options, style }) {
     </select>
   );
 }
-
 function Button({ children, primary, small, onClick, style, disabled }) {
   const [h,setH]=useState(false);
   return <button onClick={onClick} disabled={disabled} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)} style={{
