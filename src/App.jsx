@@ -728,8 +728,24 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
       </div>
 
       <div style={{maxWidth:800,margin:"0 auto"}}>
+        {!isSaved && (
+          <div onClick={handleSave} style={{background:"linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%)",borderRadius:16,padding:"24px 28px",marginBottom:20,cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center",transition:"all 0.2s",boxShadow:"0 4px 16px rgba(45,106,79,0.25)",...anim(0.12)}}
+            onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(45,106,79,0.3)";}}
+            onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 4px 16px rgba(45,106,79,0.25)";}}>
+            <div>
+              <div style={{color:"#fff",fontFamily:"'Fraunces',serif",fontSize:"1.15rem",fontWeight:700,marginBottom:4}}>Save your results & get a free AI analysis</div>
+              <div style={{color:"rgba(255,255,255,0.65)",fontSize:"0.85rem"}}>Register to save your process data and receive personalised insights — free, no obligation.</div>
+            </div>
+            <div style={{background:"#fff",color:"#1b4332",padding:"12px 24px",borderRadius:10,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:"0.92rem",flexShrink:0,marginLeft:20}}>Save & register →</div>
+          </div>
+        )}
+        {isSaved && (
+          <div style={{background:"#d4ede2",borderRadius:12,padding:"16px 20px",marginBottom:20,display:"flex",alignItems:"center",gap:10,...anim(0.12)}}>
+            <span style={{color:"#1b4332",fontWeight:700,fontSize:"0.95rem"}}>✓ Saved</span>
+            <span style={{color:"#2d6a4f",fontSize:"0.85rem"}}>Your process data is saved to your account.</span>
+          </div>
+        )}
         <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:24,...anim(0.15)}}>
-          <Button small onClick={handleSave} style={isSaved?{background:"#d4ede2",color:"#1b4332",border:"1.5px solid #2d6a4f"}:{}}>{isSaved?"✓ Saved":auth.user?"💾 Save process":"💾 Save (free account)"}</Button>
           <Button small onClick={handleCopy}>{copied?"✓ Copied!":"📋 Copy report"}</Button>
           <Button small onClick={handleDownload}>📄 Download report</Button>
         </div>
