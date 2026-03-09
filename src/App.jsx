@@ -280,25 +280,25 @@ function SalaryInput({ value, onChange }) {
 }
 
 function Select({ value, onChange, options, style }) {
-  const customSelectStyle = {
-    // 1. Remove the stubborn native arrow
+  const selectStyle = {
+    // 1. Keeps the native arrow hidden
     WebkitAppearance: "none",
     MozAppearance: "none",
     appearance: "none",
 
-    // 2. Add a custom SVG arrow (Dark color to match your #1a1f2e text)
-    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a1f2e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+    // 2. The new arrow (SVG Chevron)
+    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a1f2e' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
     backgroundRepeat: "no-repeat",
-    backgroundSize: "14px",
+    backgroundSize: "12px",
     
-    // 3. Position the arrow 12px from the right and centered vertically
+    // 3. Move this number up/down to adjust right-side spacing
     backgroundPosition: "right 12px center",
 
-    // 4. Your original styles (adjusted right padding to 32px so text doesn't hit the arrow)
+    // 4. Your existing styles
     padding: "8px 32px 8px 12px",
     borderRadius: 8,
     border: "1px solid #e5e2dc",
-    background: "#EFEFEF",
+    background: "#f2f2f2", // Matches the light grey in your screenshot
     fontFamily: "'DM Sans',sans-serif",
     fontSize: "0.88rem",
     color: "#1a1f2e",
@@ -308,11 +308,7 @@ function Select({ value, onChange, options, style }) {
   };
 
   return (
-    <select 
-      value={value} 
-      onChange={e => onChange(e.target.value)} 
-      style={customSelectStyle}
-    >
+    <select value={value} onChange={e => onChange(e.target.value)} style={selectStyle}>
       {options.map(o => (
         <option key={o.value} value={o.value}>
           {o.label}
