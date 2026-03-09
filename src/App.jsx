@@ -280,7 +280,7 @@ function SalaryInput({ value, onChange }) {
 }
 
 function Select({ value, onChange, options, style }) {
-  return <select value={value} onChange={e=>onChange(e.target.value)} style={{padding:"8px 28px 8px 12px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",color:"#1a1f2e",outline:"none",cursor:"pointer",...style}}>
+  return <select value={value} onChange={e=>onChange(e.target.value)} style={{padding:"8px 40px 8px 12px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",color:"#1a1f2e",outline:"none",cursor:"pointer",...style}}>
     {options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
   </select>;
 }
