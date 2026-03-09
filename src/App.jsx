@@ -254,8 +254,28 @@ function Card({ children, style, hover, onClick }) {
 function NumberInput({ value, onChange, prefix, suffix, min=0 }) {
   return <div style={{display:"flex",alignItems:"center",gap:4}}>
     {prefix&&<span style={{fontSize:"0.85rem",color:"#6b7280",fontWeight:500}}>{prefix}</span>}
-    <input type="number" value={value} min={min} onChange={e=>onChange(Number(e.target.value)||0)} style={{width:70,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#faf9f7",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.95rem",color:"#1a1f2e",outline:"none",textAlign:"center"}}/>
+    <input type="number" value={value} min={min} onChange={e=>onChange(Number(e.target.value)||0)} style={{width:70,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.95rem",color:"#1a1f2e",outline:"none",textAlign:"center"}}/>
     {suffix&&<span style={{fontSize:"0.8rem",color:"#6b7280"}}>{suffix}</span>}
+  </div>;
+}
+
+function SalaryInput({ value, onChange }) {
+  const [editing, setEditing] = useState(false);
+  const [raw, setRaw] = useState(String(value));
+  const formatted = (value||0).toLocaleString("en-GB");
+  return <div style={{display:"flex",alignItems:"center",gap:4}}>
+    <span style={{fontSize:"0.85rem",color:"#6b7280",fontWeight:500}}>£</span>
+    {editing ? (
+      <input type="text" inputMode="numeric" autoFocus value={raw}
+        onChange={e=>{const v=e.target.value.replace(/[^0-9]/g,"");setRaw(v);onChange(Number(v)||0);}}
+        onBlur={()=>setEditing(false)}
+        style={{width:110,padding:"8px 10px",borderRadius:8,border:"1px solid #2d6a4f",background:"#fff",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.95rem",color:"#1a1f2e",outline:"none",textAlign:"right"}}/>
+    ) : (
+      <div onClick={()=>{setRaw(String(value));setEditing(true);}}
+        style={{width:110,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.95rem",color:"#1a1f2e",cursor:"text",textAlign:"right"}}>
+        {formatted}
+      </div>
+    )}
   </div>;
 }
 
@@ -527,7 +547,7 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
             <div style={{display:"flex",alignItems:"center",gap:12,paddingLeft:20}}>
               <div style={{display:"flex",alignItems:"center",gap:4}}>
                 <span style={{fontSize:"0.78rem",color:"#6b7280"}}>Salary</span>
-                <NumberInput value={role.salary||rateToSalary(role.rate)} onChange={v=>updateRole(i,"salary",v)} prefix="£"/>
+                <SalaryInput value={role.salary||rateToSalary(role.rate)} onChange={v=>updateRole(i,"salary",v)}/>
               </div>
               <div style={{fontSize:"0.78rem",color:"#6b7280"}}>→</div>
               <div style={{display:"flex",alignItems:"center",gap:4}}>
@@ -609,7 +629,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
                   <div style={{display:"flex",alignItems:"center",gap:12,paddingLeft:20}}>
                     <div style={{display:"flex",alignItems:"center",gap:4}}>
                       <span style={{fontSize:"0.75rem",color:"#6b7280"}}>Salary</span>
-                      <NumberInput value={role.salary||rateToSalary(role.rate)} onChange={v=>updateRole(i,"salary",v)} prefix="£"/>
+                      <SalaryInput value={role.salary||rateToSalary(role.rate)} onChange={v=>updateRole(i,"salary",v)}/>
                     </div>
                     <div style={{fontSize:"0.75rem",color:"#6b7280"}}>→</div>
                     <div style={{display:"flex",alignItems:"center",gap:4}}>
