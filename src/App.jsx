@@ -915,7 +915,7 @@ export default function CostClock() {
 
   return (
     <AuthContext.Provider value={authCtx}>
-      <div style={{background:"#faf9f7",minHeight:"100vh",position:"relative"}}>
+      <div style={{background:"#EFEFEF",minHeight:"100vh",position:"relative"}}>
         <TopoBg />
         {showAuth&&<AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={handleAuth}/>}
 
