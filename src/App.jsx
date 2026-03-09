@@ -468,7 +468,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
       <div style={{ maxWidth: 960, margin: "0 auto", position: "relative" }}>
         <div style={{ textAlign: "center", marginBottom: 36 }}>
           <div style={{marginBottom:20}}>
-            <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"2.5rem",color:"#1a1f2e",letterSpacing:"-0.02em"}}>cost<span style={{color:"#2d6a4f"}}>clock</span></span>
+            <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.5rem",color:"#1a1f2e",letterSpacing:"-0.02em"}}>cost<span style={{color:"#2d6a4f"}}>clock</span></span>
             <span style={{fontSize:"0.75rem",color:"#6b7280",fontFamily:"'DM Sans',sans-serif",fontWeight:400,marginLeft:10}}>by workthru</span>
           </div>
           <Badge>Free process cost calculator</Badge>
