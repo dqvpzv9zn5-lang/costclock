@@ -192,6 +192,51 @@ const TEMPLATES = [
     ],
   },
   {
+    id: "patient-intake-healthcare", name: "Patient Intake & Assessment", industry: "Healthcare",
+    description: "Private clinic intake from referral to completed assessment report.",
+    annualVolume: 200,
+    steps: [
+      { name: "Referral or self-referral received", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Eligibility & insurance check", roleId: "admin", minutes: 20, friction: "medium", workType: "manual" },
+      { name: "Send intake questionnaire to patient", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Chase incomplete questionnaire", roleId: "admin", minutes: 25, friction: "high", workType: "waiting" },
+      { name: "Book assessment appointment", roleId: "admin", minutes: 15, friction: "medium", workType: "manual" },
+      { name: "Send appointment confirmation & reminders", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Pre-assessment clinician review", roleId: "partner", minutes: 20, friction: "low", workType: "decision" },
+      { name: "Conduct assessment", roleId: "partner", minutes: 90, friction: "low", workType: "decision" },
+      { name: "Write up assessment report", roleId: "partner", minutes: 60, friction: "medium", workType: "manual" },
+      { name: "Clinical review & sign-off", roleId: "manager", minutes: 20, friction: "low", workType: "decision" },
+      { name: "Send report to patient / referrer", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
+      { name: "Process payment / insurance claim", roleId: "admin", minutes: 20, friction: "high", workType: "manual" },
+      { name: "Chase outstanding payment", roleId: "admin", minutes: 20, friction: "very-high", workType: "waiting" },
+      { name: "Update patient record & archive", roleId: "admin", minutes: 10, friction: "low", workType: "manual" },
+    ],
+  },
+  {
+    id: "project-delivery-construction", name: "Project Delivery (Construction)", industry: "Construction",
+    description: "From tender award through to practical completion and final invoice.",
+    annualVolume: 24,
+    steps: [
+      { name: "Receive tender award & review contract", roleId: "partner", minutes: 60, friction: "low", workType: "decision" },
+      { name: "Mobilisation planning & team assignment", roleId: "manager", minutes: 45, friction: "low", workType: "decision" },
+      { name: "Subcontractor procurement & quotes", roleId: "manager", minutes: 90, friction: "high", workType: "manual" },
+      { name: "Verify subcontractor compliance docs", roleId: "admin", minutes: 30, friction: "high", workType: "manual" },
+      { name: "Programme & schedule creation", roleId: "manager", minutes: 60, friction: "medium", workType: "manual" },
+      { name: "Site setup & H&S documentation", roleId: "senior", minutes: 45, friction: "medium", workType: "manual" },
+      { name: "Daily site reports & progress logs", roleId: "senior", minutes: 20, friction: "medium", workType: "manual" },
+      { name: "Variation order capture & pricing", roleId: "manager", minutes: 40, friction: "high", workType: "manual" },
+      { name: "Client progress meeting & minutes", roleId: "partner", minutes: 60, friction: "low", workType: "decision" },
+      { name: "Subcontractor invoice checking & approval", roleId: "manager", minutes: 30, friction: "medium", workType: "manual" },
+      { name: "Interim application for payment", roleId: "manager", minutes: 45, friction: "high", workType: "manual" },
+      { name: "Chase interim payment", roleId: "admin", minutes: 30, friction: "very-high", workType: "waiting" },
+      { name: "Snagging & defects inspection", roleId: "senior", minutes: 90, friction: "medium", workType: "decision" },
+      { name: "Practical completion sign-off", roleId: "partner", minutes: 30, friction: "low", workType: "decision" },
+      { name: "Final account & retention invoice", roleId: "manager", minutes: 45, friction: "high", workType: "manual" },
+      { name: "Chase retention release", roleId: "admin", minutes: 25, friction: "very-high", workType: "waiting" },
+      { name: "Project close-out & archive", roleId: "admin", minutes: 20, friction: "low", workType: "manual" },
+    ],
+  },
+  {
     id: "custom", name: "Start from scratch", industry: "Any",
     description: "Build your own process map from a blank canvas.", annualVolume: 50, steps: [],
   },
@@ -860,6 +905,13 @@ export default function CostClock() {
   const [showAuth,setShowAuth]=useState(false);
   const [templateUsed,setTemplateUsed]=useState(null);
 
+  const handleTemplate=(t)=>{
+    setProcessName(t.name);setAnnualVolume(t.annualVolume);
+    setSteps(t.steps.map((s,i)=>({...s,id:Date.now()+i})));
+    setTemplateUsed(t.id);setSavedIdx(null);
+    setScreen(t.steps.length>0?"build":"setup");
+  };
+
   // Restore session & load data
   useEffect(()=>{
     (async()=>{
@@ -880,6 +932,19 @@ export default function CostClock() {
       return ()=>subscription.unsubscribe();
     }
   },[]);
+
+  // Auto-load template from URL param: ?template=patient-intake-healthcare
+  useEffect(()=>{
+    const params = new URLSearchParams(window.location.search);
+    const templateId = params.get("template");
+    if (templateId) {
+      const t = TEMPLATES.find(t => t.id === templateId);
+      if (t && t.steps.length > 0) {
+        handleTemplate(t);
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadUserProcesses=async(userId)=>{
     try{
@@ -937,13 +1002,6 @@ export default function CostClock() {
     setSteps((p.steps||[]).map((s,j)=>({...s,id:Date.now()+j})));
     if(p.roles)setRoles(p.roles);
     setSavedIdx(idx);setScreen("results");
-  };
-
-  const handleTemplate=(t)=>{
-    setProcessName(t.name);setAnnualVolume(t.annualVolume);
-    setSteps(t.steps.map((s,i)=>({...s,id:Date.now()+i})));
-    setTemplateUsed(t.id);setSavedIdx(null);
-    setScreen(t.steps.length>0?"build":"setup");
   };
 
   const reset=()=>{setScreen("welcome");setProcessName("");setAnnualVolume(80);setSteps([]);setSavedIdx(null);setTemplateUsed(null);};
