@@ -1033,11 +1033,9 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
                 return(
                 <tr key={step.id} style={{borderBottom:"1px solid #e5e2dc",background:rowBg,borderLeft:leftBorder}}>
                   <td style={{padding:"12px 16px",fontSize:"0.88rem",fontWeight:500,color:"#1a1f2e"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                      {step.name}
-                      {isAuto&&<span style={{fontSize:"0.65rem",fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#d4ede2",color:"#1b4332",whiteSpace:"nowrap"}}>⚡ Automation</span>}
-                      {isDelay&&<span style={{fontSize:"0.65rem",fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#faf0d6",color:"#8a6a1e",whiteSpace:"nowrap"}}>⏳ Delay risk</span>}
-                    </div>
+                    {step.name}
+                    {isAuto&&<div style={{marginTop:4}}><span style={{fontSize:"0.62rem",fontWeight:700,padding:"2px 7px",borderRadius:100,background:"#d4ede2",color:"#1b4332"}}>⚡ Automation</span></div>}
+                    {isDelay&&<div style={{marginTop:4}}><span style={{fontSize:"0.62rem",fontWeight:700,padding:"2px 7px",borderRadius:100,background:"#faf0d6",color:"#8a6a1e"}}>⏳ Delay risk</span></div>}
                   </td>
                   <td style={{padding:"12px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{role?.name||"—"}</td>
                   <td style={{padding:"12px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{step.minutes}m</td>
