@@ -939,7 +939,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
   );
 }
 
-function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, onBack, onReset, onSave, isSaved }) {
+function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, onBack, onReset, onSave, isSaved, isDeepLink }) {
   const auth = useAuth();
   const [revealed,setRevealed]=useState(false);
   const [copied,setCopied]=useState(false);
@@ -964,6 +964,16 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
   return (
     <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px"}}>
       {showAuth && <AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={(user)=>{setShowAuth(false);onSave();}} />}
+
+      {isDeepLink&&(
+        <div style={{margin:"0 0 24px",background:"linear-gradient(135deg,#f0faf5 0%,#e8f5ef 100%)",border:"1px solid #a8dcc0",borderLeft:"4px solid #2d6a4f",borderRadius:12,padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,flexWrap:"wrap"}}>
+          <div>
+            <div style={{fontSize:"0.72rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"#2d6a4f",marginBottom:4}}>⚡ Typical figures for a practice like yours</div>
+            <div style={{fontSize:"0.88rem",color:"#1b4332",lineHeight:1.5}}>These estimates are based on a typical {processName.toLowerCase()} process. Your actual costs may be higher or lower.</div>
+          </div>
+          <button onClick={onBack} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"10px 18px",borderRadius:8,background:"#2d6a4f",color:"#fff",fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"0.85rem",border:"none",cursor:"pointer",flexShrink:0,transition:"background 0.2s"}} onMouseEnter={e=>e.currentTarget.style.background="#1b4332"} onMouseLeave={e=>e.currentTarget.style.background="#2d6a4f"}>Adjust to match your practice →</button>
+        </div>
+      )}
 
       <div style={{background:"#1a1f2e",borderRadius:20,padding:"60px 40px",textAlign:"center",color:"#fff",margin:"0 0 40px",...anim(0)}}>
         <Badge>Your results</Badge>
@@ -1100,6 +1110,7 @@ export default function CostClock() {
   const [user,setUser]=useState(null);
   const [showAuth,setShowAuth]=useState(false);
   const [templateUsed,setTemplateUsed]=useState(null);
+  const [isDeepLink,setIsDeepLink]=useState(false);
 
   const handleTemplate=(t)=>{
     setProcessName(t.name);setAnnualVolume(t.annualVolume);
@@ -1137,6 +1148,26 @@ export default function CostClock() {
       const t = TEMPLATES.find(t => t.id === templateId);
       if (t && t.steps.length > 0) {
         handleTemplate(t);
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-jump to results from email link: ?result=placement-recruitment
+  useEffect(()=>{
+    const params = new URLSearchParams(window.location.search);
+    const resultId = params.get("result");
+    if (resultId) {
+      const t = TEMPLATES.find(t => t.id === resultId);
+      if (t && t.steps.length > 0) {
+        setProcessName(t.name);
+        setAnnualVolume(t.annualVolume);
+        setSteps(t.steps.map((s, i) => ({ ...s, id: Date.now() + i })));
+        setTemplateUsed(t.id);
+        setSavedIdx(null);
+        setIsDeepLink(true);
+        setScreenRaw("results");
+        window.scrollTo(0, 0);
         window.history.replaceState({}, "", window.location.pathname);
       }
     }
@@ -1200,7 +1231,7 @@ export default function CostClock() {
     setSavedIdx(idx);setScreen("results");
   };
 
-  const reset=()=>{setScreen("welcome");setProcessName("");setAnnualVolume(80);setSteps([]);setSavedIdx(null);setTemplateUsed(null);};
+  const reset=()=>{setScreen("welcome");setProcessName("");setAnnualVolume(80);setSteps([]);setSavedIdx(null);setTemplateUsed(null);setIsDeepLink(false);};
 
   const authCtx={user,signOut:()=>{sbSignOut();setUser(null);setSaved([]);reset();}};
 
@@ -1241,7 +1272,7 @@ export default function CostClock() {
           {screen==="welcome"&&<WelcomeScreen onTemplate={handleTemplate} savedProcesses={saved} onLoadSaved={handleLoad} onDeleteSaved={handleDelete} onSignIn={()=>setShowAuth(true)}/>}
           {screen==="setup"&&<SetupScreen roles={roles} setRoles={setRoles} processName={processName} setProcessName={setProcessName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("build")} onBack={reset}/>}
           {screen==="build"&&<BuildScreen roles={roles} setRoles={setRoles} steps={steps} setSteps={setSteps} processName={processName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("results")} onBack={()=>setScreen(templateUsed?"welcome":"setup")} fromTemplate={!!templateUsed}/>}
-          {screen==="results"&&<ResultsScreen roles={roles} steps={steps} processName={processName} annualVolume={annualVolume} templateUsed={templateUsed} onBack={()=>setScreen("build")} onReset={reset} onSave={handleSave} isSaved={savedIdx!==null}/>}
+          {screen==="results"&&<ResultsScreen roles={roles} steps={steps} processName={processName} annualVolume={annualVolume} templateUsed={templateUsed} onBack={()=>setScreen("build")} onReset={reset} onSave={handleSave} isSaved={savedIdx!==null} isDeepLink={isDeepLink}/>}
         </div>
 
         <footer style={{padding:"30px 24px",textAlign:"center",fontSize:"0.78rem",color:"#6b7280",borderTop:"1px solid #e5e2dc"}}>
