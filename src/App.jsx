@@ -518,10 +518,10 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
           </div>
           <Badge>Free process cost calculator</Badge>
           <h1 style={{ fontFamily:"'Fraunces',serif",fontSize:"clamp(1.8rem,4.5vw,2.6rem)",fontWeight:700,lineHeight:1.15,letterSpacing:"-0.025em",margin:"16px 0 12px",color:"#1a1f2e" }}>
-            Find out what your processes <em style={{fontStyle:"italic",color:"#2d6a4f",fontWeight:500}}>really cost</em>
+            Your biggest operational cost isn't salaries. It's what <em style={{fontStyle:"italic",color:"#2d6a4f",fontWeight:500}}>salaries get spent on.</em>
           </h1>
-          <p style={{ fontSize:"1rem",color:"#3d4455",lineHeight:1.7,maxWidth:520,margin:"0 auto" }}>
-            Map any business process step by step, assign who does what, and see the true fully-loaded cost. Register to save your work and get a free AI-powered analysis.
+          <p style={{ fontSize:"1rem",color:"#3d4455",lineHeight:1.7,maxWidth:560,margin:"0 auto" }}>
+            Your team is capable of far more than chasing documents and re-entering data. Map any process below and see exactly how much of your wage bill is going to work that automation could handle — freeing your people to do what you actually hired them for.
           </p>
         </div>
 
