@@ -1022,14 +1022,28 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
           <div style={{overflowX:"auto"}}>
             <table style={{width:"100%",borderCollapse:"collapse"}}>
               <thead><tr>{["Step","Owner","Time","Cost","Friction","Type"].map(h=><th key={h} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"12px 16px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600}}>{h}</th>)}</tr></thead>
-              <tbody>{steps.map(step=>{const role=roles.find(r=>r.id===step.roleId);const cost=role?(step.minutes/60)*role.rate:0;return(
-                <tr key={step.id} style={{borderBottom:"1px solid #e5e2dc"}}>
-                  <td style={{padding:"14px 16px",fontSize:"0.88rem",fontWeight:500,color:"#1a1f2e"}}>{step.name}</td>
-                  <td style={{padding:"14px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{role?.name||"—"}</td>
-                  <td style={{padding:"14px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{step.minutes}m</td>
-                  <td style={{padding:"14px 16px",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.9rem",color:role?getRoleColor(role,roles):"#2d6a4f"}}>£{cost.toFixed(0)}</td>
-                  <td style={{padding:"14px 16px"}}><FrictionBadge level={step.friction}/></td>
-                  <td style={{padding:"14px 16px"}}>{(()=>{const wt=WORK_TYPES.find(w=>w.value===step.workType)||WORK_TYPES[0];return <span style={{fontSize:"0.72rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:wt.bg,color:wt.color}}>{wt.icon} {wt.short}</span>;})()}</td>
+              <tbody>{steps.map(step=>{
+                const role=roles.find(r=>r.id===step.roleId);
+                const cost=role?(step.minutes/60)*role.rate:0;
+                const wt=WORK_TYPES.find(w=>w.value===step.workType)||WORK_TYPES[0];
+                const isAuto=step.workType==="manual"&&isSaveable(step);
+                const isDelay=step.workType==="waiting";
+                const rowBg=isAuto?"#f6fcf9":isDelay?"#fdf9f0":"#fff";
+                const leftBorder=isAuto?"3px solid #2d6a4f":isDelay?"3px solid #c4942a":"3px solid transparent";
+                return(
+                <tr key={step.id} style={{borderBottom:"1px solid #e5e2dc",background:rowBg,borderLeft:leftBorder}}>
+                  <td style={{padding:"12px 16px",fontSize:"0.88rem",fontWeight:500,color:"#1a1f2e"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                      {step.name}
+                      {isAuto&&<span style={{fontSize:"0.65rem",fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#d4ede2",color:"#1b4332",whiteSpace:"nowrap"}}>⚡ Automation</span>}
+                      {isDelay&&<span style={{fontSize:"0.65rem",fontWeight:700,padding:"2px 8px",borderRadius:100,background:"#faf0d6",color:"#8a6a1e",whiteSpace:"nowrap"}}>⏳ Delay risk</span>}
+                    </div>
+                  </td>
+                  <td style={{padding:"12px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{role?.name||"—"}</td>
+                  <td style={{padding:"12px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{step.minutes}m</td>
+                  <td style={{padding:"12px 16px",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.9rem",color:role?getRoleColor(role,roles):"#2d6a4f"}}>£{cost.toFixed(0)}</td>
+                  <td style={{padding:"12px 16px"}}><FrictionBadge level={step.friction}/></td>
+                  <td style={{padding:"12px 16px"}}><span style={{fontSize:"0.72rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:wt.bg,color:wt.color}}>{wt.icon} {wt.short}</span></td>
                 </tr>);})}</tbody>
             </table>
           </div>
@@ -1074,7 +1088,7 @@ export default function CostClock() {
       setScreenRaw(s);
       window.scrollTo(0,0);
       setScreenFading(false);
-      if(wasWelcome){setTimeout(()=>setNavMounted(true),30);}
+      setTimeout(()=>setNavMounted(true),30);
     },220);
   };
   const [roles,setRoles]=useState(DEFAULT_ROLES);
