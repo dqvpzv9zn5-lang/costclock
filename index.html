@@ -27,6 +27,12 @@
     @media (max-width: 580px) {
       .template-grid { grid-template-columns: 1fr !important; }
     }
+    .badge-short { display: none; }
+    @media (max-width: 480px) {
+      .badge-full { display: none; }
+      .badge-short { display: inline; }
+      .template-grid { grid-template-columns: 1fr !important; }
+    }
   </style>
 </head>
 <body>

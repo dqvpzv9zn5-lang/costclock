@@ -906,7 +906,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
                 <div style={{flex:1,minWidth:200}}>
                   <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12}}>
                     <input type="text" value={step.name} onChange={e=>updateStep(idx,"name",e.target.value)} placeholder="What happens at this step?" style={{flex:1,padding:"6px 0",border:"none",borderBottom:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",background:"transparent"}}/>
-                    {isAutoOpportunity&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.68rem",fontWeight:700,padding:"3px 10px",borderRadius:100,flexShrink:0,background:"#d4ede2",color:"#1b4332",letterSpacing:"0.02em"}}>⚡ Automation opportunity</span>}
+                    {isAutoOpportunity&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.68rem",fontWeight:700,padding:"3px 10px",borderRadius:100,flexShrink:0,background:"#d4ede2",color:"#1b4332",letterSpacing:"0.02em"}}>⚡ <span className="badge-full">Automation opportunity</span><span className="badge-short">Automation</span></span>}
                     {isDelayRisk&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.68rem",fontWeight:700,padding:"3px 10px",borderRadius:100,flexShrink:0,background:"#faf0d6",color:"#8a6a1e",letterSpacing:"0.02em"}}>⏳ Delay risk</span>}
                   </div>
                   <div style={{display:"flex",gap:10,marginTop:12,flexWrap:"wrap",alignItems:"center"}}>
