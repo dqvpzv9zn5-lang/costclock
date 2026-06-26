@@ -586,7 +586,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
       <div style={{ background:"#1a1f2e", padding:"120px 0 80px", position:"relative", overflow:"hidden", ...heroStyle }}>
         <div style={{ position:"absolute", inset:0,
           backgroundImage:"url(/topography-dark.svg)", backgroundSize:"600px 600px",
-          opacity:0.6, pointerEvents:"none",
+          pointerEvents:"none",
         }} />
         <div className="hero-grid" style={{ maxWidth:1080, margin:"0 auto", padding:"0 40px", position:"relative",
           display:"grid", gridTemplateColumns:"1fr 1fr", gap:60, alignItems:"center",
@@ -626,7 +626,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
       <div style={{ position:"relative" }}>
         <div style={{ position:"absolute", inset:0,
           backgroundImage:"url(/topography-light.svg)", backgroundSize:"600px 600px",
-          opacity:0.5, pointerEvents:"none",
+          pointerEvents:"none",
         }} />
       <div style={{ maxWidth:1080, margin:"0 auto", padding:"48px 40px 60px", position:"relative" }}>
 
