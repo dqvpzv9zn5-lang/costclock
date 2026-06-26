@@ -1209,8 +1209,8 @@ export default function CostClock() {
         {showAuth&&<AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={handleAuth}/>}
 
         {screen!=="welcome"&&(
-          <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.92)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc",height:64,display:"flex",alignItems:"center",padding:"0 40px"}}>
-            <div style={{maxWidth:1080,width:"100%",margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.92)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc",height:64,display:"flex",alignItems:"center"}}>
+            <div style={{maxWidth:1080,width:"100%",margin:"0 auto",padding:"0 40px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <button onClick={reset} style={{
                 fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.5rem",color:"#1a1f2e",
                 background:"none",border:"none",cursor:"pointer",letterSpacing:"-0.02em",
