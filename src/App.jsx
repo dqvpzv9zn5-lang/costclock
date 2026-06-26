@@ -543,41 +543,42 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
   return (
     <div style={{ minHeight: "100vh", position: "relative" }}>
 
-      {/* NAV */}
-      <div style={{ position:"absolute", top:0, left:0, right:0, zIndex:10,
-        display:"flex", justifyContent:"space-between", alignItems:"center",
-        padding:"20px 40px",
-      }}>
-        <div style={{
-          opacity: mounted ? 1 : 0,
-          transform: mounted ? "translateY(0)" : "translateY(-12px)",
-          transition: "opacity 0.5s ease, transform 0.5s ease",
+      {/* NAV — same max-width container as hero/cards so logo left-edge aligns */}
+      <div style={{ position:"absolute", top:0, left:0, right:0, zIndex:10 }}>
+        <div style={{ maxWidth:1080, margin:"0 auto", padding:"20px 40px",
+          display:"flex", justifyContent:"space-between", alignItems:"center",
         }}>
-          <span style={{ fontFamily:"'Fraunces',serif", fontWeight:700, fontSize:"1.5rem",
-            color:"#ffffff", letterSpacing:"-0.02em" }}>
-            cost<span style={{ color:"#6ee7a8" }}>clock</span>
-          </span>
-          <span style={{ fontSize:"0.72rem", color:"rgba(255,255,255,0.45)",
-            fontFamily:"'DM Sans',sans-serif", fontWeight:400, marginLeft:8 }}>
-            by workthru
-          </span>
-        </div>
-        <div style={{
-          opacity: mounted ? 1 : 0,
-          transition: "opacity 0.5s ease 0.1s",
-        }}>
-          {auth.user ? (
-            <button onClick={auth.signOut} style={{ fontSize:"0.82rem", color:"rgba(255,255,255,0.6)",
-              background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
-              Sign out
-            </button>
-          ) : (
-            <button onClick={onSignIn} style={{ fontSize:"0.82rem", color:"rgba(255,255,255,0.85)",
-              fontWeight:600, background:"none", border:"none", cursor:"pointer",
-              fontFamily:"'DM Sans',sans-serif" }}>
-              Already have an account? Sign in
-            </button>
-          )}
+          <div style={{
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? "translateY(0)" : "translateY(-12px)",
+            transition: "opacity 0.5s ease, transform 0.5s ease",
+          }}>
+            <span style={{ fontFamily:"'Fraunces',serif", fontWeight:700, fontSize:"1.5rem",
+              color:"#ffffff", letterSpacing:"-0.02em" }}>
+              cost<span style={{ color:"#6ee7a8" }}>clock</span>
+            </span>
+            <span style={{ fontSize:"0.72rem", color:"rgba(255,255,255,0.45)",
+              fontFamily:"'DM Sans',sans-serif", fontWeight:400, marginLeft:8 }}>
+              by workthru
+            </span>
+          </div>
+          <div style={{
+            opacity: mounted ? 1 : 0,
+            transition: "opacity 0.5s ease 0.1s",
+          }}>
+            {auth.user ? (
+              <button onClick={auth.signOut} style={{ fontSize:"0.82rem", color:"rgba(255,255,255,0.6)",
+                background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+                Sign out
+              </button>
+            ) : (
+              <button onClick={onSignIn} style={{ fontSize:"0.82rem", color:"rgba(255,255,255,0.85)",
+                fontWeight:600, background:"none", border:"none", cursor:"pointer",
+                fontFamily:"'DM Sans',sans-serif" }}>
+                Already have an account? Sign in
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -622,6 +623,11 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
       </div>
 
       {/* TEMPLATE CARDS */}
+      <div style={{ position:"relative" }}>
+        <div style={{ position:"absolute", inset:0,
+          backgroundImage:"url(/topography-light.svg)", backgroundSize:"600px 600px",
+          opacity:0.5, pointerEvents:"none",
+        }} />
       <div style={{ maxWidth:1080, margin:"0 auto", padding:"48px 40px 60px", position:"relative" }}>
 
         {auth.user && savedProcesses.length > 0 && (
@@ -725,6 +731,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
           ))}
         </div>
       </div>
+      </div>{/* end topography wrapper */}
     </div>
   );
 }
