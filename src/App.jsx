@@ -747,7 +747,7 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
   };
   const removeRole=(i)=>{if(roles.length>1)setRoles(roles.filter((_,j)=>j!==i));};
   return (
-    <div style={{maxWidth:640,margin:"0 auto",padding:"120px 24px 80px",position:"relative"}}>
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative"}}>
       <Badge>Step 1 of 3</Badge>
       <h2 style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Set up your team and process</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:36,lineHeight:1.7}}>Define the roles in your team. Enter their annual salary and we'll calculate the true fully-loaded hourly cost.</p>
@@ -812,7 +812,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
   const totalCost=steps.reduce((s,st)=>{const r=roles.find(rl=>rl.id===st.roleId);return s+(r?(st.minutes/60)*r.rate:0);},0);
 
   return (
-    <div style={{maxWidth:900,margin:"0 auto",padding:"120px 24px 80px",position:"relative"}}>
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative"}}>
       <Badge>Step {fromTemplate ? "1" : "2"} of {fromTemplate ? "2" : "3"}</Badge>
       <h2 style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Map the steps in "{processName}"</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:20,lineHeight:1.7}}>Walk through the process from start to finish. Estimates are fine.</p>
@@ -960,7 +960,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
   const anim=(d)=>({opacity:revealed?1:0,transform:revealed?"translateY(0)":"translateY(20px)",transition:`all 0.6s ease ${d}s`});
 
   return (
-    <div style={{padding:"120px 24px 80px"}}>
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px"}}>
       {showAuth && <AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={(user)=>{setShowAuth(false);onSave();}} />}
 
       <div style={{background:"#1a1f2e",borderRadius:20,padding:"60px 40px",textAlign:"center",color:"#fff",maxWidth:800,margin:"0 auto 40px",...anim(0)}}>
@@ -1209,10 +1209,10 @@ export default function CostClock() {
         {showAuth&&<AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={handleAuth}/>}
 
         {screen!=="welcome"&&(
-          <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.92)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc",height:64,display:"flex",alignItems:"center",padding:"0 24px"}}>
-            <div style={{maxWidth:780,width:"100%",margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.92)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc",height:64,display:"flex",alignItems:"center",padding:"0 40px"}}>
+            <div style={{maxWidth:1080,width:"100%",margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <button onClick={reset} style={{
-                fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.2rem",color:"#1a1f2e",
+                fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.5rem",color:"#1a1f2e",
                 background:"none",border:"none",cursor:"pointer",letterSpacing:"-0.02em",
                 opacity: navMounted ? 1 : 0,
                 transform: navMounted ? "translateX(0)" : "translateX(-16px)",
