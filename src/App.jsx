@@ -282,8 +282,13 @@ function generateReport(processName, roles, steps, annualVolume) {
 // ═══════════════════════════════════════════════════
 // UI COMPONENTS
 // ═══════════════════════════════════════════════════
-function Badge({ children }) {
-  return <span style={{ display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:100,background:"#d4ede2",color:"#1b4332",fontSize:"0.75rem",fontWeight:600,letterSpacing:"0.02em" }}><span style={{width:5,height:5,borderRadius:"50%",background:"#2d6a4f"}}/>{children}</span>;
+function Badge({ children, light = false }) {
+  return (
+    <span style={{ display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:100,background:light?"rgba(110,231,168,0.15)":"#d4ede2",color:light?"#6ee7a8":"#1b4332",fontSize:"0.75rem",fontWeight:600,letterSpacing:"0.02em" }}>
+      <span style={{width:5,height:5,borderRadius:"50%",background:light?"#6ee7a8":"#2d6a4f"}}/>
+      {children}
+    </span>
+  );
 }
 
 function FrictionBadge({ level }) {
@@ -508,42 +513,129 @@ function AuthModal({ onClose, onAuth, mode: initMode }) {
 
 function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved, onSignIn }) {
   const auth = useAuth();
+  const [transitioning, setTransitioning] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+
+  const handleTemplateClick = (t) => {
+    if (t.steps.length === 0) { onTemplate(t); return; }
+    setSelectedTemplate(t.id);
+    setTransitioning(true);
+    setTimeout(() => onTemplate(t), 420);
+  };
+
   return (
-    <div style={{ minHeight: "100vh", padding: "60px 24px 60px", position: "relative" }}>
-      <div style={{ maxWidth: 960, margin: "0 auto", position: "relative" }}>
-        <div style={{ textAlign: "center", marginBottom: 36 }}>
-          <div style={{marginBottom:20}}>
-            <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.5rem",color:"#1a1f2e",letterSpacing:"-0.02em"}}>cost<span style={{color:"#2d6a4f"}}>clock</span></span>
-            <span style={{fontSize:"0.75rem",color:"#6b7280",fontFamily:"'DM Sans',sans-serif",fontWeight:400,marginLeft:10}}>by workthru</span>
-          </div>
-          <Badge>Free process cost calculator</Badge>
-          <h1 style={{ fontFamily:"'Fraunces',serif",fontSize:"clamp(1.8rem,4.5vw,2.6rem)",fontWeight:700,lineHeight:1.15,letterSpacing:"-0.025em",margin:"16px 0 12px",color:"#1a1f2e" }}>
-            Your biggest operational cost isn't salaries. It's what <em style={{fontStyle:"italic",color:"#2d6a4f",fontWeight:500}}>salaries get spent on.</em>
-          </h1>
-          <p style={{ fontSize:"1rem",color:"#3d4455",lineHeight:1.7,maxWidth:560,margin:"0 auto" }}>
-            Your team is capable of far more than chasing documents and re-entering data. Map any process below and see exactly how much of your wage bill is going to work that automation could handle — freeing your people to do what you actually hired them for.
-          </p>
+    <div style={{ minHeight: "100vh", position: "relative",
+      opacity: transitioning ? 0 : 1,
+      transform: transitioning ? "scale(1.01)" : "scale(1)",
+      transition: "opacity 0.4s ease, transform 0.4s ease",
+    }}>
+
+      {/* NAV */}
+      <div style={{ position:"absolute", top:0, left:0, right:0, zIndex:10,
+        display:"flex", justifyContent:"space-between", alignItems:"center",
+        padding:"20px 40px",
+      }}>
+        <div>
+          <span style={{ fontFamily:"'Fraunces',serif", fontWeight:700, fontSize:"1.5rem",
+            color:"#ffffff", letterSpacing:"-0.02em" }}>
+            cost<span style={{ color:"#6ee7a8" }}>clock</span>
+          </span>
+          <span style={{ fontSize:"0.72rem", color:"rgba(255,255,255,0.45)",
+            fontFamily:"'DM Sans',sans-serif", fontWeight:400, marginLeft:8 }}>
+            by workthru
+          </span>
         </div>
+        {auth.user ? (
+          <button onClick={auth.signOut} style={{ fontSize:"0.82rem", color:"rgba(255,255,255,0.6)",
+            background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+            Sign out
+          </button>
+        ) : (
+          <button onClick={onSignIn} style={{ fontSize:"0.82rem", color:"rgba(255,255,255,0.85)",
+            fontWeight:600, background:"none", border:"none", cursor:"pointer",
+            fontFamily:"'DM Sans',sans-serif" }}>
+            Already have an account? Sign in
+          </button>
+        )}
+      </div>
+
+      {/* DARK HERO */}
+      <div style={{ background:"#1a1f2e", padding:"120px 40px 72px", position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", inset:0,
+          backgroundImage:"url(/topography-dark.svg)", backgroundSize:"600px 600px",
+          opacity:0.4, pointerEvents:"none",
+        }} />
+        <div className="hero-grid" style={{ maxWidth:1080, margin:"0 auto", position:"relative",
+          display:"grid", gridTemplateColumns:"1fr 1fr", gap:60, alignItems:"center",
+        }}>
+          {/* Left — headline */}
+          <div>
+            <Badge light>Free process cost calculator</Badge>
+            <h1 style={{ fontFamily:"'Fraunces',serif",
+              fontSize:"clamp(2rem, 4.5vw, 3rem)",
+              fontWeight:700, lineHeight:1.15, letterSpacing:"-0.025em",
+              color:"#ffffff", margin:"24px 0 32px",
+            }}>
+              Your biggest operational cost isn't salaries.{" "}
+              <em style={{ fontStyle:"italic", color:"#6ee7a8", fontWeight:500 }}>
+                It's what salaries get spent on.
+              </em>
+            </h1>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <div style={{ width:8, height:8, borderRadius:"50%", background:"#6ee7a8" }} />
+              <span style={{ fontSize:"0.85rem", color:"rgba(255,255,255,0.55)", fontFamily:"'DM Sans',sans-serif" }}>
+                Free process cost calculator
+              </span>
+            </div>
+          </div>
+          {/* Right — quote panel */}
+          <div style={{ borderLeft:"3px solid #6ee7a8", paddingLeft:32 }}>
+            <p style={{ fontFamily:"'Fraunces',serif",
+              fontSize:"clamp(1rem, 1.8vw, 1.2rem)",
+              fontStyle:"italic", fontWeight:400,
+              color:"rgba(255,255,255,0.82)", lineHeight:1.7, margin:0,
+            }}>
+              "Your team is capable of far more than chasing documents and re-entering
+              data. Map any process below and see exactly how much of your wage bill is
+              going to work that{" "}
+              <strong style={{ fontStyle:"normal", color:"#ffffff" }}>automation could handle</strong>
+              {" "}— freeing your people to do what you actually hired them for."
+            </p>
+          </div>
+        </div>
+        {/* Bottom fade */}
+        <div style={{ position:"absolute", bottom:0, left:0, right:0, height:80,
+          background:"linear-gradient(to bottom, transparent, #EFEFEF)", pointerEvents:"none",
+        }} />
+      </div>
+
+      {/* TEMPLATE CARDS */}
+      <div style={{ maxWidth:1080, margin:"0 auto", padding:"48px 40px 60px", position:"relative" }}>
 
         {auth.user && savedProcesses.length > 0 && (
-          <div style={{ marginBottom: 28 }}>
-            <h3 style={{ fontFamily:"'Fraunces',serif",fontSize:"1rem",fontWeight:700,marginBottom:10 }}>Your saved processes</h3>
-            <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-              {savedProcesses.map((p,idx)=>{
-                const {totalCost,annualCost}=calcCosts(p.roles||DEFAULT_ROLES,p.steps,p.annual_volume||p.annualVolume);
+          <div style={{ marginBottom:36 }}>
+            <h3 style={{ fontFamily:"'Fraunces',serif", fontSize:"1rem", fontWeight:700, marginBottom:10 }}>
+              Your saved processes
+            </h3>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {savedProcesses.map((p,idx) => {
+                const { totalCost, annualCost } = calcCosts(p.roles||DEFAULT_ROLES, p.steps, p.annual_volume||p.annualVolume);
                 return (
                   <Card key={p.id||idx} hover onClick={()=>onLoadSaved(idx)} style={{padding:"14px 20px",cursor:"pointer"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
                       <div>
                         <div style={{fontWeight:600,fontSize:"0.92rem"}}>{p.name||p.processName}</div>
-                        <div style={{fontSize:"0.75rem",color:"#6b7280",marginTop:2}}>{(p.steps||[]).length} steps · {p.annual_volume||p.annualVolume}×/year · £{annualCost.toLocaleString("en-GB",{maximumFractionDigits:0})}/year</div>
+                        <div style={{fontSize:"0.75rem",color:"#6b7280",marginTop:2}}>
+                          {(p.steps||[]).length} steps · {p.annual_volume||p.annualVolume}×/year · £{annualCost.toLocaleString("en-GB",{maximumFractionDigits:0})}/year
+                        </div>
                       </div>
                       <div style={{display:"flex",alignItems:"center",gap:16}}>
                         <div style={{textAlign:"right"}}>
                           <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,color:"#2d6a4f",fontSize:"1.05rem"}}>£{totalCost.toFixed(0)}</div>
                           <div style={{fontSize:"0.7rem",color:"#6b7280"}}>per run</div>
                         </div>
-                        <button onClick={e=>{e.stopPropagation();onDeleteSaved(idx);}} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1rem",padding:4}}>×</button>
+                        <button onClick={e=>{e.stopPropagation();onDeleteSaved(idx);}}
+                          style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1rem",padding:4}}>×</button>
                       </div>
                     </div>
                   </Card>
@@ -553,36 +645,64 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
           </div>
         )}
 
-        {!auth.user && (
-          <div style={{textAlign:"center",marginBottom:24}}>
-            <button onClick={onSignIn} style={{fontSize:"0.82rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
-              Already have an account? Sign in to load your saved processes →
-            </button>
-          </div>
-        )}
+        <h3 style={{ fontFamily:"'Fraunces',serif", fontSize:"1rem", fontWeight:700, marginBottom:6 }}>
+          Start from a template
+        </h3>
+        <p style={{ fontSize:"0.85rem", color:"#6b7280", marginBottom:20 }}>
+          Pre-built process maps with realistic data. Adjust rates and volume to match your firm.
+        </p>
 
-        <div style={{marginBottom:32}}>
-          <h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1rem",fontWeight:700,marginBottom:6}}>Start from a template</h3>
-          <p style={{fontSize:"0.85rem",color:"#6b7280",marginBottom:12}}>Pre-built process maps with realistic data. Adjust rates and volume to match your firm.</p>
-          <div className="template-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
-            {TEMPLATES.map(t=>(
-              <Card key={t.id} hover onClick={()=>onTemplate(t)} style={{padding:"18px 20px",cursor:"pointer"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
-                  <span style={{fontWeight:600,fontSize:"0.9rem"}}>{t.name}</span>
-                  <span style={{fontSize:"0.65rem",fontWeight:600,padding:"2px 8px",borderRadius:100,background:t.id==="custom"?"#f3f1ed":"#d4ede2",color:t.id==="custom"?"#6b7280":"#1b4332",flexShrink:0,marginLeft:8}}>{t.industry}</span>
+        <div className="template-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
+          {TEMPLATES.map(t => {
+            const isSelected = selectedTemplate === t.id;
+            return (
+              <div key={t.id} onClick={() => handleTemplateClick(t)} style={{
+                background:"#fff",
+                border: isSelected ? "1.5px solid #2d6a4f" : "1px solid #e5e2dc",
+                borderRadius:16, padding:"18px 20px", cursor:"pointer",
+                transition:"all 0.25s",
+                transform: isSelected ? "scale(1.03)" : "scale(1)",
+                boxShadow: isSelected ? "0 8px 30px rgba(45,106,79,0.15)" : "none",
+              }}
+              onMouseEnter={e => { if (!isSelected) {
+                e.currentTarget.style.borderColor="#2d6a4f";
+                e.currentTarget.style.boxShadow="0 8px 30px rgba(26,31,46,0.1)";
+                e.currentTarget.style.transform="translateY(-2px)";
+              }}}
+              onMouseLeave={e => { if (!isSelected) {
+                e.currentTarget.style.borderColor="#e5e2dc";
+                e.currentTarget.style.boxShadow="none";
+                e.currentTarget.style.transform="scale(1)";
+              }}}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
+                  <span style={{ fontWeight:600, fontSize:"0.9rem" }}>{t.name}</span>
+                  <span style={{ fontSize:"0.65rem", fontWeight:600, padding:"2px 8px", borderRadius:100,
+                    background: t.id==="custom" ? "#f3f1ed" : "#d4ede2",
+                    color: t.id==="custom" ? "#6b7280" : "#1b4332",
+                    flexShrink:0, marginLeft:8,
+                  }}>{t.industry}</span>
                 </div>
-                <p style={{fontSize:"0.78rem",color:"#6b7280",lineHeight:1.5,marginBottom:6}}>{t.description}</p>
-                {t.steps.length>0&&<div style={{fontSize:"0.72rem",color:"#3d4455"}}>{t.steps.length} steps · {t.steps.filter(s=>isSaveable(s)).length} saving opportunities</div>}
-              </Card>
-            ))}
-          </div>
+                <p style={{ fontSize:"0.78rem", color:"#6b7280", lineHeight:1.5, marginBottom:6 }}>{t.description}</p>
+                {t.steps.length > 0 && (
+                  <div style={{ fontSize:"0.72rem", color:"#3d4455" }}>
+                    {t.steps.length} steps · {t.steps.filter(s=>isSaveable(s)).length} saving opportunities
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        <div style={{display:"flex",gap:40,justifyContent:"center",flexWrap:"wrap",paddingTop:28,borderTop:"1px solid #e5e2dc"}}>
-          {[{num:"£847",label:"Average onboarding cost per client"},{num:"18.5 hrs",label:"Staff time per onboarding"},{num:"42%",label:"Of steps have saving potential"}].map((s,i)=>(
-            <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-              <strong style={{fontFamily:"'Fraunces',serif",fontSize:"1.4rem",fontWeight:700,color:"#2d6a4f"}}>{s.num}</strong>
-              <span style={{fontSize:"0.78rem",color:"#6b7280",fontWeight:500,maxWidth:140,textAlign:"center"}}>{s.label}</span>
+        <div style={{ display:"flex", gap:40, justifyContent:"center", flexWrap:"wrap",
+          paddingTop:36, marginTop:36, borderTop:"1px solid #e5e2dc" }}>
+          {[
+            { num:"£847", label:"Average onboarding cost per client" },
+            { num:"18.5 hrs", label:"Staff time per onboarding" },
+            { num:"42%", label:"Of steps have saving potential" },
+          ].map((s,i) => (
+            <div key={i} style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
+              <strong style={{ fontFamily:"'Fraunces',serif", fontSize:"1.4rem", fontWeight:700, color:"#2d6a4f" }}>{s.num}</strong>
+              <span style={{ fontSize:"0.78rem", color:"#6b7280", fontWeight:500, maxWidth:140, textAlign:"center" }}>{s.label}</span>
             </div>
           ))}
         </div>
@@ -919,7 +1039,11 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
 // ═══════════════════════════════════════════════════
 export default function CostClock() {
   const [screen,setScreenRaw]=useState("welcome");
-  const setScreen=(s)=>{setScreenRaw(s);window.scrollTo(0,0);};
+  const [screenFading,setScreenFading]=useState(false);
+  const setScreen=(s)=>{
+    setScreenFading(true);
+    setTimeout(()=>{setScreenRaw(s);window.scrollTo(0,0);setScreenFading(false);},200);
+  };
   const [roles,setRoles]=useState(DEFAULT_ROLES);
   const [processName,setProcessName]=useState("");
   const [annualVolume,setAnnualVolume]=useState(80);
@@ -1036,7 +1160,7 @@ export default function CostClock() {
   return (
     <AuthContext.Provider value={authCtx}>
       <div style={{background:"#EFEFEF",minHeight:"100vh",position:"relative"}}>
-        <TopoBg />
+        {screen!=="welcome"&&<TopoBg />}
         {showAuth&&<AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={handleAuth}/>}
 
         {screen!=="welcome"&&(
@@ -1060,10 +1184,12 @@ export default function CostClock() {
           </nav>
         )}
 
-        {screen==="welcome"&&<WelcomeScreen onTemplate={handleTemplate} savedProcesses={saved} onLoadSaved={handleLoad} onDeleteSaved={handleDelete} onSignIn={()=>setShowAuth(true)}/>}
-        {screen==="setup"&&<SetupScreen roles={roles} setRoles={setRoles} processName={processName} setProcessName={setProcessName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("build")} onBack={reset}/>}
-        {screen==="build"&&<BuildScreen roles={roles} setRoles={setRoles} steps={steps} setSteps={setSteps} processName={processName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("results")} onBack={()=>setScreen(templateUsed?"welcome":"setup")} fromTemplate={!!templateUsed}/>}
-        {screen==="results"&&<ResultsScreen roles={roles} steps={steps} processName={processName} annualVolume={annualVolume} templateUsed={templateUsed} onBack={()=>setScreen("build")} onReset={reset} onSave={handleSave} isSaved={savedIdx!==null}/>}
+        <div style={{ opacity:screenFading?0:1, transition:"opacity 0.2s ease" }}>
+          {screen==="welcome"&&<WelcomeScreen onTemplate={handleTemplate} savedProcesses={saved} onLoadSaved={handleLoad} onDeleteSaved={handleDelete} onSignIn={()=>setShowAuth(true)}/>}
+          {screen==="setup"&&<SetupScreen roles={roles} setRoles={setRoles} processName={processName} setProcessName={setProcessName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("build")} onBack={reset}/>}
+          {screen==="build"&&<BuildScreen roles={roles} setRoles={setRoles} steps={steps} setSteps={setSteps} processName={processName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("results")} onBack={()=>setScreen(templateUsed?"welcome":"setup")} fromTemplate={!!templateUsed}/>}
+          {screen==="results"&&<ResultsScreen roles={roles} steps={steps} processName={processName} annualVolume={annualVolume} templateUsed={templateUsed} onBack={()=>setScreen("build")} onReset={reset} onSave={handleSave} isSaved={savedIdx!==null}/>}
+        </div>
 
         <footer style={{padding:"30px 24px",textAlign:"center",fontSize:"0.78rem",color:"#6b7280",borderTop:"1px solid #e5e2dc"}}>
           <a href="https://www.workthru.co.uk" target="_blank" rel="noopener noreferrer" style={{color:"#2d6a4f",textDecoration:"none",fontWeight:600}}>workthru.co.uk</a>
