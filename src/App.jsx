@@ -963,7 +963,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
     <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px"}}>
       {showAuth && <AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={(user)=>{setShowAuth(false);onSave();}} />}
 
-      <div style={{background:"#1a1f2e",borderRadius:20,padding:"60px 40px",textAlign:"center",color:"#fff",maxWidth:800,margin:"0 auto 40px",...anim(0)}}>
+      <div style={{background:"#1a1f2e",borderRadius:20,padding:"60px 40px",textAlign:"center",color:"#fff",margin:"0 0 40px",...anim(0)}}>
         <Badge>Your results</Badge>
         <h2 style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(1.5rem,3.5vw,2rem)",fontWeight:700,lineHeight:1.2,margin:"20px 0 8px",color:"#fff"}}>Each "{processName}" costs you</h2>
         <div style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(3rem,8vw,4.5rem)",fontWeight:700,color:"#6ee7a8",letterSpacing:"-0.02em",margin:"8px 0"}}>£{totalCost.toFixed(0)}</div>
@@ -979,7 +979,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
         </div>
       </div>
 
-      <div style={{maxWidth:800,margin:"0 auto"}}>
+      <div>
         {!isSaved && (
           <div onClick={handleSave} style={{background:"linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%)",borderRadius:16,padding:"24px 28px",marginBottom:20,cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center",transition:"all 0.2s",boxShadow:"0 4px 16px rgba(45,106,79,0.25)",...anim(0.12)}}
             onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(45,106,79,0.3)";}}
