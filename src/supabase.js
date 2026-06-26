@@ -34,7 +34,10 @@ export async function signUp(email, password, metadata) {
 
 export async function signInWithMagicLink(email) {
   if (!supabase) return { error: { message: 'Supabase not configured' } }
-  return supabase.auth.signInWithOtp({ email })
+  return supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: 'https://costclock.workthru.co.uk' }
+  })
 }
 
 export async function getSession() {
