@@ -727,36 +727,61 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
         )}
       </Card>
 
-      <div style={{position:"sticky",top:64,zIndex:50,background:"rgba(250,249,247,0.95)",backdropFilter:"blur(12px)",borderRadius:12,border:"1px solid #e5e2dc",padding:"14px 20px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
-        <div style={{display:"flex",gap:24,flexWrap:"wrap"}}>
-          <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Steps: <strong style={{color:"#1a1f2e"}}>{steps.length}</strong></span>
-          <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Time: <strong style={{color:"#1a1f2e"}}>{totalMinutes>=60?`${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m`:`${totalMinutes}m`}</strong></span>
-          <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Cost: <strong style={{fontFamily:"'Fraunces',serif",color:"#2d6a4f"}}>£{totalCost.toFixed(0)}</strong></span>
-        </div>
-        <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Saving opportunities: <strong style={{color:"#c4942a"}}>{steps.filter(s=>isSaveable(s)).length}/{steps.length}</strong></span>
-      </div>
-      <div style={{display:"flex",flexDirection:"column",gap:10}}>
-        {steps.map((step,idx)=>{const role=roles.find(r=>r.id===step.roleId);const rc=role?getRoleColor(role,roles):"#e5e2dc";const cost=role?(step.minutes/60)*role.rate:0;const wt=WORK_TYPES.find(w=>w.value===step.workType)||WORK_TYPES[0];return(
-          <Card key={step.id} style={{padding:"18px 22px",borderLeft:`4px solid ${rc}`}}>
-            <div style={{display:"flex",gap:12,alignItems:"flex-start",flexWrap:"wrap"}}>
-              <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.9rem",color:"#6b7280",minWidth:24}}>{idx+1}</span>
-              <div style={{flex:1,minWidth:200}}>
-                <input type="text" value={step.name} onChange={e=>updateStep(idx,"name",e.target.value)} placeholder="What happens at this step?" style={{width:"100%",padding:"6px 0",border:"none",borderBottom:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",background:"transparent"}}/>
-                <div style={{display:"flex",gap:10,marginTop:12,flexWrap:"wrap",alignItems:"center"}}>
-                  <Select value={step.roleId} onChange={v=>updateStep(idx,"roleId",v)} options={roles.map(r=>({value:r.id,label:r.name}))} style={{minWidth:130}}/>
-                  <NumberInput value={step.minutes} onChange={v=>updateStep(idx,"minutes",v)} suffix="min" min={1}/>
-                  <Select value={step.friction} onChange={v=>updateStep(idx,"friction",v)} options={FRICTION_LEVELS.map(f=>({value:f.value,label:`${f.label} friction`}))} style={{minWidth:110}}/>
-                  <Select value={step.workType||"manual"} onChange={v=>updateStep(idx,"workType",v)} options={WORK_TYPES.map(w=>({value:w.value,label:`${w.icon} ${w.short}`}))} style={{minWidth:100,background:wt.bg,color:wt.color,fontWeight:600,border:`1px solid ${wt.color}30`}}/>
-                </div>
-              </div>
-              <div style={{textAlign:"right",minWidth:70}}>
-                <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.3rem",color:rc}}>£{cost.toFixed(0)}</div>
-                <div style={{fontSize:"0.75rem",color:"#6b7280"}}>{step.minutes}m</div>
-              </div>
-              <button onClick={()=>removeStep(idx)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1.1rem",padding:"0 4px",alignSelf:"flex-start"}}>×</button>
+      {(()=>{
+        const automatableMins=steps.filter(s=>s.workType==="manual"&&isSaveable(s)).reduce((sum,s)=>sum+s.minutes,0);
+        const delayMins=steps.filter(s=>s.workType==="waiting").reduce((sum,s)=>sum+s.minutes,0);
+        const fmtMins=(m)=>m>=60?`${Math.floor(m/60)}h ${m%60}m`:`${m}m`;
+        return(
+          <div style={{position:"sticky",top:64,zIndex:50,background:"rgba(250,249,247,0.95)",backdropFilter:"blur(12px)",borderRadius:12,border:"1px solid #e5e2dc",padding:"14px 20px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+            <div style={{display:"flex",gap:20,flexWrap:"wrap",alignItems:"center"}}>
+              <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Steps: <strong style={{color:"#1a1f2e"}}>{steps.length}</strong></span>
+              <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Time: <strong style={{color:"#1a1f2e"}}>{totalMinutes>=60?`${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m`:`${totalMinutes}m`}</strong></span>
+              <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Cost: <strong style={{fontFamily:"'Fraunces',serif",color:"#2d6a4f"}}>£{totalCost.toFixed(0)}</strong></span>
+              {automatableMins>0&&<span style={{fontSize:"0.82rem",color:"#1b4332",background:"#d4ede2",padding:"3px 10px",borderRadius:100,fontWeight:600}}>⚡ Automatable: {fmtMins(automatableMins)}</span>}
+              {delayMins>0&&<span style={{fontSize:"0.82rem",color:"#8a6a1e",background:"#faf0d6",padding:"3px 10px",borderRadius:100,fontWeight:600}}>⏳ Delay time: {fmtMins(delayMins)}</span>}
             </div>
-          </Card>
-        );})}
+            <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Saving opportunities: <strong style={{color:"#c4942a"}}>{steps.filter(s=>isSaveable(s)).length}/{steps.length}</strong></span>
+          </div>
+        );
+      })()}
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {steps.map((step,idx)=>{
+          const role=roles.find(r=>r.id===step.roleId);
+          const rc=role?getRoleColor(role,roles):"#e5e2dc";
+          const cost=role?(step.minutes/60)*role.rate:0;
+          const wt=WORK_TYPES.find(w=>w.value===step.workType)||WORK_TYPES[0];
+          const isAutoOpportunity=step.workType==="manual"&&isSaveable(step);
+          const isDelayRisk=step.workType==="waiting";
+          const cardBg=isAutoOpportunity?"linear-gradient(135deg, #f0faf5 0%, #ffffff 60%)":isDelayRisk?"linear-gradient(135deg, #fdf8ec 0%, #ffffff 60%)":"#ffffff";
+          const cardBorder=isAutoOpportunity?"1px solid #a8dcc0":isDelayRisk?"1px solid #e8dbb8":"1px solid #e5e2dc";
+          return(
+            <div key={step.id} style={{background:cardBg,border:cardBorder,borderLeft:isAutoOpportunity?"4px solid #2d6a4f":isDelayRisk?"4px solid #c4942a":`4px solid ${rc}`,borderRadius:16,padding:"18px 22px",transition:"all 0.2s"}}>
+              <div style={{display:"flex",gap:12,alignItems:"flex-start",flexWrap:"wrap"}}>
+                <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.9rem",color:"#6b7280",minWidth:24}}>{idx+1}</span>
+                <div style={{flex:1,minWidth:200}}>
+                  <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12}}>
+                    <input type="text" value={step.name} onChange={e=>updateStep(idx,"name",e.target.value)} placeholder="What happens at this step?" style={{flex:1,padding:"6px 0",border:"none",borderBottom:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",background:"transparent"}}/>
+                    {isAutoOpportunity&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.68rem",fontWeight:700,padding:"3px 10px",borderRadius:100,flexShrink:0,background:"#d4ede2",color:"#1b4332",letterSpacing:"0.02em"}}>⚡ Automation opportunity</span>}
+                    {isDelayRisk&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.68rem",fontWeight:700,padding:"3px 10px",borderRadius:100,flexShrink:0,background:"#faf0d6",color:"#8a6a1e",letterSpacing:"0.02em"}}>⏳ Delay risk</span>}
+                  </div>
+                  <div style={{display:"flex",gap:10,marginTop:12,flexWrap:"wrap",alignItems:"center"}}>
+                    <Select value={step.roleId} onChange={v=>updateStep(idx,"roleId",v)} options={roles.map(r=>({value:r.id,label:r.name}))} style={{minWidth:130}}/>
+                    <NumberInput value={step.minutes} onChange={v=>updateStep(idx,"minutes",v)} suffix="min" min={1}/>
+                    <Select value={step.friction} onChange={v=>updateStep(idx,"friction",v)} options={FRICTION_LEVELS.map(f=>({value:f.value,label:`${f.label} friction`}))} style={{minWidth:110}}/>
+                    <Select value={step.workType||"manual"} onChange={v=>updateStep(idx,"workType",v)} options={WORK_TYPES.map(w=>({value:w.value,label:`${w.icon} ${w.short}`}))} style={{minWidth:100,background:wt.bg,color:wt.color,fontWeight:600,border:`1px solid ${wt.color}30`}}/>
+                  </div>
+                </div>
+                <div style={{textAlign:"right",minWidth:70}}>
+                  <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.3rem",color:rc}}>£{cost.toFixed(0)}</div>
+                  <div style={{fontSize:"0.75rem",color:"#6b7280"}}>{step.minutes}m</div>
+                  {isAutoOpportunity&&<div style={{fontSize:"0.65rem",color:"#2d6a4f",fontWeight:600,marginTop:2}}>recoverable</div>}
+                  {isDelayRisk&&<div style={{fontSize:"0.65rem",color:"#c4942a",fontWeight:600,marginTop:2}}>delay cost</div>}
+                </div>
+                <button onClick={()=>removeStep(idx)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1.1rem",padding:"0 4px",alignSelf:"flex-start"}}>×</button>
+              </div>
+            </div>
+          );
+        })}
       </div>
       <button onClick={addStep} style={{width:"100%",padding:16,marginTop:12,borderRadius:12,border:"2px dashed #e5e2dc",background:"transparent",color:"#6b7280",fontSize:"0.9rem",fontWeight:500,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>+ Add step</button>
       <div style={{marginTop:32,display:"flex",justifyContent:"space-between"}}>
