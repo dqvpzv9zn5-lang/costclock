@@ -904,11 +904,13 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
               <div style={{display:"flex",gap:12,alignItems:"flex-start",flexWrap:"wrap"}}>
                 <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.9rem",color:"#6b7280",minWidth:24}}>{idx+1}</span>
                 <div style={{flex:1,minWidth:200}}>
-                  <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12}}>
+                  <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
                     <input type="text" value={step.name} onChange={e=>updateStep(idx,"name",e.target.value)} placeholder="What happens at this step?" style={{flex:1,padding:"6px 0",border:"none",borderBottom:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",background:"transparent"}}/>
-                    {isAutoOpportunity&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.68rem",fontWeight:700,padding:"3px 10px",borderRadius:100,flexShrink:0,background:"#d4ede2",color:"#1b4332",letterSpacing:"0.02em"}}>⚡ <span className="badge-full">Automation opportunity</span><span className="badge-short">Automation</span></span>}
-                    {isDelayRisk&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.68rem",fontWeight:700,padding:"3px 10px",borderRadius:100,flexShrink:0,background:"#faf0d6",color:"#8a6a1e",letterSpacing:"0.02em"}}>⏳ Delay risk</span>}
                   </div>
+                  {(isAutoOpportunity||isDelayRisk)&&<div style={{marginTop:6}}>
+                    {isAutoOpportunity&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.68rem",fontWeight:700,padding:"3px 10px",borderRadius:100,background:"#d4ede2",color:"#1b4332",letterSpacing:"0.02em"}}>⚡ Automation opportunity</span>}
+                    {isDelayRisk&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.68rem",fontWeight:700,padding:"3px 10px",borderRadius:100,background:"#faf0d6",color:"#8a6a1e",letterSpacing:"0.02em"}}>⏳ Delay risk</span>}
+                  </div>}
                   <div style={{display:"flex",gap:10,marginTop:12,flexWrap:"wrap",alignItems:"center"}}>
                     <Select value={step.roleId} onChange={v=>updateStep(idx,"roleId",v)} options={roles.map(r=>({value:r.id,label:r.name}))} style={{minWidth:130}}/>
                     <NumberInput value={step.minutes} onChange={v=>updateStep(idx,"minutes",v)} suffix="min" min={1}/>
