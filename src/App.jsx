@@ -515,27 +515,44 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
   const auth = useAuth();
   const [transitioning, setTransitioning] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { const t = setTimeout(() => setMounted(true), 30); return () => clearTimeout(t); }, []);
 
   const handleTemplateClick = (t) => {
     if (t.steps.length === 0) { onTemplate(t); return; }
     setSelectedTemplate(t.id);
     setTransitioning(true);
-    setTimeout(() => onTemplate(t), 420);
+    setTimeout(() => onTemplate(t), 480);
   };
 
+  const heroStyle = {
+    opacity: transitioning ? 0 : mounted ? 1 : 0,
+    transform: transitioning ? "translateY(-60px)" : mounted ? "translateY(0)" : "translateY(0)",
+    transition: transitioning ? "opacity 0.4s ease, transform 0.4s ease" : "opacity 0.5s ease",
+  };
+
+  const cardsStyle = (i) => ({
+    opacity: transitioning ? 0 : mounted ? 1 : 0,
+    transform: transitioning ? "translateY(40px)" : mounted ? "translateY(0)" : "translateY(24px)",
+    transition: transitioning
+      ? `opacity 0.3s ease ${i * 0.03}s, transform 0.3s ease ${i * 0.03}s`
+      : `opacity 0.5s ease ${0.15 + i * 0.04}s, transform 0.5s ease ${0.15 + i * 0.04}s`,
+  });
+
   return (
-    <div style={{ minHeight: "100vh", position: "relative",
-      opacity: transitioning ? 0 : 1,
-      transform: transitioning ? "scale(1.01)" : "scale(1)",
-      transition: "opacity 0.4s ease, transform 0.4s ease",
-    }}>
+    <div style={{ minHeight: "100vh", position: "relative" }}>
 
       {/* NAV */}
       <div style={{ position:"absolute", top:0, left:0, right:0, zIndex:10,
         display:"flex", justifyContent:"space-between", alignItems:"center",
         padding:"20px 40px",
       }}>
-        <div>
+        <div style={{
+          opacity: mounted ? 1 : 0,
+          transform: mounted ? "translateY(0)" : "translateY(-12px)",
+          transition: "opacity 0.5s ease, transform 0.5s ease",
+        }}>
           <span style={{ fontFamily:"'Fraunces',serif", fontWeight:700, fontSize:"1.5rem",
             color:"#ffffff", letterSpacing:"-0.02em" }}>
             cost<span style={{ color:"#6ee7a8" }}>clock</span>
@@ -545,25 +562,30 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
             by workthru
           </span>
         </div>
-        {auth.user ? (
-          <button onClick={auth.signOut} style={{ fontSize:"0.82rem", color:"rgba(255,255,255,0.6)",
-            background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
-            Sign out
-          </button>
-        ) : (
-          <button onClick={onSignIn} style={{ fontSize:"0.82rem", color:"rgba(255,255,255,0.85)",
-            fontWeight:600, background:"none", border:"none", cursor:"pointer",
-            fontFamily:"'DM Sans',sans-serif" }}>
-            Already have an account? Sign in
-          </button>
-        )}
+        <div style={{
+          opacity: mounted ? 1 : 0,
+          transition: "opacity 0.5s ease 0.1s",
+        }}>
+          {auth.user ? (
+            <button onClick={auth.signOut} style={{ fontSize:"0.82rem", color:"rgba(255,255,255,0.6)",
+              background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+              Sign out
+            </button>
+          ) : (
+            <button onClick={onSignIn} style={{ fontSize:"0.82rem", color:"rgba(255,255,255,0.85)",
+              fontWeight:600, background:"none", border:"none", cursor:"pointer",
+              fontFamily:"'DM Sans',sans-serif" }}>
+              Already have an account? Sign in
+            </button>
+          )}
+        </div>
       </div>
 
       {/* DARK HERO */}
-      <div style={{ background:"#1a1f2e", padding:"120px 40px 72px", position:"relative", overflow:"hidden" }}>
+      <div style={{ background:"#1a1f2e", padding:"120px 40px 80px", position:"relative", overflow:"hidden", ...heroStyle }}>
         <div style={{ position:"absolute", inset:0,
           backgroundImage:"url(/topography-dark.svg)", backgroundSize:"600px 600px",
-          opacity:0.4, pointerEvents:"none",
+          opacity:0.6, pointerEvents:"none",
         }} />
         <div className="hero-grid" style={{ maxWidth:1080, margin:"0 auto", position:"relative",
           display:"grid", gridTemplateColumns:"1fr 1fr", gap:60, alignItems:"center",
@@ -574,24 +596,18 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
             <h1 style={{ fontFamily:"'Fraunces',serif",
               fontSize:"clamp(2rem, 4.5vw, 3rem)",
               fontWeight:700, lineHeight:1.15, letterSpacing:"-0.025em",
-              color:"#ffffff", margin:"24px 0 32px",
+              color:"#ffffff", margin:"24px 0 0",
             }}>
               Your biggest operational cost isn't salaries.{" "}
               <em style={{ fontStyle:"italic", color:"#6ee7a8", fontWeight:500 }}>
                 It's what salaries get spent on.
               </em>
             </h1>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <div style={{ width:8, height:8, borderRadius:"50%", background:"#6ee7a8" }} />
-              <span style={{ fontSize:"0.85rem", color:"rgba(255,255,255,0.55)", fontFamily:"'DM Sans',sans-serif" }}>
-                Free process cost calculator
-              </span>
-            </div>
           </div>
           {/* Right — quote panel */}
           <div style={{ borderLeft:"3px solid #6ee7a8", paddingLeft:32 }}>
             <p style={{ fontFamily:"'Fraunces',serif",
-              fontSize:"clamp(1rem, 1.8vw, 1.2rem)",
+              fontSize:"clamp(1rem, 1.8vw, 1.15rem)",
               fontStyle:"italic", fontWeight:400,
               color:"rgba(255,255,255,0.82)", lineHeight:1.7, margin:0,
             }}>
@@ -603,10 +619,6 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
             </p>
           </div>
         </div>
-        {/* Bottom fade */}
-        <div style={{ position:"absolute", bottom:0, left:0, right:0, height:80,
-          background:"linear-gradient(to bottom, transparent, #EFEFEF)", pointerEvents:"none",
-        }} />
       </div>
 
       {/* TEMPLATE CARDS */}
@@ -645,24 +657,30 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
           </div>
         )}
 
-        <h3 style={{ fontFamily:"'Fraunces',serif", fontSize:"1rem", fontWeight:700, marginBottom:6 }}>
-          Start from a template
-        </h3>
-        <p style={{ fontSize:"0.85rem", color:"#6b7280", marginBottom:20 }}>
-          Pre-built process maps with realistic data. Adjust rates and volume to match your firm.
-        </p>
+        <div style={cardsStyle(0)}>
+          <h3 style={{ fontFamily:"'Fraunces',serif", fontSize:"1rem", fontWeight:700, marginBottom:6 }}>
+            Start from a template
+          </h3>
+          <p style={{ fontSize:"0.85rem", color:"#6b7280", marginBottom:20 }}>
+            Pre-built process maps with realistic data. Adjust rates and volume to match your firm.
+          </p>
+        </div>
 
         <div className="template-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
-          {TEMPLATES.map(t => {
+          {TEMPLATES.map((t, i) => {
             const isSelected = selectedTemplate === t.id;
             return (
               <div key={t.id} onClick={() => handleTemplateClick(t)} style={{
                 background:"#fff",
                 border: isSelected ? "1.5px solid #2d6a4f" : "1px solid #e5e2dc",
                 borderRadius:16, padding:"18px 20px", cursor:"pointer",
-                transition:"all 0.25s",
-                transform: isSelected ? "scale(1.03)" : "scale(1)",
-                boxShadow: isSelected ? "0 8px 30px rgba(45,106,79,0.15)" : "none",
+                transform: isSelected ? "scale(1.03)" : undefined,
+                boxShadow: isSelected ? "0 8px 30px rgba(45,106,79,0.15)" : undefined,
+                ...cardsStyle(i + 1),
+                transition: [
+                  cardsStyle(i + 1).transition,
+                  "border-color 0.2s, box-shadow 0.2s, transform 0.2s",
+                ].join(", "),
               }}
               onMouseEnter={e => { if (!isSelected) {
                 e.currentTarget.style.borderColor="#2d6a4f";
@@ -672,7 +690,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
               onMouseLeave={e => { if (!isSelected) {
                 e.currentTarget.style.borderColor="#e5e2dc";
                 e.currentTarget.style.boxShadow="none";
-                e.currentTarget.style.transform="scale(1)";
+                e.currentTarget.style.transform="translateY(0)";
               }}}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
                   <span style={{ fontWeight:600, fontSize:"0.9rem" }}>{t.name}</span>
@@ -694,7 +712,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
         </div>
 
         <div style={{ display:"flex", gap:40, justifyContent:"center", flexWrap:"wrap",
-          paddingTop:36, marginTop:36, borderTop:"1px solid #e5e2dc" }}>
+          paddingTop:36, marginTop:36, borderTop:"1px solid #e5e2dc", ...cardsStyle(TEMPLATES.length + 1) }}>
           {[
             { num:"£847", label:"Average onboarding cost per client" },
             { num:"18.5 hrs", label:"Staff time per onboarding" },
@@ -1040,9 +1058,17 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
 export default function CostClock() {
   const [screen,setScreenRaw]=useState("welcome");
   const [screenFading,setScreenFading]=useState(false);
+  const [navMounted,setNavMounted]=useState(true);
   const setScreen=(s)=>{
+    const wasWelcome=screen==="welcome";
     setScreenFading(true);
-    setTimeout(()=>{setScreenRaw(s);window.scrollTo(0,0);setScreenFading(false);},200);
+    setNavMounted(false);
+    setTimeout(()=>{
+      setScreenRaw(s);
+      window.scrollTo(0,0);
+      setScreenFading(false);
+      if(wasWelcome){setTimeout(()=>setNavMounted(true),30);}
+    },220);
   };
   const [roles,setRoles]=useState(DEFAULT_ROLES);
   const [processName,setProcessName]=useState("");
@@ -1166,7 +1192,13 @@ export default function CostClock() {
         {screen!=="welcome"&&(
           <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.92)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc",height:64,display:"flex",alignItems:"center",padding:"0 24px"}}>
             <div style={{maxWidth:780,width:"100%",margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <button onClick={reset} style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.2rem",color:"#1a1f2e",background:"none",border:"none",cursor:"pointer",letterSpacing:"-0.02em"}}>
+              <button onClick={reset} style={{
+                fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.2rem",color:"#1a1f2e",
+                background:"none",border:"none",cursor:"pointer",letterSpacing:"-0.02em",
+                opacity: navMounted ? 1 : 0,
+                transform: navMounted ? "translateX(0)" : "translateX(-16px)",
+                transition: "opacity 0.4s ease, transform 0.4s ease",
+              }}>
                 cost<span style={{color:"#2d6a4f"}}>clock</span>
                 <span style={{fontSize:"0.7rem",color:"#6b7280",fontFamily:"'DM Sans',sans-serif",fontWeight:400,marginLeft:8}}>by workthru</span>
               </button>
