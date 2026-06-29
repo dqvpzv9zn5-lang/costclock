@@ -304,6 +304,67 @@ function isSaveable(step) {
   return wt ? wt.saveable : false;
 }
 
+function calcDelayDays(steps) {
+  const waitingSteps = steps.filter(s => s.workType === "waiting");
+  const waitingMins = waitingSteps.reduce((sum, s) => sum + s.minutes, 0);
+  const waitingCount = waitingSteps.length;
+  const minDays = waitingCount * 1;
+  const maxDays = waitingCount * 3;
+  return { waitingMins, waitingCount, minDays, maxDays };
+}
+
+function getRevenueAtRisk(templateUsed, delayDays) {
+  const { minDays, maxDays } = delayDays;
+  const dayRange = `${minDays}–${maxDays}`;
+  const copy = {
+    "onboarding-accounting": {
+      headline: "Slow onboarding breaks referral chains",
+      body: `A new client who waits ${dayRange} days to get started mentions it to the person who referred them. That referrer thinks twice before sending the next one. Referral-based practices lose pipeline quietly — one slow experience at a time.`,
+      stat: "1 lost referral", statLabel: "can cost more than the entire onboarding saving",
+    },
+    "tax-return": {
+      headline: "Delays erode trust at renewal time",
+      body: `Clients who chase for approvals and updates are more likely to shop around at renewal. In a market where switching accountants is easier than ever, friction is a retention risk — not just an efficiency one.`,
+      stat: `${dayRange} days`, statLabel: "of client-facing delays per return",
+    },
+    "new-matter-legal": {
+      headline: "First impressions are formed before the work begins",
+      body: `A client who instructs a solicitor and then waits ${dayRange} days for an engagement letter starts to question their choice. Word of mouth works both ways — a smooth opening builds confidence; a slow one creates doubt.`,
+      stat: `${dayRange} days`, statLabel: "before the client feels properly onboarded",
+    },
+    "placement-recruitment": {
+      headline: "Every day of delay is a placement at risk",
+      body: `Strong candidates don't wait. While references are being chased and compliance docs collected over ${dayRange} days, they accept other offers. At £8,000–£15,000 per placement, one candidate lost to a faster process wipes out months of admin saving.`,
+      stat: "£8k–£15k", statLabel: "placement fee at risk per slow process",
+    },
+    "tenant-onboarding": {
+      headline: "Tenants move on — sometimes literally",
+      body: `A tenant who falls in love with a property can go cold in ${dayRange} days of referencing delays. Landlords get nervous. Competing agents move faster. Losing one let to a slower process costs more than the admin overhead of a dozen.`,
+      stat: `${dayRange} days`, statLabel: "for a tenant to reconsider or find an alternative",
+    },
+    "client-review-ifa": {
+      headline: "The gap between meeting and letter is a competitor's window",
+      body: `While a suitability letter is being drafted, reviewed, and chased over ${dayRange} days, a competitor IFA is making their pitch. At £500k+ AUM per client, losing even one client to a slicker process pays for this audit many times over. We've seen this dynamic play out at every scale — from individual practices to firms managing billions.`,
+      stat: "£500k+", statLabel: "AUM at risk per client who experiences friction",
+    },
+    "patient-intake-healthcare": {
+      headline: "Admin delays feel like clinical neglect",
+      body: `Patients seeking assessment are often anxious. Every day of delay — chasing questionnaires, waiting for appointment confirmations — feels like the practice doesn't care. That becomes a Google review, a word-of-mouth warning, and a referral that goes elsewhere.`,
+      stat: `${dayRange} days`, statLabel: "of unnecessary patient-facing delay per intake",
+    },
+    "project-delivery-construction": {
+      headline: "Late payments aren't just cash flow — they're margin",
+      body: `Every interim payment chased over ${dayRange} days is cash not in your account, funding the next project from your own reserves. Retention releases delayed by slow paperwork compound across every project. The admin overhead isn't just a time cost — it's a financing cost.`,
+      stat: `${dayRange} days`, statLabel: "of cash flow delay per payment application",
+    },
+  };
+  return copy[templateUsed] || {
+    headline: "Delay has two costs — salary and revenue",
+    body: `Every waiting step in this process is a window of time where the client or customer is experiencing friction. In competitive markets, that friction costs business — not just efficiency.`,
+    stat: `${dayRange} days`, statLabel: "of client-facing delay in this process",
+  };
+}
+
 function calcCosts(roles, steps, annualVolume) {
   const totalCost = steps.reduce((s, st) => { const r = roles.find(rl => rl.id === st.roleId); return s + (r ? (st.minutes / 60) * r.rate : 0); }, 0);
   const saveableCost = steps.filter(s => isSaveable(s)).reduce((s, st) => { const r = roles.find(rl => rl.id === st.roleId); return s + (r ? (st.minutes / 60) * r.rate : 0); }, 0);
@@ -935,6 +996,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
               <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Cost: <strong style={{fontFamily:"'Fraunces',serif",color:"#2d6a4f"}}>£{totalCost.toFixed(0)}</strong></span>
               {automatableMins>0&&<span style={{fontSize:"0.82rem",color:"#1b4332",background:"#d4ede2",padding:"3px 10px",borderRadius:100,fontWeight:600}}>⚡ Automatable: {fmtMins(automatableMins)}</span>}
               {delayMins>0&&<span style={{fontSize:"0.82rem",color:"#8a6a1e",background:"#faf0d6",padding:"3px 10px",borderRadius:100,fontWeight:600}}>⏳ Delay time: {fmtMins(delayMins)}</span>}
+              {(()=>{const {waitingMins,minDays,maxDays}=calcDelayDays(steps);if(!waitingMins)return null;return(<span style={{fontSize:"0.82rem",color:"#b84a5a",background:"#f5e0e3",padding:"3px 10px",borderRadius:100,fontWeight:600}}>🕐 Client delay: {minDays}–{maxDays} days ({fmtMins(waitingMins)} waiting)</span>);})()}
             </div>
             <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Saving opportunities: <strong style={{color:"#c4942a"}}>{steps.filter(s=>isSaveable(s)).length}/{steps.length}</strong></span>
           </div>
@@ -1031,15 +1093,25 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
         <h2 style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(1.5rem,3.5vw,2rem)",fontWeight:700,lineHeight:1.2,margin:"20px 0 8px",color:"#fff"}}>Each "{processName}" costs you</h2>
         <div style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(3rem,8vw,4.5rem)",fontWeight:700,color:"#6ee7a8",letterSpacing:"-0.02em",margin:"8px 0"}}>£{totalCost.toFixed(0)}</div>
         <p style={{color:"rgba(255,255,255,0.6)",fontSize:"1.05rem",marginBottom:32}}>across {totalHours.toFixed(1)} hours and {new Set(steps.map(s=>s.roleId)).size} roles</p>
-        <div style={{display:"flex",gap:1,background:"rgba(255,255,255,0.1)",borderRadius:12,overflow:"hidden",maxWidth:500,margin:"0 auto"}}>
-          {[{label:"Annual cost",value:`£${annualCost.toLocaleString("en-GB",{maximumFractionDigits:0})}`,sub:`${annualVolume}× per year`,bg:"rgba(255,255,255,0.06)"},{label:"Potential saving",value:`£${potentialSaving.toLocaleString("en-GB",{maximumFractionDigits:0})}`,sub:"per year with automation",bg:"rgba(45,106,79,0.2)"}].map((item,i)=>(
-            <div key={i} style={{flex:1,padding:"20px 16px",background:item.bg}}>
-              <div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"rgba(255,255,255,0.5)",marginBottom:8}}>{item.label}</div>
-              <div style={{fontFamily:"'Fraunces',serif",fontSize:"1.5rem",fontWeight:700,color:i===1?"#6ee7a8":"#fff"}}>{item.value}</div>
-              <div style={{fontSize:"0.75rem",color:"rgba(255,255,255,0.4)",marginTop:4}}>{item.sub}</div>
+        {(()=>{
+          const {minDays,maxDays}=calcDelayDays(steps);
+          const panels=[
+            {label:"Annual cost",value:`£${annualCost.toLocaleString("en-GB",{maximumFractionDigits:0})}`,sub:`${annualVolume}× per year`,bg:"rgba(255,255,255,0.06)",color:"#fff"},
+            {label:"Potential saving",value:`£${potentialSaving.toLocaleString("en-GB",{maximumFractionDigits:0})}`,sub:"per year with automation",bg:"rgba(45,106,79,0.2)",color:"#6ee7a8"},
+            {label:"Client-facing delay",value:`${minDays}–${maxDays} days`,sub:"per process run",bg:"rgba(184,74,90,0.2)",color:"#f5a0aa"},
+          ];
+          return(
+            <div style={{display:"flex",gap:1,background:"rgba(255,255,255,0.1)",borderRadius:12,overflow:"hidden",maxWidth:680,margin:"0 auto"}}>
+              {panels.map((item,i)=>(
+                <div key={i} style={{flex:1,padding:"20px 16px",background:item.bg}}>
+                  <div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"rgba(255,255,255,0.5)",marginBottom:8}}>{item.label}</div>
+                  <div style={{fontFamily:"'Fraunces',serif",fontSize:"1.4rem",fontWeight:700,color:item.color}}>{item.value}</div>
+                  <div style={{fontSize:"0.75rem",color:"rgba(255,255,255,0.4)",marginTop:4}}>{item.sub}</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          );
+        })()}
       </div>
 
       <div>
@@ -1080,6 +1152,34 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
           </div>
         </Card>
 
+        {templateUsed&&templateUsed!=="custom"&&(()=>{
+          const delayDays=calcDelayDays(steps);
+          const {waitingCount,minDays,maxDays}=delayDays;
+          if(waitingCount===0)return null;
+          const risk=getRevenueAtRisk(templateUsed,delayDays);
+          return(
+            <Card style={{marginBottom:20,background:"linear-gradient(135deg,#1a1f2e 0%,#1e2435 100%)",border:"1px solid rgba(245,160,170,0.2)",...anim(0.35)}}>
+              <div style={{display:"flex",alignItems:"flex-start",gap:16,marginBottom:16}}>
+                <div style={{width:40,height:40,borderRadius:10,background:"rgba(184,74,90,0.2)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:"1.1rem"}}>⚡</div>
+                <div>
+                  <div style={{fontSize:"0.7rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"#f5a0aa",marginBottom:4}}>Revenue at risk</div>
+                  <h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1.05rem",fontWeight:700,color:"#fff",margin:0}}>{risk.headline}</h3>
+                </div>
+              </div>
+              <p style={{fontSize:"0.88rem",color:"rgba(255,255,255,0.65)",lineHeight:1.7,marginBottom:20}}>{risk.body}</p>
+              <div style={{display:"flex",alignItems:"center",gap:16,padding:"16px 20px",background:"rgba(184,74,90,0.15)",borderRadius:10,border:"1px solid rgba(245,160,170,0.15)"}}>
+                <div>
+                  <div style={{fontFamily:"'Fraunces',serif",fontSize:"1.4rem",fontWeight:700,color:"#f5a0aa"}}>{risk.stat}</div>
+                  <div style={{fontSize:"0.78rem",color:"rgba(255,255,255,0.45)",marginTop:2}}>{risk.statLabel}</div>
+                </div>
+                <div style={{marginLeft:"auto",fontSize:"0.8rem",color:"rgba(255,255,255,0.4)",maxWidth:200,textAlign:"right",lineHeight:1.5}}>
+                  This process has {waitingCount} waiting {waitingCount===1?"step":"steps"} — {minDays}–{maxDays} days of elapsed time the client experiences as delay.
+                </div>
+              </div>
+            </Card>
+          );
+        })()}
+
         <Card style={{marginBottom:20,padding:0,overflow:"hidden",...anim(0.3)}}>
           <div style={{padding:"20px 24px 0"}}><h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1.05rem",fontWeight:700,marginBottom:4}}>Full step breakdown</h3></div>
           <div style={{overflowX:"auto"}}>
@@ -1113,7 +1213,10 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:16,marginBottom:20,...anim(0.4)}}>
           <Card style={{background:"#f5e0e3",border:"1px solid #e5c4c9"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#b84a5a",marginBottom:8}}>High-friction steps</div><div style={{fontFamily:"'Fraunces',serif",fontSize:"1.8rem",fontWeight:700,color:"#b84a5a"}}>{highFriction.length}</div><div style={{fontSize:"0.8rem",color:"#8a4a57",marginTop:4}}>of {steps.length} steps</div></Card>
           <Card style={{background:"#faf0d6",border:"1px solid #e8dbb8"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#8a6a1e",marginBottom:8}}>Saving opportunities</div><div style={{fontFamily:"'Fraunces',serif",fontSize:"1.8rem",fontWeight:700,color:"#8a6a1e"}}>{saveableSteps.length}</div><div style={{fontSize:"0.8rem",color:"#8a6a1e",marginTop:4}}>saving {saveableMins}m per run</div></Card>
-          <Card style={{background:"#faf0d6",border:"1px solid #e8dbb8"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#8a6a1e",marginBottom:8}}>Most expensive role</div><div style={{fontFamily:"'Fraunces',serif",fontSize:"1.3rem",fontWeight:700,color:"#8a6a1e"}}>{roleBreakdown[0]?.name}</div><div style={{fontSize:"0.8rem",color:"#8a6a1e",marginTop:4}}>£{roleBreakdown[0]?.cost.toFixed(0)} per run</div></Card>
+          <Card style={{background:"#f5e0e3",border:"1px solid #e5c4c9"}}>
+            <div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#b84a5a",marginBottom:8}}>Client-facing delay</div>
+            {(()=>{const {minDays,maxDays,waitingMins}=calcDelayDays(steps);const fmtM=(m)=>m>=60?`${Math.floor(m/60)}h ${m%60}m`:`${m}m`;return(<><div style={{fontFamily:"'Fraunces',serif",fontSize:"1.8rem",fontWeight:700,color:"#b84a5a"}}>{minDays}–{maxDays} days</div><div style={{fontSize:"0.8rem",color:"#8a4a57",marginTop:4}}>{fmtM(waitingMins)} in waiting steps</div></>);})()}
+          </Card>
         </div>
 
         <div style={{background:"#1a1f2e",borderRadius:16,padding:"40px 36px",textAlign:"center",color:"#fff",marginTop:32,...anim(0.5)}}>
