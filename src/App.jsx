@@ -612,11 +612,9 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
               fontStyle:"italic", fontWeight:400,
               color:"rgba(255,255,255,0.82)", lineHeight:1.7, margin:0,
             }}>
-              "Your team is capable of far more than chasing documents and re-entering
-              data. Map any process below and see exactly how much of your wage bill is
-              going to work that{" "}
-              <strong style={{ fontStyle:"normal", color:"#ffffff" }}>automation could handle</strong>
-              {" "}— freeing your people to do what you actually hired them for."
+              Your team is capable of far more than the admin your processes demand of
+              them. We've seen it at every scale — the firms that move fastest win most.
+              Removing friction isn't just an efficiency play. It's a competitive one.
             </p>
           </div>
         </div>
