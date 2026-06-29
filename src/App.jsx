@@ -608,13 +608,14 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
           {/* Right — quote panel */}
           <div style={{ borderLeft:"3px solid #6ee7a8", paddingLeft:32 }}>
             <p style={{ fontFamily:"'Fraunces',serif",
-              fontSize:"clamp(1rem, 1.8vw, 1.15rem)",
+              fontSize:"clamp(1.1rem, 2vw, 1.35rem)",
               fontStyle:"italic", fontWeight:400,
-              color:"rgba(255,255,255,0.82)", lineHeight:1.7, margin:0,
+              color:"rgba(255,255,255,0.82)", lineHeight:1.65, margin:0,
             }}>
               Your team is capable of far more than the admin your processes demand of
-              them. We've seen it at every scale — the firms that move fastest win most.
-              Removing friction isn't just an efficiency play. It's a competitive one.
+              them. We've seen it at every scale —{" "}
+              <strong style={{fontStyle:"italic",color:"#ffffff"}}>the firms that move fastest win most.</strong>
+              {" "}Removing friction isn't just an efficiency play. It's a competitive one.
             </p>
           </div>
         </div>
