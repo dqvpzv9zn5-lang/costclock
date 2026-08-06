@@ -877,22 +877,20 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
       </div>
       <div style={{display:"flex",flexDirection:"column",gap:8}}>
         {roles.map((role,i)=>{const rc=getRoleColor(role,roles);return(
-          <Card key={role.id} style={{padding:"16px 20px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+          <Card key={role.id} style={{padding:"12px 20px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
               <div style={{width:10,height:10,borderRadius:"50%",background:rc,flexShrink:0}}/>
-              <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:1,minWidth:140,padding:"6px 10px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",fontWeight:600,outline:"none",background:"transparent"}}/>
-              {roles.length>1&&<button onClick={()=>removeRole(i)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1rem",padding:4}}>×</button>}
-            </div>
-            <div style={{display:"flex",alignItems:"center",gap:12,paddingLeft:20}}>
-              <div style={{display:"flex",alignItems:"center",gap:4}}>
-                <span style={{fontSize:"0.78rem",color:"#6b7280"}}>Salary</span>
+              <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:"1 1 140px",minWidth:120,padding:"5px 10px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",fontWeight:600,outline:"none",background:"transparent"}}/>
+              <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+                <span style={{fontSize:"0.78rem",color:"#6b7280"}}>£</span>
                 <SalaryInput value={role.salary||rateToSalary(role.rate)} onChange={v=>updateRole(i,"salary",v)}/>
               </div>
-              <div style={{fontSize:"0.78rem",color:"#6b7280"}}>→</div>
-              <div style={{display:"flex",alignItems:"center",gap:4}}>
+              <div style={{fontSize:"0.78rem",color:"#6b7280",flexShrink:0}}>→</div>
+              <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
                 <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1rem",color:rc}}>£{Math.round(role.rate)}/hr</span>
                 <span style={{fontSize:"0.72rem",color:"#6b7280"}}>fully loaded</span>
               </div>
+              {roles.length>1&&<button onClick={()=>removeRole(i)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1rem",padding:4,marginLeft:"auto",flexShrink:0}}>×</button>}
             </div>
           </Card>
         )})}
