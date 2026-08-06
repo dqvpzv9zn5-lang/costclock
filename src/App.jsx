@@ -417,7 +417,7 @@ function Card({ children, style, hover, onClick }) {
 function NumberInput({ value, onChange, prefix, suffix, min=0 }) {
   return <div style={{display:"flex",alignItems:"center",gap:4}}>
     {prefix&&<span style={{fontSize:"0.85rem",color:"#6b7280",fontWeight:500}}>{prefix}</span>}
-    <input type="number" value={value} min={min} onChange={e=>onChange(Number(e.target.value)||0)} style={{width:70,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"cost.95rem",color:"#1a1f2e",outline:"none",textAlign:"center"}}/>
+    <input type="number" value={value} min={min} onChange={e=>onChange(Number(e.target.value)||0)} style={{width:70,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"cost.95rem",color:"#1a1f2e",outline:"none",textAlign:"center"}}/>
     {suffix&&<span style={{fontSize:"0.8rem",color:"#6b7280"}}>{suffix}</span>}
   </div>;
 }
@@ -432,10 +432,10 @@ function SalaryInput({ value, onChange }) {
       <input type="text" inputMode="numeric" autoFocus value={raw}
         onChange={e=>{const v=e.target.value.replace(/[^0-9]/g,"");setRaw(v);onChange(Number(v)||0);}}
         onBlur={()=>setEditing(false)}
-        style={{width:110,padding:"8px 10px",borderRadius:8,border:"1px solid #2d6a4f",background:"#fff",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.95rem",color:"#1a1f2e",outline:"none",textAlign:"right"}}/>
+        style={{width:110,padding:"8px 10px",borderRadius:8,border:"1px solid #2d6a4f",background:"#fff",fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.95rem",color:"#1a1f2e",outline:"none",textAlign:"right"}}/>
     ) : (
       <div onClick={()=>{setRaw(String(value));setEditing(true);}}
-        style={{width:110,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.95rem",color:"#1a1f2e",cursor:"text",textAlign:"right"}}>
+        style={{width:110,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.95rem",color:"#1a1f2e",cursor:"text",textAlign:"right"}}>
         {formatted}
       </div>
     )}
@@ -544,7 +544,7 @@ function AuthModal({ onClose, onAuth, mode: initMode }) {
         {mode === "register" && !magicSent && (
           <>
             <Badge>Free — no credit card</Badge>
-            <h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1.4rem",fontWeight:700,margin:"16px 0 8px"}}>Save your process & get AI insights</h3>
+            <h3 style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.4rem",fontWeight:700,margin:"16px 0 8px"}}>Save your process & get AI insights</h3>
             <p style={{fontSize:"0.88rem",color:"#6b7280",lineHeight:1.6,marginBottom:24}}>Register to save your work and receive a personalised AI analysis of your process data — free.</p>
             {error && <div style={{background:"#f5e0e3",color:"#b84a5a",padding:"10px 14px",borderRadius:8,fontSize:"0.85rem",marginBottom:16}}>{error}</div>}
             <div style={{display:"flex",flexDirection:"column",gap:14}}>
@@ -592,7 +592,7 @@ function AuthModal({ onClose, onAuth, mode: initMode }) {
 
         {mode === "login" && !magicSent && (
           <>
-            <h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1.4rem",fontWeight:700,margin:"0 0 8px"}}>Welcome back</h3>
+            <h3 style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.4rem",fontWeight:700,margin:"0 0 8px"}}>Welcome back</h3>
             <p style={{fontSize:"0.88rem",color:"#6b7280",lineHeight:1.6,marginBottom:24}}>Enter your email and we'll send you a login link.</p>
             {error && <div style={{background:"#f5e0e3",color:"#b84a5a",padding:"10px 14px",borderRadius:8,fontSize:"0.85rem",marginBottom:16}}>{error}</div>}
             <div>
@@ -611,7 +611,7 @@ function AuthModal({ onClose, onAuth, mode: initMode }) {
         {magicSent && (
           <div style={{textAlign:"center",padding:"20px 0"}}>
             <div style={{width:56,height:56,borderRadius:"50%",background:"#d4ede2",color:"#2d6a4f",fontSize:"1.5rem",fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}>✓</div>
-            <h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1.2rem",fontWeight:700,marginBottom:8}}>Check your inbox</h3>
+            <h3 style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.2rem",fontWeight:700,marginBottom:8}}>Check your inbox</h3>
             <p style={{fontSize:"0.88rem",color:"#6b7280",lineHeight:1.6}}>We've sent a login link to <strong>{email}</strong>. Click it to access your saved processes.</p>
           </div>
         )}
@@ -666,7 +666,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
             transform: mounted ? "translateY(0)" : "translateY(-12px)",
             transition: "opacity 0.5s ease, transform 0.5s ease",
           }}>
-            <span style={{ fontFamily:"'Fraunces',serif", fontWeight:700, fontSize:"1.5rem",
+            <span style={{ fontFamily:"'Outfit',sans-serif", fontWeight:700, fontSize:"1.5rem",
               color:"#ffffff", letterSpacing:"-0.02em" }}>
               cost<span style={{ color:"#6ee7a8" }}>clock</span>
             </span>
@@ -707,7 +707,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
           {/* Left — headline */}
           <div>
             <Badge light>Free process cost calculator</Badge>
-            <h1 style={{ fontFamily:"'Fraunces',serif",
+            <h1 style={{ fontFamily:"'Outfit',sans-serif",
               fontSize:"clamp(2rem, 4.5vw, 3rem)",
               fontWeight:700, lineHeight:1.15, letterSpacing:"-0.025em",
               color:"#ffffff", margin:"24px 0 0",
@@ -720,7 +720,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
           </div>
           {/* Right — quote panel */}
           <div style={{ borderLeft:"3px solid #6ee7a8", paddingLeft:32 }}>
-            <p style={{ fontFamily:"'Fraunces',serif",
+            <p style={{ fontFamily:"'Outfit',sans-serif",
               fontSize:"clamp(1.1rem, 2vw, 1.35rem)",
               fontStyle:"italic", fontWeight:400,
               color:"rgba(255,255,255,0.82)", lineHeight:1.65, margin:0,
@@ -744,7 +744,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
 
         {auth.user && savedProcesses.length > 0 && (
           <div style={{ marginBottom:36 }}>
-            <h3 style={{ fontFamily:"'Fraunces',serif", fontSize:"1rem", fontWeight:700, marginBottom:10 }}>
+            <h3 style={{ fontFamily:"'Outfit',sans-serif", fontSize:"1rem", fontWeight:700, marginBottom:10 }}>
               Your saved processes
             </h3>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
@@ -761,7 +761,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
                       </div>
                       <div style={{display:"flex",alignItems:"center",gap:16}}>
                         <div style={{textAlign:"right"}}>
-                          <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,color:"#2d6a4f",fontSize:"1.05rem"}}>£{totalCost.toFixed(0)}</div>
+                          <div style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,color:"#2d6a4f",fontSize:"1.05rem"}}>£{totalCost.toFixed(0)}</div>
                           <div style={{fontSize:"0.7rem",color:"#6b7280"}}>per run</div>
                         </div>
                         <button onClick={e=>{e.stopPropagation();onDeleteSaved(idx);}}
@@ -776,7 +776,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
         )}
 
         <div style={cardsStyle(0)}>
-          <h3 style={{ fontFamily:"'Fraunces',serif", fontSize:"1rem", fontWeight:700, marginBottom:6 }}>
+          <h3 style={{ fontFamily:"'Outfit',sans-serif", fontSize:"1rem", fontWeight:700, marginBottom:6 }}>
             Start from a template
           </h3>
           <p style={{ fontSize:"0.85rem", color:"#6b7280", marginBottom:20 }}>
@@ -837,7 +837,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
             { num:"42%", label:"Of steps have saving potential" },
           ].map((s,i) => (
             <div key={i} style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-              <strong style={{ fontFamily:"'Fraunces',serif", fontSize:"1.4rem", fontWeight:700, color:"#2d6a4f" }}>{s.num}</strong>
+              <strong style={{ fontFamily:"'Outfit',sans-serif", fontSize:"1.4rem", fontWeight:700, color:"#2d6a4f" }}>{s.num}</strong>
               <span style={{ fontSize:"0.78rem", color:"#6b7280", fontWeight:500, maxWidth:140, textAlign:"center" }}>{s.label}</span>
             </div>
           ))}
@@ -861,7 +861,7 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
   return (
     <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative"}}>
       <Badge>Step 1 of 3</Badge>
-      <h2 style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Set up your team and process</h2>
+      <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Set up your team and process</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:36,lineHeight:1.7}}>Define the roles in your team. Enter their annual salary and we'll calculate the true fully-loaded hourly cost.</p>
       <Card style={{marginBottom:20}}>
         <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280",display:"block",marginBottom:10}}>Process name</label>
@@ -890,7 +890,7 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
               </div>
               <div style={{fontSize:"0.78rem",color:"#6b7280"}}>→</div>
               <div style={{display:"flex",alignItems:"center",gap:4}}>
-                <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1rem",color:rc}}>£{Math.round(role.rate)}/hr</span>
+                <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1rem",color:rc}}>£{Math.round(role.rate)}/hr</span>
                 <span style={{fontSize:"0.72rem",color:"#6b7280"}}>fully loaded</span>
               </div>
             </div>
@@ -926,7 +926,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
   return (
     <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative"}}>
       <Badge>Step {fromTemplate ? "1" : "2"} of {fromTemplate ? "2" : "3"}</Badge>
-      <h2 style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Map the steps in "{processName}"</h2>
+      <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Map the steps in "{processName}"</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:20,lineHeight:1.7}}>Walk through the process from start to finish. Estimates are fine.</p>
 
       {/* Collapsible roles & settings panel */}
@@ -972,7 +972,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
                     </div>
                     <div style={{fontSize:"0.75rem",color:"#6b7280"}}>→</div>
                     <div style={{display:"flex",alignItems:"center",gap:4}}>
-                      <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.95rem",color:rc}}>£{Math.round(role.rate)}/hr</span>
+                      <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.95rem",color:rc}}>£{Math.round(role.rate)}/hr</span>
                       <span style={{fontSize:"0.68rem",color:"#6b7280"}}>fully loaded</span>
                     </div>
                   </div>
@@ -993,7 +993,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
             <div style={{display:"flex",gap:20,flexWrap:"wrap",alignItems:"center"}}>
               <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Steps: <strong style={{color:"#1a1f2e"}}>{steps.length}</strong></span>
               <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Time: <strong style={{color:"#1a1f2e"}}>{totalMinutes>=60?`${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m`:`${totalMinutes}m`}</strong></span>
-              <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Cost: <strong style={{fontFamily:"'Fraunces',serif",color:"#2d6a4f"}}>£{totalCost.toFixed(0)}</strong></span>
+              <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Cost: <strong style={{fontFamily:"'Outfit',sans-serif",color:"#2d6a4f"}}>£{totalCost.toFixed(0)}</strong></span>
               {automatableMins>0&&<span style={{fontSize:"0.82rem",color:"#1b4332",background:"#d4ede2",padding:"3px 10px",borderRadius:100,fontWeight:600}}>⚡ Automatable: {fmtMins(automatableMins)}</span>}
               {delayMins>0&&<span style={{fontSize:"0.82rem",color:"#8a6a1e",background:"#faf0d6",padding:"3px 10px",borderRadius:100,fontWeight:600}}>⏳ Delay time: {fmtMins(delayMins)}</span>}
               {(()=>{const {waitingMins,minDays,maxDays}=calcDelayDays(steps);if(!waitingMins)return null;return(<span style={{fontSize:"0.82rem",color:"#b84a5a",background:"#f5e0e3",padding:"3px 10px",borderRadius:100,fontWeight:600}}>🕐 Client delay: {minDays}–{maxDays} days ({fmtMins(waitingMins)} waiting)</span>);})()}
@@ -1015,7 +1015,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
           return(
             <div key={step.id} style={{background:cardBg,border:cardBorder,borderLeft:isAutoOpportunity?"4px solid #2d6a4f":isDelayRisk?"4px solid #c4942a":`4px solid ${rc}`,borderRadius:16,padding:"18px 22px",transition:"all 0.2s"}}>
               <div style={{display:"flex",gap:12,alignItems:"flex-start",flexWrap:"wrap"}}>
-                <span style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.9rem",color:"#6b7280",minWidth:24}}>{idx+1}</span>
+                <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.9rem",color:"#6b7280",minWidth:24}}>{idx+1}</span>
                 <div style={{flex:1,minWidth:200}}>
                   <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
                     <input type="text" value={step.name} onChange={e=>updateStep(idx,"name",e.target.value)} placeholder="What happens at this step?" style={{flex:1,padding:"6px 0",border:"none",borderBottom:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",background:"transparent"}}/>
@@ -1032,7 +1032,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
                   </div>
                 </div>
                 <div style={{textAlign:"right",minWidth:70}}>
-                  <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.3rem",color:rc}}>£{cost.toFixed(0)}</div>
+                  <div style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1.3rem",color:rc}}>£{cost.toFixed(0)}</div>
                   <div style={{fontSize:"0.75rem",color:"#6b7280"}}>{step.minutes}m</div>
                   {isAutoOpportunity&&<div style={{fontSize:"0.65rem",color:"#2d6a4f",fontWeight:600,marginTop:2}}>recoverable</div>}
                   {isDelayRisk&&<div style={{fontSize:"0.65rem",color:"#c4942a",fontWeight:600,marginTop:2}}>delay cost</div>}
@@ -1090,8 +1090,8 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
 
       <div style={{background:"#1a1f2e",borderRadius:20,padding:"60px 40px",textAlign:"center",color:"#fff",margin:"0 0 40px",...anim(0)}}>
         <Badge>Your results</Badge>
-        <h2 style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(1.5rem,3.5vw,2rem)",fontWeight:700,lineHeight:1.2,margin:"20px 0 8px",color:"#fff"}}>Each "{processName}" costs you</h2>
-        <div style={{fontFamily:"'Fraunces',serif",fontSize:"clamp(3rem,8vw,4.5rem)",fontWeight:700,color:"#6ee7a8",letterSpacing:"-0.02em",margin:"8px 0"}}>£{totalCost.toFixed(0)}</div>
+        <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.5rem,3.5vw,2rem)",fontWeight:700,lineHeight:1.2,margin:"20px 0 8px",color:"#fff"}}>Each "{processName}" costs you</h2>
+        <div style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(3rem,8vw,4.5rem)",fontWeight:700,color:"#6ee7a8",letterSpacing:"-0.02em",margin:"8px 0"}}>£{totalCost.toFixed(0)}</div>
         <p style={{color:"rgba(255,255,255,0.6)",fontSize:"1.05rem",marginBottom:32}}>across {totalHours.toFixed(1)} hours and {new Set(steps.map(s=>s.roleId)).size} roles</p>
         {(()=>{
           const {minDays,maxDays}=calcDelayDays(steps);
@@ -1105,7 +1105,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
               {panels.map((item,i)=>(
                 <div key={i} style={{flex:1,padding:"20px 16px",background:item.bg}}>
                   <div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"rgba(255,255,255,0.5)",marginBottom:8}}>{item.label}</div>
-                  <div style={{fontFamily:"'Fraunces',serif",fontSize:"1.4rem",fontWeight:700,color:item.color}}>{item.value}</div>
+                  <div style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.4rem",fontWeight:700,color:item.color}}>{item.value}</div>
                   <div style={{fontSize:"0.75rem",color:"rgba(255,255,255,0.4)",marginTop:4}}>{item.sub}</div>
                 </div>
               ))}
@@ -1120,7 +1120,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
             onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(45,106,79,0.3)";}}
             onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 4px 16px rgba(45,106,79,0.25)";}}>
             <div>
-              <div style={{color:"#fff",fontFamily:"'Fraunces',serif",fontSize:"1.15rem",fontWeight:700,marginBottom:4}}>Save your results & get a free AI analysis</div>
+              <div style={{color:"#fff",fontFamily:"'Outfit',sans-serif",fontSize:"1.15rem",fontWeight:700,marginBottom:4}}>Save your results & get a free AI analysis</div>
               <div style={{color:"rgba(255,255,255,0.65)",fontSize:"0.85rem"}}>Register to save your process data and receive personalised insights — free, no obligation.</div>
             </div>
             <div style={{background:"#fff",color:"#1b4332",padding:"12px 24px",borderRadius:10,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:"0.92rem",flexShrink:0,marginLeft:20}}>Save & register →</div>
@@ -1138,13 +1138,13 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
         </div>
 
         <Card style={{marginBottom:20,...anim(0.2)}}>
-          <h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1.05rem",fontWeight:700,marginBottom:20}}>Cost by role</h3>
+          <h3 style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,marginBottom:20}}>Cost by role</h3>
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             {roleBreakdown.map(role=>(
               <div key={role.id}>
                 <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
                   <span style={{fontSize:"0.88rem",color:"#3d4455",fontWeight:500}}>{role.name}</span>
-                  <span style={{fontSize:"0.88rem"}}><strong style={{fontFamily:"'Fraunces',serif",color:"#2d6a4f"}}>£{role.cost.toFixed(0)}</strong><span style={{color:"#6b7280",fontSize:"0.78rem"}}> · {role.mins}m · {role.stepCount} steps</span></span>
+                  <span style={{fontSize:"0.88rem"}}><strong style={{fontFamily:"'Outfit',sans-serif",color:"#2d6a4f"}}>£{role.cost.toFixed(0)}</strong><span style={{color:"#6b7280",fontSize:"0.78rem"}}> · {role.mins}m · {role.stepCount} steps</span></span>
                 </div>
                 <div style={{height:8,background:"#f3f1ed",borderRadius:4,overflow:"hidden"}}><div style={{height:"100%",borderRadius:4,background:role.color,width:`${(role.cost/maxRC)*100}%`,transition:"width 1s ease"}}/></div>
               </div>
@@ -1163,13 +1163,13 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
                 <div style={{width:40,height:40,borderRadius:10,background:"rgba(184,74,90,0.2)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:"1.1rem"}}>⚡</div>
                 <div>
                   <div style={{fontSize:"0.7rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"#f5a0aa",marginBottom:4}}>Revenue at risk</div>
-                  <h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1.05rem",fontWeight:700,color:"#fff",margin:0}}>{risk.headline}</h3>
+                  <h3 style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,color:"#fff",margin:0}}>{risk.headline}</h3>
                 </div>
               </div>
               <p style={{fontSize:"0.88rem",color:"rgba(255,255,255,0.65)",lineHeight:1.7,marginBottom:20}}>{risk.body}</p>
               <div style={{display:"flex",alignItems:"center",gap:16,padding:"16px 20px",background:"rgba(184,74,90,0.15)",borderRadius:10,border:"1px solid rgba(245,160,170,0.15)"}}>
                 <div>
-                  <div style={{fontFamily:"'Fraunces',serif",fontSize:"1.4rem",fontWeight:700,color:"#f5a0aa"}}>{risk.stat}</div>
+                  <div style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.4rem",fontWeight:700,color:"#f5a0aa"}}>{risk.stat}</div>
                   <div style={{fontSize:"0.78rem",color:"rgba(255,255,255,0.45)",marginTop:2}}>{risk.statLabel}</div>
                 </div>
                 <div style={{marginLeft:"auto",fontSize:"0.8rem",color:"rgba(255,255,255,0.4)",maxWidth:200,textAlign:"right",lineHeight:1.5}}>
@@ -1181,7 +1181,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
         })()}
 
         <Card style={{marginBottom:20,padding:0,overflow:"hidden",...anim(0.3)}}>
-          <div style={{padding:"20px 24px 0"}}><h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1.05rem",fontWeight:700,marginBottom:4}}>Full step breakdown</h3></div>
+          <div style={{padding:"20px 24px 0"}}><h3 style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,marginBottom:4}}>Full step breakdown</h3></div>
           <div style={{overflowX:"auto"}}>
             <table style={{width:"100%",borderCollapse:"collapse"}}>
               <thead><tr>{["Step","Owner","Time","Cost","Friction","Type"].map(h=><th key={h} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"12px 16px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600}}>{h}</th>)}</tr></thead>
@@ -1202,7 +1202,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
                   </td>
                   <td style={{padding:"12px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{role?.name||"—"}</td>
                   <td style={{padding:"12px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{step.minutes}m</td>
-                  <td style={{padding:"12px 16px",fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"0.9rem",color:role?getRoleColor(role,roles):"#2d6a4f"}}>£{cost.toFixed(0)}</td>
+                  <td style={{padding:"12px 16px",fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.9rem",color:role?getRoleColor(role,roles):"#2d6a4f"}}>£{cost.toFixed(0)}</td>
                   <td style={{padding:"12px 16px"}}><FrictionBadge level={step.friction}/></td>
                   <td style={{padding:"12px 16px"}}><span style={{fontSize:"0.72rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:wt.bg,color:wt.color}}>{wt.icon} {wt.short}</span></td>
                 </tr>);})}</tbody>
@@ -1211,16 +1211,16 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
         </Card>
 
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:16,marginBottom:20,...anim(0.4)}}>
-          <Card style={{background:"#f5e0e3",border:"1px solid #e5c4c9"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#b84a5a",marginBottom:8}}>High-friction steps</div><div style={{fontFamily:"'Fraunces',serif",fontSize:"1.8rem",fontWeight:700,color:"#b84a5a"}}>{highFriction.length}</div><div style={{fontSize:"0.8rem",color:"#8a4a57",marginTop:4}}>of {steps.length} steps</div></Card>
-          <Card style={{background:"#faf0d6",border:"1px solid #e8dbb8"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#8a6a1e",marginBottom:8}}>Saving opportunities</div><div style={{fontFamily:"'Fraunces',serif",fontSize:"1.8rem",fontWeight:700,color:"#8a6a1e"}}>{saveableSteps.length}</div><div style={{fontSize:"0.8rem",color:"#8a6a1e",marginTop:4}}>saving {saveableMins}m per run</div></Card>
+          <Card style={{background:"#f5e0e3",border:"1px solid #e5c4c9"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#b84a5a",marginBottom:8}}>High-friction steps</div><div style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.8rem",fontWeight:700,color:"#b84a5a"}}>{highFriction.length}</div><div style={{fontSize:"0.8rem",color:"#8a4a57",marginTop:4}}>of {steps.length} steps</div></Card>
+          <Card style={{background:"#faf0d6",border:"1px solid #e8dbb8"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#8a6a1e",marginBottom:8}}>Saving opportunities</div><div style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.8rem",fontWeight:700,color:"#8a6a1e"}}>{saveableSteps.length}</div><div style={{fontSize:"0.8rem",color:"#8a6a1e",marginTop:4}}>saving {saveableMins}m per run</div></Card>
           <Card style={{background:"#f5e0e3",border:"1px solid #e5c4c9"}}>
             <div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#b84a5a",marginBottom:8}}>Client-facing delay</div>
-            {(()=>{const {minDays,maxDays,waitingMins}=calcDelayDays(steps);const fmtM=(m)=>m>=60?`${Math.floor(m/60)}h ${m%60}m`:`${m}m`;return(<><div style={{fontFamily:"'Fraunces',serif",fontSize:"1.8rem",fontWeight:700,color:"#b84a5a"}}>{minDays}–{maxDays} days</div><div style={{fontSize:"0.8rem",color:"#8a4a57",marginTop:4}}>{fmtM(waitingMins)} in waiting steps</div></>);})()}
+            {(()=>{const {minDays,maxDays,waitingMins}=calcDelayDays(steps);const fmtM=(m)=>m>=60?`${Math.floor(m/60)}h ${m%60}m`:`${m}m`;return(<><div style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.8rem",fontWeight:700,color:"#b84a5a"}}>{minDays}–{maxDays} days</div><div style={{fontSize:"0.8rem",color:"#8a4a57",marginTop:4}}>{fmtM(waitingMins)} in waiting steps</div></>);})()}
           </Card>
         </div>
 
         <div style={{background:"#1a1f2e",borderRadius:16,padding:"40px 36px",textAlign:"center",color:"#fff",marginTop:32,...anim(0.5)}}>
-          <h3 style={{fontFamily:"'Fraunces',serif",fontSize:"1.4rem",fontWeight:700,marginBottom:12}}>This is one process. <em style={{fontStyle:"italic",color:"#c4942a",fontWeight:500}}>What about the rest?</em></h3>
+          <h3 style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.4rem",fontWeight:700,marginBottom:12}}>This is one process. <em style={{fontStyle:"italic",color:"#c4942a",fontWeight:500}}>What about the rest?</em></h3>
           <p style={{color:"rgba(255,255,255,0.6)",fontSize:"0.95rem",maxWidth:440,margin:"0 auto 24px",lineHeight:1.7}}>A full Workthru operational audit maps 3–5 core processes across your entire practice, with stakeholder interviews and a prioritised automation roadmap.</p>
           <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
             <a href="https://cal.com/workthru/15min?overlayCalendar=true&source=costclock" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,padding:"14px 28px",borderRadius:10,background:"#fff",color:"#1a1f2e",fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"1rem",textDecoration:"none"}}>Book a free discovery call →</a>
@@ -1399,7 +1399,7 @@ export default function CostClock() {
           <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.92)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc",height:64,display:"flex",alignItems:"center"}}>
             <div style={{maxWidth:1080,width:"100%",margin:"0 auto",padding:"0 40px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <button onClick={reset} style={{
-                fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:"1.5rem",color:"#1a1f2e",
+                fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1.5rem",color:"#1a1f2e",
                 background:"none",border:"none",cursor:"pointer",letterSpacing:"-0.02em",
                 opacity: navMounted ? 1 : 0,
                 transform: navMounted ? "translateX(0)" : "translateX(-16px)",
