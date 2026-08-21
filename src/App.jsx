@@ -666,14 +666,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
             transform: mounted ? "translateY(0)" : "translateY(-12px)",
             transition: "opacity 0.5s ease, transform 0.5s ease",
           }}>
-            <span style={{ fontFamily:"'Outfit',sans-serif", fontWeight:700, fontSize:"1.5rem",
-              color:"#ffffff", letterSpacing:"-0.02em" }}>
-              cost<span style={{ color:"#6ee7a8" }}>clock</span>
-            </span>
-            <span style={{ fontSize:"0.72rem", color:"rgba(255,255,255,0.45)",
-              fontFamily:"'DM Sans',sans-serif", fontWeight:400, marginLeft:8 }}>
-              by workthru
-            </span>
+            <img src="/logo_costclock_light_svg.svg" alt="costclock by workthru" style={{height:20,width:"auto",display:"block"}}/>
           </div>
           <div style={{
             opacity: mounted ? 1 : 0,
@@ -1397,14 +1390,12 @@ export default function CostClock() {
           <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.92)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc",height:64,display:"flex",alignItems:"center"}}>
             <div style={{maxWidth:1080,width:"100%",margin:"0 auto",padding:"0 40px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <button onClick={reset} style={{
-                fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1.5rem",color:"#1a1f2e",
-                background:"none",border:"none",cursor:"pointer",letterSpacing:"-0.02em",
+                background:"none",border:"none",cursor:"pointer",padding:0,
                 opacity: navMounted ? 1 : 0,
                 transform: navMounted ? "translateX(0)" : "translateX(-16px)",
                 transition: "opacity 0.4s ease, transform 0.4s ease",
               }}>
-                cost<span style={{color:"#2d6a4f"}}>clock</span>
-                <span style={{fontSize:"0.7rem",color:"#6b7280",fontFamily:"'DM Sans',sans-serif",fontWeight:400,marginLeft:8}}>by workthru</span>
+                <img src="/logo_costclock_svg.svg" alt="costclock by workthru" style={{height:20,width:"auto",display:"block"}}/>
               </button>
               <div style={{display:"flex",alignItems:"center",gap:12}}>
                 <div style={{display:"flex",gap:6}}>
