@@ -1183,22 +1183,13 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
           );
         })()}
 
-        <Card style={{marginBottom:20,padding:0,overflow:"hidden",...anim(0.3)}}>
-          <div style={{position:"sticky",top:64,zIndex:40,background:"#fff",paddingTop:20,borderRadius:"16px 16px 0 0"}}>
-            <div style={{padding:"0 24px 8px"}}><h3 style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700}}>Full step breakdown</h3></div>
-            <table style={{width:"100%",borderCollapse:"collapse",tableLayout:"fixed"}}>
-              <colgroup>
-                <col style={{width:"34%"}}/><col style={{width:"18%"}}/><col style={{width:"10%"}}/><col style={{width:"10%"}}/><col style={{width:"14%"}}/><col style={{width:"14%"}}/>
-              </colgroup>
-              <thead><tr>{["Step","Owner","Time","Cost","Friction","Type"].map(h=><th key={h} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"8px 16px 12px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600,background:"#fff"}}>{h}</th>)}</tr></thead>
-            </table>
-          </div>
-          <div style={{overflowX:"auto"}}>
-            <table style={{width:"100%",borderCollapse:"collapse",tableLayout:"fixed"}}>
-              <colgroup>
-                <col style={{width:"34%"}}/><col style={{width:"18%"}}/><col style={{width:"10%"}}/><col style={{width:"10%"}}/><col style={{width:"14%"}}/><col style={{width:"14%"}}/>
-              </colgroup>
-              <tbody>{steps.map(step=>{
+        <Card style={{marginBottom:20,padding:0,...anim(0.3)}}>
+          <table style={{width:"100%",borderCollapse:"collapse"}}>
+            <thead style={{position:"sticky",top:64,zIndex:40,background:"#fff"}}>
+              <tr><th colSpan={6} style={{padding:"20px 24px 8px",fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,color:"#1a1f2e",textAlign:"left",borderBottom:"none"}}>Full step breakdown</th></tr>
+              <tr>{["Step","Owner","Time","Cost","Friction","Type"].map(h=><th key={h} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"8px 16px 12px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600,background:"#fff"}}>{h}</th>)}</tr>
+            </thead>
+            <tbody>{steps.map(step=>{
                 const role=roles.find(r=>r.id===step.roleId);
                 const cost=role?(step.minutes/60)*role.rate:0;
                 const wt=WORK_TYPES.find(w=>w.value===step.workType)||WORK_TYPES[0];
@@ -1219,8 +1210,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
                   <td style={{padding:"12px 16px"}}><FrictionBadge level={step.friction}/></td>
                   <td style={{padding:"12px 16px"}}><span style={{fontSize:"0.72rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:wt.bg,color:wt.color}}>{wt.icon} {wt.short}</span></td>
                 </tr>);})}</tbody>
-            </table>
-          </div>
+          </table>
         </Card>
 
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:16,marginBottom:20,...anim(0.4)}}>
