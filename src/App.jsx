@@ -864,7 +864,6 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
   const removeRole=(i)=>{if(roles.length>1)setRoles(roles.filter((_,j)=>j!==i));};
   return (
     <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
-      <Badge>Step 1 of 3</Badge>
       <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Set up your team and process</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:36,lineHeight:1.7}}>Define the roles in your team. Enter their annual salary and we'll calculate the true fully-loaded hourly cost.</p>
       <Card style={{marginBottom:20}}>
@@ -937,7 +936,6 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
 
   return (
     <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
-      <Badge>Step {fromTemplate ? "1" : "2"} of {fromTemplate ? "2" : "3"}</Badge>
       <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Map the steps in "{processName}"</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:20,lineHeight:1.7}}>Walk through the process from start to finish. Estimates are fine.</p>
 
@@ -1447,16 +1445,26 @@ export default function CostClock() {
                 const screens=["setup","build","results"];
                 const curIdx=screens.indexOf(screen);
                 const isActive=screen===scr;
+                const isComplete=i<curIdx;
                 const isReachable=i<=curIdx;
                 return(
                   <button key={scr} onClick={()=>isReachable&&setScreen(scr)} style={{
-                    flex:1,padding:"10px 8px",border:"none",borderBottom:isActive?"2px solid #2d6a4f":"2px solid transparent",
+                    flex:1,padding:"8px 8px",border:"none",borderBottom:isActive?"2px solid #2d6a4f":"2px solid transparent",
                     background:isActive?"rgba(45,106,79,0.06)":"transparent",
                     color:isActive?"#2d6a4f":isReachable?"#1a1f2e":"#b0b8c1",
                     fontFamily:"'DM Sans',sans-serif",fontWeight:isActive?700:500,
                     fontSize:"0.82rem",cursor:isReachable?"pointer":"default",
                     transition:"all 0.15s",letterSpacing:"0.01em",
-                  }}>{label}</button>
+                    display:"flex",flexDirection:"column",alignItems:"center",gap:2,
+                  }}>
+                    <div style={{display:"flex",alignItems:"center",gap:5}}>
+                      {isComplete && <span style={{fontSize:"0.7rem",color:"#2d6a4f",fontWeight:700}}>✓</span>}
+                      <span>{label}</span>
+                    </div>
+                    <div style={{fontSize:"0.65rem",color:isActive?"#2d6a4f":"#b0b8c1",fontWeight:400,letterSpacing:"0.04em"}}>
+                      {isComplete?"complete":isActive?"in progress":""}
+                    </div>
+                  </button>
                 );
               })}
             </div>
