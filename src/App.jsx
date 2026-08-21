@@ -691,7 +691,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
       </div>
 
       {/* DARK HERO */}
-      <div style={{ background:"#1a1f2e", padding:"120px 0 80px", position:"relative", overflow:"hidden", ...heroStyle }}>
+      <div style={{ background:"#1a1f2e", padding:"108px 0 80px", position:"relative", overflow:"hidden", ...heroStyle }}>
         <div style={{ position:"absolute", inset:0,
           backgroundImage:"url(/topography-dark.svg)", backgroundSize:"600px 600px",
           pointerEvents:"none",
@@ -854,7 +854,7 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
   };
   const removeRole=(i)=>{if(roles.length>1)setRoles(roles.filter((_,j)=>j!==i));};
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative"}}>
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px",position:"relative"}} className="page-pad">
       <Badge>Step 1 of 3</Badge>
       <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Set up your team and process</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:36,lineHeight:1.7}}>Define the roles in your team. Enter their annual salary and we'll calculate the true fully-loaded hourly cost.</p>
@@ -927,7 +927,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
   const totalCost=steps.reduce((s,st)=>{const r=roles.find(rl=>rl.id===st.roleId);return s+(r?(st.minutes/60)*r.rate:0);},0);
 
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative"}}>
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px",position:"relative"}} className="page-pad">
       <Badge>Step {fromTemplate ? "1" : "2"} of {fromTemplate ? "2" : "3"}</Badge>
       <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Map the steps in "{processName}"</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:20,lineHeight:1.7}}>Walk through the process from start to finish. Estimates are fine.</p>
@@ -993,14 +993,13 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
         const delayMins=steps.filter(s=>s.workType==="waiting").reduce((sum,s)=>sum+s.minutes,0);
         const fmtMins=(m)=>m>=60?`${Math.floor(m/60)}h ${m%60}m`:`${m}m`;
         return(
-          <div style={{position:"sticky",top:64,zIndex:50,background:"rgba(250,249,247,0.95)",backdropFilter:"blur(12px)",borderRadius:isBarStuck?"0 0 12px 12px":12,border:"1px solid #e5e2dc",borderTop:isBarStuck?"none":"1px solid #e5e2dc",padding:"14px 20px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
-            <div style={{display:"flex",gap:20,flexWrap:"wrap",alignItems:"center"}}>
-              <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Steps: <strong style={{color:"#1a1f2e"}}>{steps.length}</strong></span>
-              <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Time: <strong style={{color:"#1a1f2e"}}>{totalMinutes>=60?`${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m`:`${totalMinutes}m`}</strong></span>
-              <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Cost: <strong style={{fontFamily:"'Outfit',sans-serif",color:"#2d6a4f"}}>£{totalCost.toFixed(0)}</strong></span>
-              {automatableMins>0&&<span style={{fontSize:"0.82rem",color:"#1b4332",background:"#d4ede2",padding:"3px 10px",borderRadius:100,fontWeight:600}}>⚡ Automatable: {fmtMins(automatableMins)}</span>}
-              {delayMins>0&&<span style={{fontSize:"0.82rem",color:"#8a6a1e",background:"#faf0d6",padding:"3px 10px",borderRadius:100,fontWeight:600}}>⏳ Delay time: {fmtMins(delayMins)}</span>}
-              {(()=>{const {waitingMins,minDays,maxDays}=calcDelayDays(steps);if(!waitingMins)return null;return(<span style={{fontSize:"0.82rem",color:"#b84a5a",background:"#f5e0e3",padding:"3px 10px",borderRadius:100,fontWeight:600}}>🕐 Client delay: {minDays}–{maxDays} days ({fmtMins(waitingMins)} waiting)</span>);})()}
+          <div style={{position:"sticky",top:88,zIndex:50,background:"rgba(250,249,247,0.95)",backdropFilter:"blur(12px)",borderRadius:isBarStuck?"0 0 12px 12px":12,border:"1px solid #e5e2dc",borderTop:isBarStuck?"none":"1px solid #e5e2dc",padding:"14px 20px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
+              <span style={{fontSize:"0.8rem",color:"#6b7280",whiteSpace:"nowrap"}}>Steps: <strong style={{color:"#1a1f2e"}}>{steps.length}</strong></span>
+              <span style={{fontSize:"0.8rem",color:"#6b7280",whiteSpace:"nowrap"}}>Time: <strong style={{color:"#1a1f2e"}}>{totalMinutes>=60?`${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m`:`${totalMinutes}m`}</strong></span>
+              <span style={{fontSize:"0.8rem",color:"#6b7280",whiteSpace:"nowrap"}}>Cost: <strong style={{fontFamily:"'Outfit',sans-serif",color:"#2d6a4f"}}>£{totalCost.toFixed(0)}</strong></span>
+              {automatableMins>0&&<span style={{fontSize:"0.78rem",color:"#1b4332",background:"#d4ede2",padding:"2px 8px",borderRadius:100,fontWeight:600,whiteSpace:"nowrap"}}>⚡ {fmtMins(automatableMins)} auto</span>}
+              {(()=>{const {waitingMins,minDays,maxDays}=calcDelayDays(steps);if(!waitingMins)return null;return(<span style={{fontSize:"0.78rem",color:"#b84a5a",background:"#f5e0e3",padding:"2px 8px",borderRadius:100,fontWeight:600,whiteSpace:"nowrap"}}>🕐 {minDays}–{maxDays} days delay</span>);})()}
             </div>
             <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Saving opportunities: <strong style={{color:"#c4942a"}}>{steps.filter(s=>isSaveable(s)).length}/{steps.length}</strong></span>
           </div>
@@ -1018,16 +1017,27 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
           const cardBorder=isAutoOpportunity?"1px solid #a8dcc0":isDelayRisk?"1px solid #e8dbb8":"1px solid #e5e2dc";
           return(
             <div key={step.id} style={{background:cardBg,border:cardBorder,borderLeft:isAutoOpportunity?"4px solid #2d6a4f":isDelayRisk?"4px solid #c4942a":`4px solid ${rc}`,borderRadius:16,padding:"18px 22px",transition:"all 0.2s"}}>
-              <div style={{display:"flex",gap:12,alignItems:"flex-start",flexWrap:"wrap"}}>
-                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,minWidth:24}}>
-                  <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.9rem",color:"#6b7280"}}>{idx+1}</span>
-                  <button onClick={()=>moveStep(idx,-1)} disabled={idx===0} style={{background:"none",border:"none",cursor:idx===0?"default":"pointer",color:idx===0?"#d1d5db":"#9ca3af",fontSize:"0.7rem",padding:"1px 0",lineHeight:1,opacity:idx===0?0.3:1}}>▲</button>
-                  <button onClick={()=>moveStep(idx,1)} disabled={idx===steps.length-1} style={{background:"none",border:"none",cursor:idx===steps.length-1?"default":"pointer",color:idx===steps.length-1?"#d1d5db":"#9ca3af",fontSize:"0.7rem",padding:"1px 0",lineHeight:1,opacity:idx===steps.length-1?0.3:1}}>▼</button>
+              <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                {/* Step number + reorder arrows */}
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,minWidth:22,flexShrink:0,paddingTop:4}}>
+                  <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.85rem",color:"#6b7280"}}>{idx+1}</span>
+                  <button onClick={()=>moveStep(idx,-1)} disabled={idx===0} style={{background:"none",border:"none",cursor:idx===0?"default":"pointer",color:"#9ca3af",fontSize:"0.65rem",padding:"1px 0",lineHeight:1,opacity:idx===0?0.25:1}}>▲</button>
+                  <button onClick={()=>moveStep(idx,1)} disabled={idx===steps.length-1} style={{background:"none",border:"none",cursor:idx===steps.length-1?"default":"pointer",color:"#9ca3af",fontSize:"0.65rem",padding:"1px 0",lineHeight:1,opacity:idx===steps.length-1?0.25:1}}>▼</button>
                 </div>
-                <div style={{flex:1,minWidth:200}}>
-                  <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
-                    <input type="text" value={step.name} onChange={e=>updateStep(idx,"name",e.target.value)} placeholder="What happens at this step?" style={{flex:1,padding:"6px 0",border:"none",borderBottom:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",background:"transparent"}}/>
+                {/* Main content */}
+                <div style={{flex:1,minWidth:0}}>
+                  {/* Top row: name + cost + delete always inline */}
+                  <div style={{display:"flex",alignItems:"flex-start",gap:8}}>
+                    <input type="text" value={step.name} onChange={e=>updateStep(idx,"name",e.target.value)} placeholder="What happens at this step?" style={{flex:1,minWidth:0,padding:"6px 0",border:"none",borderBottom:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",background:"transparent"}}/>
+                    <div style={{textAlign:"right",flexShrink:0}}>
+                      <div style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1.2rem",color:rc}}>£{cost.toFixed(0)}</div>
+                      <div style={{fontSize:"0.72rem",color:"#6b7280"}}>{step.minutes}m</div>
+                      {isAutoOpportunity&&<span style={{display:"inline-flex",alignItems:"center",gap:3,marginTop:4,fontSize:"0.62rem",fontWeight:700,padding:"2px 7px",borderRadius:100,background:"#d4ede2",color:"#1b4332",whiteSpace:"nowrap"}}>⚡ Auto</span>}
+                      {isDelayRisk&&<span style={{display:"inline-flex",alignItems:"center",gap:3,marginTop:4,fontSize:"0.62rem",fontWeight:700,padding:"2px 7px",borderRadius:100,background:"#faf0d6",color:"#8a6a1e",whiteSpace:"nowrap"}}>⏳ Delay</span>}
+                    </div>
+                    <button onClick={()=>removeStep(idx)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1.1rem",padding:"0 2px",flexShrink:0,marginTop:2}}>×</button>
                   </div>
+                  {/* Controls row: wraps on mobile */}
                   <div style={{display:"flex",gap:8,marginTop:10,flexWrap:"wrap",alignItems:"center"}}>
                     <Select value={step.roleId} onChange={v=>updateStep(idx,"roleId",v)} options={roles.map(r=>({value:r.id,label:r.name}))} style={{width:170}}/>
                     <NumberInput value={step.minutes} onChange={v=>updateStep(idx,"minutes",v)} suffix="min" min={1}/>
@@ -1035,13 +1045,6 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
                     <Select value={step.workType||"manual"} onChange={v=>updateStep(idx,"workType",v)} options={WORK_TYPES.map(w=>({value:w.value,label:`${w.icon} ${w.short}`}))} style={{width:128,background:wt.bg,color:wt.color,fontWeight:600,border:`1px solid ${wt.color}30`}}/>
                   </div>
                 </div>
-                <div style={{textAlign:"right",minWidth:90}}>
-                  <div style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1.3rem",color:rc}}>£{cost.toFixed(0)}</div>
-                  <div style={{fontSize:"0.75rem",color:"#6b7280"}}>{step.minutes}m</div>
-                  {isAutoOpportunity&&<span style={{display:"inline-flex",alignItems:"center",gap:3,marginTop:6,fontSize:"0.65rem",fontWeight:700,padding:"3px 8px",borderRadius:100,background:"#d4ede2",color:"#1b4332"}}>⚡ Automation</span>}
-                  {isDelayRisk&&<span style={{display:"inline-flex",alignItems:"center",gap:3,marginTop:6,fontSize:"0.65rem",fontWeight:700,padding:"3px 8px",borderRadius:100,background:"#faf0d6",color:"#8a6a1e"}}>⏳ Delay risk</span>}
-                </div>
-                <button onClick={()=>removeStep(idx)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1.1rem",padding:"0 4px",alignSelf:"flex-start"}}>×</button>
               </div>
             </div>
           );
@@ -1088,7 +1091,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
   const anim=(d)=>({opacity:revealed?1:0,transform:revealed?"translateY(0)":"translateY(20px)",transition:`all 0.6s ease ${d}s`});
 
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px"}}>
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px"}} className="page-pad">
       {showAuth && <AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={(user)=>{setShowAuth(false);onSave();}} />}
 
       {isDeepLink&&(
@@ -1114,9 +1117,9 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
             {label:"Client-facing delay",value:`${minDays}–${maxDays} days`,sub:"per process run",bg:"rgba(184,74,90,0.2)",color:"#f5a0aa"},
           ];
           return(
-            <div style={{display:"flex",gap:1,background:"rgba(255,255,255,0.1)",borderRadius:12,overflow:"hidden",maxWidth:680,margin:"0 auto"}}>
+            <div style={{display:"flex",gap:1,background:"rgba(255,255,255,0.1)",borderRadius:12,overflow:"hidden",maxWidth:680,margin:"0 auto",overflowX:"auto"}}>
               {panels.map((item,i)=>(
-                <div key={i} style={{flex:1,padding:"20px 16px",background:item.bg}}>
+                <div key={i} style={{flex:"0 0 160px",padding:"16px 14px",background:item.bg}}>
                   <div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"rgba(255,255,255,0.5)",marginBottom:8}}>{item.label}</div>
                   <div style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.4rem",fontWeight:700,color:item.color}}>{item.value}</div>
                   <div style={{fontSize:"0.75rem",color:"rgba(255,255,255,0.4)",marginTop:4}}>{item.sub}</div>
@@ -1196,7 +1199,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
         <div ref={headerSentinelRef} style={{height:1,marginBottom:-1}}/>
         <Card style={{marginBottom:20,padding:0,overflow:"clip",...anim(0.3)}}>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <thead style={{position:"sticky",top:64,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 3px 10px rgba(0,0,0,0.08), -4px 0 0 #fff, 4px 0 0 #fff":"-4px 0 0 #fff, 4px 0 0 #fff"}}>
+            <thead style={{position:"sticky",top:88,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 3px 10px rgba(0,0,0,0.08), -4px 0 0 #fff, 4px 0 0 #fff":"-4px 0 0 #fff, 4px 0 0 #fff"}}>
               <tr><th colSpan={6} style={{padding:"20px 24px 8px",fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,color:"#1a1f2e",textAlign:"left",borderBottom:"none",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",background:"#fff"}}>Full step breakdown</th></tr>
               <tr>{[["Step",""],["Owner","col-owner"],["Time","col-time"],["Cost",""],["Friction","col-friction"],["Type","col-type"]].map(([h,cn])=><th key={h} className={cn} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"8px 16px 12px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600,background:"#fff"}}>{h}</th>)}</tr>
             </thead>
@@ -1419,26 +1422,36 @@ export default function CostClock() {
         {showAuth&&<AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={handleAuth}/>}
 
         {screen!=="welcome"&&(
-          <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.92)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc",height:64,display:"flex",alignItems:"center"}}>
-            <div style={{maxWidth:1080,width:"100%",margin:"0 auto",padding:"0 40px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <button onClick={reset} style={{
-                background:"none",border:"none",cursor:"pointer",padding:0,
-                opacity: navMounted ? 1 : 0,
-                transform: navMounted ? "translateX(0)" : "translateX(-16px)",
-                transition: "opacity 0.4s ease, transform 0.4s ease",
-              }}>
-                <img src="/logo_costclock_svg.svg" alt="costclock by workthru" style={{height:28,width:"auto",display:"block"}}/>
+          <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.97)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc"}}>
+            {/* Row 1: logo + auth */}
+            <div style={{maxWidth:1080,width:"100%",margin:"0 auto",padding:"0 20px",height:48,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",padding:0,opacity:navMounted?1:0,transform:navMounted?"translateX(0)":"translateX(-16px)",transition:"opacity 0.4s ease, transform 0.4s ease"}}>
+                <img src="/logo_costclock_svg.svg" alt="costclock by workthru" style={{height:24,width:"auto",display:"block"}}/>
               </button>
-              <div style={{display:"flex",alignItems:"center",gap:12}}>
-                <div style={{display:"flex",gap:6}}>
-                  {["Setup","Map","Results"].map((label,i)=>{const sm=["setup","build","results"];const active=sm.indexOf(screen)>=i;return<div key={label} style={{padding:"4px 14px",borderRadius:100,background:active?"#d4ede2":"#f3f1ed",color:active?"#1b4332":"#6b7280",fontSize:"0.75rem",fontWeight:600}}>{label}</div>;})}
-                </div>
-                {user?(
-                  <button onClick={authCtx.signOut} style={{fontSize:"0.78rem",color:"#6b7280",background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign out</button>
-                ):(
-                  <button onClick={()=>setShowAuth(true)} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign in</button>
-                )}
-              </div>
+              {user?(
+                <button onClick={authCtx.signOut} style={{fontSize:"0.78rem",color:"#6b7280",background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign out</button>
+              ):(
+                <button onClick={()=>setShowAuth(true)} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign in</button>
+              )}
+            </div>
+            {/* Row 2: nav tabs */}
+            <div style={{borderTop:"1px solid #e5e2dc",display:"flex",maxWidth:1080,width:"100%",margin:"0 auto"}}>
+              {[["Setup","setup"],["Map steps","build"],["Results","results"]].map(([label,scr],i)=>{
+                const screens=["setup","build","results"];
+                const curIdx=screens.indexOf(screen);
+                const isActive=screen===scr;
+                const isReachable=i<=curIdx;
+                return(
+                  <button key={scr} onClick={()=>isReachable&&setScreen(scr)} style={{
+                    flex:1,padding:"10px 8px",border:"none",borderBottom:isActive?"2px solid #2d6a4f":"2px solid transparent",
+                    background:isActive?"rgba(45,106,79,0.06)":"transparent",
+                    color:isActive?"#2d6a4f":isReachable?"#1a1f2e":"#b0b8c1",
+                    fontFamily:"'DM Sans',sans-serif",fontWeight:isActive?700:500,
+                    fontSize:"0.82rem",cursor:isReachable?"pointer":"default",
+                    transition:"all 0.15s",letterSpacing:"0.01em",
+                  }}>{label}</button>
+                );
+              })}
             </div>
           </nav>
         )}
