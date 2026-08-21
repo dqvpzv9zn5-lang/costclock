@@ -1060,7 +1060,16 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
   const [revealed,setRevealed]=useState(false);
   const [copied,setCopied]=useState(false);
   const [showAuth,setShowAuth]=useState(false);
+  const [isHeaderStuck,setIsHeaderStuck]=useState(false);
+  const headerSentinelRef=useRef(null);
   useEffect(()=>{const t=setTimeout(()=>setRevealed(true),300);return()=>clearTimeout(t);},[]);
+  useEffect(()=>{
+    const el=headerSentinelRef.current;
+    if(!el)return;
+    const obs=new IntersectionObserver(([entry])=>setIsHeaderStuck(!entry.isIntersecting),{threshold:0});
+    obs.observe(el);
+    return()=>obs.disconnect();
+  },[]);
 
   const {totalCost,annualCost,potentialSaving}=calcCosts(roles,steps,annualVolume);
   const totalMinutes=steps.reduce((s,st)=>s+st.minutes,0);
@@ -1183,10 +1192,11 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
           );
         })()}
 
+        <div ref={headerSentinelRef} style={{height:1,marginBottom:-1}}/>
         <Card style={{marginBottom:20,padding:0,...anim(0.3)}}>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <thead style={{position:"sticky",top:64,zIndex:40,background:"#fff"}}>
-              <tr><th colSpan={6} style={{padding:"20px 24px 8px",fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,color:"#1a1f2e",textAlign:"left",borderBottom:"none"}}>Full step breakdown</th></tr>
+            <thead style={{position:"sticky",top:64,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 2px 8px rgba(0,0,0,0.07), -1px 0 0 #e5e2dc, 1px 0 0 #e5e2dc":"none"}}>
+              <tr><th colSpan={6} style={{padding:"20px 24px 8px",fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,color:"#1a1f2e",textAlign:"left",borderBottom:"none",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",background:"#fff"}}>Full step breakdown</th></tr>
               <tr>{["Step","Owner","Time","Cost","Friction","Type"].map(h=><th key={h} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"8px 16px 12px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600,background:"#fff"}}>{h}</th>)}</tr>
             </thead>
             <tbody>{steps.map(step=>{
