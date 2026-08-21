@@ -1074,7 +1074,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
   useEffect(()=>{
     const el=headerSentinelRef.current;
     if(!el)return;
-    const obs=new IntersectionObserver(([entry])=>setIsHeaderStuck(!entry.isIntersecting),{threshold:0});
+    const obs=new IntersectionObserver(([entry])=>setIsHeaderStuck(!entry.isIntersecting),{threshold:0,rootMargin:"-100px 0px 0px 0px"});
     obs.observe(el);
     return()=>obs.disconnect();
   },[]);
