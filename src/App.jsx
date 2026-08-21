@@ -846,19 +846,6 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
           })}
         </div>
 
-        <div style={{ display:"flex", gap:40, justifyContent:"center", flexWrap:"wrap",
-          paddingTop:36, marginTop:36, borderTop:"1px solid #e5e2dc", ...cardsStyle(TEMPLATES.length + 1) }}>
-          {[
-            { num:"£847", label:"Average onboarding cost per client" },
-            { num:"18.5 hrs", label:"Staff time per onboarding" },
-            { num:"42%", label:"Of steps have saving potential" },
-          ].map((s,i) => (
-            <div key={i} style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-              <strong style={{ fontFamily:"'Outfit',sans-serif", fontSize:"1.4rem", fontWeight:700, color:"#2d6a4f" }}>{s.num}</strong>
-              <span style={{ fontSize:"0.78rem", color:"#6b7280", fontWeight:500, maxWidth:140, textAlign:"center" }}>{s.label}</span>
-            </div>
-          ))}
-        </div>
       </div>
       </div>{/* end topography wrapper */}
     </div>
