@@ -863,7 +863,7 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
   };
   const removeRole=(i)=>{if(roles.length>1)setRoles(roles.filter((_,j)=>j!==i));};
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
       <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Set up your team and process</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:36,lineHeight:1.7}}>Define the roles in your team. Enter their annual salary and we'll calculate the true fully-loaded hourly cost.</p>
       <Card style={{marginBottom:20}}>
@@ -885,7 +885,6 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
               <div style={{width:10,height:10,borderRadius:"50%",background:rc,flexShrink:0}}/>
               <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:"1 1 140px",minWidth:120,padding:"5px 10px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",fontWeight:600,outline:"none",background:"transparent"}}/>
               <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-                <span style={{fontSize:"0.78rem",color:"#6b7280"}}>£</span>
                 <SalaryInput value={role.salary||rateToSalary(role.rate)} onChange={v=>updateRole(i,"salary",v)}/>
               </div>
               <div style={{fontSize:"0.78rem",color:"#6b7280",flexShrink:0}}>→</div>
@@ -935,7 +934,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
   const totalCost=steps.reduce((s,st)=>{const r=roles.find(rl=>rl.id===st.roleId);return s+(r?(st.minutes/60)*r.rate:0);},0);
 
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
       <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Map the steps in "{processName}"</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:20,lineHeight:1.7}}>Walk through the process from start to finish. Estimates are fine.</p>
 
@@ -998,7 +997,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
         const delayMins=steps.filter(s=>s.workType==="waiting").reduce((sum,s)=>sum+s.minutes,0);
         const fmtMins=(m)=>m>=60?`${Math.floor(m/60)}h ${m%60}m`:`${m}m`;
         return(
-          <div style={{position:"sticky",top:88,zIndex:50,background:"rgba(250,249,247,0.95)",backdropFilter:"blur(12px)",borderRadius:isBarStuck?"0 0 12px 12px":12,border:"1px solid #e5e2dc",borderTop:isBarStuck?"none":"1px solid #e5e2dc",padding:"14px 20px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+          <div style={{position:"sticky",top:100,zIndex:50,background:"rgba(250,249,247,0.95)",backdropFilter:"blur(12px)",borderRadius:isBarStuck?"0 0 12px 12px":12,border:"1px solid #e5e2dc",borderTop:isBarStuck?"none":"1px solid #e5e2dc",padding:"14px 20px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
             <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
               <span style={{fontSize:"0.8rem",color:"#6b7280",whiteSpace:"nowrap"}}>Steps: <strong style={{color:"#1a1f2e"}}>{steps.length}</strong></span>
               <span style={{fontSize:"0.8rem",color:"#6b7280",whiteSpace:"nowrap"}}>Time: <strong style={{color:"#1a1f2e"}}>{totalMinutes>=60?`${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m`:`${totalMinutes}m`}</strong></span>
@@ -1096,7 +1095,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
   const anim=(d)=>({opacity:revealed?1:0,transform:revealed?"translateY(0)":"translateY(20px)",transition:`all 0.6s ease ${d}s`});
 
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
       {showAuth && <AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={(user)=>{setShowAuth(false);onSave();}} />}
 
       {isDeepLink&&(
@@ -1204,7 +1203,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
         <div ref={headerSentinelRef} style={{height:1,marginBottom:-1}}/>
         <Card style={{marginBottom:20,padding:0,overflow:"clip",...anim(0.3)}}>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <thead style={{position:"sticky",top:88,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 3px 10px rgba(0,0,0,0.08), -4px 0 0 #fff, 4px 0 0 #fff":"-4px 0 0 #fff, 4px 0 0 #fff"}}>
+            <thead style={{position:"sticky",top:100,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 3px 10px rgba(0,0,0,0.08), -4px 0 0 #fff, 4px 0 0 #fff":"-4px 0 0 #fff, 4px 0 0 #fff"}}>
               <tr><th colSpan={6} style={{padding:"20px 24px 8px",fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,color:"#1a1f2e",textAlign:"left",borderBottom:"none",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",background:"#fff"}}>Full step breakdown</th></tr>
               <tr>{[["Step",""],["Owner","col-owner"],["Time","col-time"],["Cost",""],["Friction","col-friction"],["Type","col-type"]].map(([h,cn])=><th key={h} className={cn} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"8px 16px 12px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600,background:"#fff"}}>{h}</th>)}</tr>
             </thead>
