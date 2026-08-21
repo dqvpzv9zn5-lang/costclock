@@ -666,7 +666,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
             transform: mounted ? "translateY(0)" : "translateY(-12px)",
             transition: "opacity 0.5s ease, transform 0.5s ease",
           }}>
-            <img src="/logo_costclock_light_svg.svg" alt="costclock by workthru" style={{height:20,width:"auto",display:"block"}}/>
+            <img src="/logo_costclock_light_svg.svg" alt="costclock by workthru" style={{height:28,width:"auto",display:"block"}}/>
           </div>
           <div style={{
             opacity: mounted ? 1 : 0,
@@ -1395,7 +1395,7 @@ export default function CostClock() {
                 transform: navMounted ? "translateX(0)" : "translateX(-16px)",
                 transition: "opacity 0.4s ease, transform 0.4s ease",
               }}>
-                <img src="/logo_costclock_svg.svg" alt="costclock by workthru" style={{height:20,width:"auto",display:"block"}}/>
+                <img src="/logo_costclock_svg.svg" alt="costclock by workthru" style={{height:28,width:"auto",display:"block"}}/>
               </button>
               <div style={{display:"flex",alignItems:"center",gap:12}}>
                 <div style={{display:"flex",gap:6}}>
