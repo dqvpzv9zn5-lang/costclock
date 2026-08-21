@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, createContext, useContext } from "react";
+import { useState, useEffect, useCallback, createContext, useContext, useRef } from "react";
 import {
   supabase, isSupabaseConfigured,
   signUp as sbSignUp, signInWithMagicLink, getSession, getUser,
@@ -899,6 +899,15 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
 
 function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolume, setAnnualVolume, onNext, onBack, fromTemplate }) {
   const [rolesOpen, setRolesOpen] = useState(false);
+  const [isBarStuck, setIsBarStuck] = useState(false);
+  const sentinelRef = useRef(null);
+  useEffect(()=>{
+    const el = sentinelRef.current;
+    if(!el) return;
+    const obs = new IntersectionObserver(([entry])=>setIsBarStuck(!entry.isIntersecting),{threshold:0,rootMargin:"0px 0px 0px 0px"});
+    obs.observe(el);
+    return ()=>obs.disconnect();
+  },[]);
   const addStep=()=>setSteps([...steps,{id:Date.now(),name:"",roleId:roles[0]?.id||"",minutes:15,friction:"low",workType:"manual"}]);
   const updateStep=(i,f,v)=>{const u=[...steps];u[i]={...u[i],[f]:v};setSteps(u);};
   const removeStep=(i)=>setSteps(steps.filter((_,j)=>j!==i));
@@ -975,12 +984,13 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
         )}
       </Card>
 
+      <div ref={sentinelRef} style={{height:1,marginTop:-1}}/>
       {(()=>{
         const automatableMins=steps.filter(s=>s.workType==="manual"&&isSaveable(s)).reduce((sum,s)=>sum+s.minutes,0);
         const delayMins=steps.filter(s=>s.workType==="waiting").reduce((sum,s)=>sum+s.minutes,0);
         const fmtMins=(m)=>m>=60?`${Math.floor(m/60)}h ${m%60}m`:`${m}m`;
         return(
-          <div style={{position:"sticky",top:64,zIndex:50,background:"rgba(250,249,247,0.95)",backdropFilter:"blur(12px)",borderRadius:12,border:"1px solid #e5e2dc",padding:"14px 20px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+          <div style={{position:"sticky",top:64,zIndex:50,background:"rgba(250,249,247,0.95)",backdropFilter:"blur(12px)",borderRadius:isBarStuck?"0 0 12px 12px":12,border:"1px solid #e5e2dc",borderTop:isBarStuck?"none":"1px solid #e5e2dc",padding:"14px 20px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
             <div style={{display:"flex",gap:20,flexWrap:"wrap",alignItems:"center"}}>
               <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Steps: <strong style={{color:"#1a1f2e"}}>{steps.length}</strong></span>
               <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Time: <strong style={{color:"#1a1f2e"}}>{totalMinutes>=60?`${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m`:`${totalMinutes}m`}</strong></span>
@@ -1018,8 +1028,8 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
                   <div style={{display:"flex",gap:8,marginTop:10,flexWrap:"nowrap",alignItems:"center",overflowX:"auto"}}>
                     <Select value={step.roleId} onChange={v=>updateStep(idx,"roleId",v)} options={roles.map(r=>({value:r.id,label:r.name}))} style={{width:150}}/>
                     <NumberInput value={step.minutes} onChange={v=>updateStep(idx,"minutes",v)} suffix="min" min={1}/>
-                    <Select value={step.friction} onChange={v=>updateStep(idx,"friction",v)} options={FRICTION_LEVELS.map(f=>({value:f.value,label:`${f.label} friction`}))} style={{width:140}}/>
-                    <Select value={step.workType||"manual"} onChange={v=>updateStep(idx,"workType",v)} options={WORK_TYPES.map(w=>({value:w.value,label:`${w.icon} ${w.short}`}))} style={{width:110,background:wt.bg,color:wt.color,fontWeight:600,border:`1px solid ${wt.color}30`}}/>
+                    <Select value={step.friction} onChange={v=>updateStep(idx,"friction",v)} options={FRICTION_LEVELS.map(f=>({value:f.value,label:`${f.label} friction`}))} style={{width:160}}/>
+                    <Select value={step.workType||"manual"} onChange={v=>updateStep(idx,"workType",v)} options={WORK_TYPES.map(w=>({value:w.value,label:`${w.icon} ${w.short}`}))} style={{width:128,background:wt.bg,color:wt.color,fontWeight:600,border:`1px solid ${wt.color}30`}}/>
                   </div>
                 </div>
                 <div style={{textAlign:"right",minWidth:70}}>
