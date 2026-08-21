@@ -659,8 +659,8 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
     <div style={{ minHeight: "100vh", position: "relative" }}>
 
       {/* NAV — same max-width container as hero/cards so logo left-edge aligns */}
-      <div style={{ position:"absolute", top:0, left:0, right:0, zIndex:10 }}>
-        <div style={{ maxWidth:1080, margin:"0 auto", padding:"20px 40px",
+      <div style={{ position:"fixed", top:0, left:0, right:0, zIndex:100, transition:"background 0.3s", background:"rgba(26,31,46,0.92)", backdropFilter:"blur(12px)" }}>
+        <div style={{ maxWidth:1080, margin:"0 auto", padding:"14px 40px",
           display:"flex", justifyContent:"space-between", alignItems:"center",
         }}>
           <div style={{
