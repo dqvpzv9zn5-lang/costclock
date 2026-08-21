@@ -740,7 +740,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
               </h3>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {savedProcesses.map((p,idx) => {
-                  const { totalCost, annualCost } = calcCosts(p.roles||DEFAULT_ROLES, p.steps, p.annual_volume||p.annualVolume);
+                  const { totalCost, annualCost, potentialSaving } = calcCosts(p.roles||DEFAULT_ROLES, p.steps, p.annual_volume||p.annualVolume);
                   return (
                     <Card key={p.id||idx} hover onClick={()=>onLoadSaved(idx)} style={{padding:"14px 20px",cursor:"pointer",background:"#ffffff",border:"1px solid #a8dcc0"}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
@@ -752,8 +752,8 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
                         </div>
                         <div style={{display:"flex",alignItems:"center",gap:16}}>
                           <div style={{textAlign:"right"}}>
-                            <div style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,color:"#2d6a4f",fontSize:"1.05rem"}}>£{totalCost.toFixed(0)}</div>
-                            <div style={{fontSize:"0.7rem",color:"#6b7280"}}>per run</div>
+                            <div style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,color:"#2d6a4f",fontSize:"1.05rem"}}>£{potentialSaving.toLocaleString("en-GB",{maximumFractionDigits:0})}</div>
+                            <div style={{fontSize:"0.7rem",color:"#6b7280"}}>potential saving/yr</div>
                           </div>
                           <button onClick={e=>{e.stopPropagation();onDeleteSaved(idx);}}
                             style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1rem",padding:4}}>×</button>
