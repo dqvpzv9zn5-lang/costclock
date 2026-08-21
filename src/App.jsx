@@ -1064,7 +1064,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
   const [showAuth,setShowAuth]=useState(false);
   const [isHeaderStuck,setIsHeaderStuck]=useState(false);
   const headerSentinelRef=useRef(null);
-  useEffect(()=>{const t=setTimeout(()=>setRevealed(true),300);return()=>clearTimeout(t);},[]);
+  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});const t=setTimeout(()=>setRevealed(true),300);return()=>clearTimeout(t);},[]);
   useEffect(()=>{
     const el=headerSentinelRef.current;
     if(!el)return;
