@@ -1023,10 +1023,6 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
                   <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
                     <input type="text" value={step.name} onChange={e=>updateStep(idx,"name",e.target.value)} placeholder="What happens at this step?" style={{flex:1,padding:"6px 0",border:"none",borderBottom:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",background:"transparent"}}/>
                   </div>
-                  {(isAutoOpportunity||isDelayRisk)&&<div style={{marginTop:6}}>
-                    {isAutoOpportunity&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.68rem",fontWeight:700,padding:"3px 10px",borderRadius:100,background:"#d4ede2",color:"#1b4332",letterSpacing:"0.02em"}}>⚡ Automation opportunity</span>}
-                    {isDelayRisk&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.68rem",fontWeight:700,padding:"3px 10px",borderRadius:100,background:"#faf0d6",color:"#8a6a1e",letterSpacing:"0.02em"}}>⏳ Delay risk</span>}
-                  </div>}
                   <div style={{display:"flex",gap:8,marginTop:10,flexWrap:"nowrap",alignItems:"center",overflowX:"auto"}}>
                     <Select value={step.roleId} onChange={v=>updateStep(idx,"roleId",v)} options={roles.map(r=>({value:r.id,label:r.name}))} style={{width:150}}/>
                     <NumberInput value={step.minutes} onChange={v=>updateStep(idx,"minutes",v)} suffix="min" min={1}/>
@@ -1034,11 +1030,11 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
                     <Select value={step.workType||"manual"} onChange={v=>updateStep(idx,"workType",v)} options={WORK_TYPES.map(w=>({value:w.value,label:`${w.icon} ${w.short}`}))} style={{width:128,background:wt.bg,color:wt.color,fontWeight:600,border:`1px solid ${wt.color}30`}}/>
                   </div>
                 </div>
-                <div style={{textAlign:"right",minWidth:70}}>
+                <div style={{textAlign:"right",minWidth:90}}>
                   <div style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1.3rem",color:rc}}>£{cost.toFixed(0)}</div>
                   <div style={{fontSize:"0.75rem",color:"#6b7280"}}>{step.minutes}m</div>
-                  {isAutoOpportunity&&<div style={{fontSize:"0.65rem",color:"#2d6a4f",fontWeight:600,marginTop:2}}>recoverable</div>}
-                  {isDelayRisk&&<div style={{fontSize:"0.65rem",color:"#c4942a",fontWeight:600,marginTop:2}}>delay cost</div>}
+                  {isAutoOpportunity&&<span style={{display:"inline-flex",alignItems:"center",gap:3,marginTop:6,fontSize:"0.65rem",fontWeight:700,padding:"3px 8px",borderRadius:100,background:"#d4ede2",color:"#1b4332"}}>⚡ Automation</span>}
+                  {isDelayRisk&&<span style={{display:"inline-flex",alignItems:"center",gap:3,marginTop:6,fontSize:"0.65rem",fontWeight:700,padding:"3px 8px",borderRadius:100,background:"#faf0d6",color:"#8a6a1e"}}>⏳ Delay risk</span>}
                 </div>
                 <button onClick={()=>removeStep(idx)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1.1rem",padding:"0 4px",alignSelf:"flex-start"}}>×</button>
               </div>
@@ -1195,7 +1191,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
         <div ref={headerSentinelRef} style={{height:1,marginBottom:-1}}/>
         <Card style={{marginBottom:20,padding:0,overflow:"clip",...anim(0.3)}}>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <thead style={{position:"sticky",top:64,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 2px 8px rgba(0,0,0,0.07), -1px 0 0 #e5e2dc, 1px 0 0 #e5e2dc":"none"}}>
+            <thead style={{position:"sticky",top:64,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 3px 10px rgba(0,0,0,0.08), -4px 0 0 #fff, 4px 0 0 #fff":"none"}}>
               <tr><th colSpan={6} style={{padding:"20px 24px 8px",fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,color:"#1a1f2e",textAlign:"left",borderBottom:"none",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",background:"#fff"}}>Full step breakdown</th></tr>
               <tr>{["Step","Owner","Time","Cost","Friction","Type"].map(h=><th key={h} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"8px 16px 12px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600,background:"#fff"}}>{h}</th>)}</tr>
             </thead>
