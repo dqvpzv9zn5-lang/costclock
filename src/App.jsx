@@ -1193,7 +1193,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
         })()}
 
         <div ref={headerSentinelRef} style={{height:1,marginBottom:-1}}/>
-        <Card style={{marginBottom:20,padding:0,...anim(0.3)}}>
+        <Card style={{marginBottom:20,padding:0,overflow:"clip",...anim(0.3)}}>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
             <thead style={{position:"sticky",top:64,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 2px 8px rgba(0,0,0,0.07), -1px 0 0 #e5e2dc, 1px 0 0 #e5e2dc":"none"}}>
               <tr><th colSpan={6} style={{padding:"20px 24px 8px",fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,color:"#1a1f2e",textAlign:"left",borderBottom:"none",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",background:"#fff"}}>Full step breakdown</th></tr>
@@ -1223,7 +1223,17 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
           </table>
         </Card>
 
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:16,marginBottom:20,...anim(0.4)}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:16,marginBottom:20,...anim(0.4)}}>
+          <Card style={{background:"#1a1f2e",border:"1px solid #2d3548"}}>
+            <div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"rgba(255,255,255,0.45)",marginBottom:8}}>Annual cost</div>
+            <div style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.8rem",fontWeight:700,color:"#fff"}}>£{annualCost>=10000?`${(annualCost/1000).toFixed(0)}k`:annualCost.toFixed(0)}</div>
+            <div style={{fontSize:"0.8rem",color:"rgba(255,255,255,0.4)",marginTop:4}}>{annualVolume}× per year</div>
+          </Card>
+          <Card style={{background:"#1b3a2e",border:"1px solid #2d6a4f"}}>
+            <div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"rgba(110,231,168,0.6)",marginBottom:8}}>Potential saving</div>
+            <div style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.8rem",fontWeight:700,color:"#6ee7a8"}}>£{potentialSaving>=10000?`${(potentialSaving/1000).toFixed(0)}k`:potentialSaving.toFixed(0)}</div>
+            <div style={{fontSize:"0.8rem",color:"rgba(110,231,168,0.5)",marginTop:4}}>per year with automation</div>
+          </Card>
           <Card style={{background:"#f5e0e3",border:"1px solid #e5c4c9"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#b84a5a",marginBottom:8}}>High-friction steps</div><div style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.8rem",fontWeight:700,color:"#b84a5a"}}>{highFriction.length}</div><div style={{fontSize:"0.8rem",color:"#8a4a57",marginTop:4}}>of {steps.length} steps</div></Card>
           <Card style={{background:"#faf0d6",border:"1px solid #e8dbb8"}}><div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#8a6a1e",marginBottom:8}}>Saving opportunities</div><div style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.8rem",fontWeight:700,color:"#8a6a1e"}}>{saveableSteps.length}</div><div style={{fontSize:"0.8rem",color:"#8a6a1e",marginTop:4}}>saving {saveableMins}m per run</div></Card>
           <Card style={{background:"#f5e0e3",border:"1px solid #e5c4c9"}}>
