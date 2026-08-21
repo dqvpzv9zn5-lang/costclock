@@ -1191,7 +1191,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
         <div ref={headerSentinelRef} style={{height:1,marginBottom:-1}}/>
         <Card style={{marginBottom:20,padding:0,overflow:"clip",...anim(0.3)}}>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <thead style={{position:"sticky",top:64,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 3px 10px rgba(0,0,0,0.08), -4px 0 0 #fff, 4px 0 0 #fff":"none"}}>
+            <thead style={{position:"sticky",top:64,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 3px 10px rgba(0,0,0,0.08), -4px 0 0 #fff, 4px 0 0 #fff":"-4px 0 0 #fff, 4px 0 0 #fff"}}>
               <tr><th colSpan={6} style={{padding:"20px 24px 8px",fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,color:"#1a1f2e",textAlign:"left",borderBottom:"none",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",background:"#fff"}}>Full step breakdown</th></tr>
               <tr>{[["Step",""],["Owner","col-owner"],["Time","col-time"],["Cost",""],["Friction","col-friction"],["Type","col-type"]].map(([h,cn])=><th key={h} className={cn} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"8px 16px 12px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600,background:"#fff"}}>{h}</th>)}</tr>
             </thead>
@@ -1214,7 +1214,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
                   <td className="col-time" style={{padding:"12px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{step.minutes}m</td>
                   <td style={{padding:"12px 16px",fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.9rem",color:role?getRoleColor(role,roles):"#2d6a4f"}}>£{cost.toFixed(0)}</td>
                   <td className="col-friction" style={{padding:"12px 16px"}}><FrictionBadge level={step.friction}/></td>
-                  <td className="col-type" style={{padding:"12px 16px"}}><span style={{fontSize:"0.72rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:wt.bg,color:wt.color}}>{wt.icon} {wt.short}</span></td>
+                  <td className="col-type" style={{padding:"12px 16px"}}><span style={{fontSize:"0.72rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:wt.bg,color:wt.color,whiteSpace:"nowrap",display:"inline-block"}}>{wt.icon} {wt.short}</span></td>
                 </tr>);})}</tbody>
           </table>
         </Card>
