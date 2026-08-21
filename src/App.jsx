@@ -1421,20 +1421,16 @@ export default function CostClock() {
 
         {screen!=="welcome"&&(
           <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.97)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc"}}>
-            {/* Row 1: logo (centred) + auth (right) */}
-            <div style={{position:"relative",height:48,display:"flex",alignItems:"center",justifyContent:"center"}}>
-              {/* Logo — absolutely centred */}
-              <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",padding:0,opacity:navMounted?1:0,transition:"opacity 0.4s ease",position:"absolute",left:"50%",transform:"translateX(-50%)"}}>
+            {/* Row 1: logo + auth */}
+            <div style={{maxWidth:1080,width:"100%",margin:"0 auto",padding:"0 20px",height:48,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",padding:0,opacity:navMounted?1:0,transition:"opacity 0.4s ease"}}>
                 <img src="/logo_costclock_svg.svg" alt="costclock by workthru" style={{height:28,width:"auto",display:"block"}}/>
               </button>
-              {/* Auth — pinned right */}
-              <div style={{position:"absolute",right:20}}>
-                {user?(
-                  <button onClick={authCtx.signOut} style={{fontSize:"0.78rem",color:"#6b7280",background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign out</button>
-                ):(
-                  <button onClick={()=>setShowAuth(true)} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign in</button>
-                )}
-              </div>
+              {user?(
+                <button onClick={authCtx.signOut} style={{fontSize:"0.78rem",color:"#6b7280",background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign out</button>
+              ):(
+                <button onClick={()=>setShowAuth(true)} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign in</button>
+              )}
             </div>
             {/* Row 2: nav tabs */}
             <div style={{borderTop:"1px solid #e5e2dc",display:"flex",maxWidth:1080,width:"100%",margin:"0 auto"}}>
