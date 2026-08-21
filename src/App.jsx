@@ -854,7 +854,7 @@ function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolum
   };
   const removeRole=(i)=>{if(roles.length>1)setRoles(roles.filter((_,j)=>j!==i));};
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px",position:"relative"}} className="page-pad">
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
       <Badge>Step 1 of 3</Badge>
       <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Set up your team and process</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:36,lineHeight:1.7}}>Define the roles in your team. Enter their annual salary and we'll calculate the true fully-loaded hourly cost.</p>
@@ -927,26 +927,24 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
   const totalCost=steps.reduce((s,st)=>{const r=roles.find(rl=>rl.id===st.roleId);return s+(r?(st.minutes/60)*r.rate:0);},0);
 
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px",position:"relative"}} className="page-pad">
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
       <Badge>Step {fromTemplate ? "1" : "2"} of {fromTemplate ? "2" : "3"}</Badge>
       <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Map the steps in "{processName}"</h2>
       <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:20,lineHeight:1.7}}>Walk through the process from start to finish. Estimates are fine.</p>
 
       {/* Collapsible roles & settings panel */}
       <Card style={{marginBottom:20,padding:0,overflow:"hidden"}}>
-        <button onClick={()=>setRolesOpen(!rolesOpen)} style={{width:"100%",display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <span style={{fontSize:"0.82rem",fontWeight:600,color:"#1a1f2e"}}>Team roles & rates</span>
-            <div style={{display:"flex",gap:6}}>
-              {roles.map(r=>{const rc=getRoleColor(r,roles);return(
-                <span key={r.id} style={{fontSize:"0.68rem",fontWeight:600,padding:"2px 8px",borderRadius:100,background:`${rc}15`,color:rc}}>
-                  {r.name.split(" ")[0]} £{Math.round(r.rate)}/hr
-                </span>
-              )})}
-            </div>
+        <button onClick={()=>setRolesOpen(!rolesOpen)} style={{width:"100%",display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"14px 20px",background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",gap:8}}>
+          <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:6,flex:1,minWidth:0}}>
+            <span style={{fontSize:"0.82rem",fontWeight:600,color:"#1a1f2e",whiteSpace:"nowrap"}}>Team roles & rates</span>
+            {roles.map(r=>{const rc=getRoleColor(r,roles);return(
+              <span key={r.id} style={{fontSize:"0.68rem",fontWeight:600,padding:"2px 8px",borderRadius:100,background:`${rc}15`,color:rc,whiteSpace:"nowrap"}}>
+                {r.name.split(" ")[0]} £{Math.round(r.rate)}/hr
+              </span>
+            )})}
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:"0.72rem",color:"#6b7280"}}>{annualVolume}×/year</span>
+          <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0,paddingTop:2}}>
+            <span style={{fontSize:"0.72rem",color:"#6b7280",whiteSpace:"nowrap"}}>{annualVolume}×/yr</span>
             <span style={{fontSize:"0.8rem",color:"#6b7280",transform:rolesOpen?"rotate(180deg)":"rotate(0)",transition:"transform 0.2s"}}>▾</span>
           </div>
         </button>
@@ -1019,10 +1017,10 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
             <div key={step.id} style={{background:cardBg,border:cardBorder,borderLeft:isAutoOpportunity?"4px solid #2d6a4f":isDelayRisk?"4px solid #c4942a":`4px solid ${rc}`,borderRadius:16,padding:"18px 22px",transition:"all 0.2s"}}>
               <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
                 {/* Step number + reorder arrows */}
-                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,minWidth:22,flexShrink:0,paddingTop:4}}>
-                  <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.85rem",color:"#6b7280"}}>{idx+1}</span>
-                  <button onClick={()=>moveStep(idx,-1)} disabled={idx===0} style={{background:"none",border:"none",cursor:idx===0?"default":"pointer",color:"#9ca3af",fontSize:"0.65rem",padding:"1px 0",lineHeight:1,opacity:idx===0?0.25:1}}>▲</button>
-                  <button onClick={()=>moveStep(idx,1)} disabled={idx===steps.length-1} style={{background:"none",border:"none",cursor:idx===steps.length-1?"default":"pointer",color:"#9ca3af",fontSize:"0.65rem",padding:"1px 0",lineHeight:1,opacity:idx===steps.length-1?0.25:1}}>▼</button>
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:0,minWidth:28,flexShrink:0,paddingTop:2}}>
+                  <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.85rem",color:"#6b7280",marginBottom:2}}>{idx+1}</span>
+                  <button onClick={()=>moveStep(idx,-1)} disabled={idx===0} style={{background:"none",border:"none",cursor:idx===0?"default":"pointer",color:"#9ca3af",fontSize:"1rem",padding:"6px 8px",lineHeight:1,opacity:idx===0?0.25:1,minWidth:32,minHeight:32,display:"flex",alignItems:"center",justifyContent:"center"}}>▲</button>
+                  <button onClick={()=>moveStep(idx,1)} disabled={idx===steps.length-1} style={{background:"none",border:"none",cursor:idx===steps.length-1?"default":"pointer",color:"#9ca3af",fontSize:"1rem",padding:"6px 8px",lineHeight:1,opacity:idx===steps.length-1?0.25:1,minWidth:32,minHeight:32,display:"flex",alignItems:"center",justifyContent:"center"}}>▼</button>
                 </div>
                 {/* Main content */}
                 <div style={{flex:1,minWidth:0}}>
@@ -1032,8 +1030,6 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
                     <div style={{textAlign:"right",flexShrink:0}}>
                       <div style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1.2rem",color:rc}}>£{cost.toFixed(0)}</div>
                       <div style={{fontSize:"0.72rem",color:"#6b7280"}}>{step.minutes}m</div>
-                      {isAutoOpportunity&&<span style={{display:"inline-flex",alignItems:"center",gap:3,marginTop:4,fontSize:"0.62rem",fontWeight:700,padding:"2px 7px",borderRadius:100,background:"#d4ede2",color:"#1b4332",whiteSpace:"nowrap"}}>⚡ Auto</span>}
-                      {isDelayRisk&&<span style={{display:"inline-flex",alignItems:"center",gap:3,marginTop:4,fontSize:"0.62rem",fontWeight:700,padding:"2px 7px",borderRadius:100,background:"#faf0d6",color:"#8a6a1e",whiteSpace:"nowrap"}}>⏳ Delay</span>}
                     </div>
                     <button onClick={()=>removeStep(idx)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1.1rem",padding:"0 2px",flexShrink:0,marginTop:2}}>×</button>
                   </div>
@@ -1043,6 +1039,8 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
                     <NumberInput value={step.minutes} onChange={v=>updateStep(idx,"minutes",v)} suffix="min" min={1}/>
                     <Select value={step.friction} onChange={v=>updateStep(idx,"friction",v)} options={FRICTION_LEVELS.map(f=>({value:f.value,label:`${f.label} friction`}))} style={{width:160}}/>
                     <Select value={step.workType||"manual"} onChange={v=>updateStep(idx,"workType",v)} options={WORK_TYPES.map(w=>({value:w.value,label:`${w.icon} ${w.short}`}))} style={{width:128,background:wt.bg,color:wt.color,fontWeight:600,border:`1px solid ${wt.color}30`}}/>
+                    {isAutoOpportunity&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.78rem",fontWeight:700,padding:"4px 10px",borderRadius:100,background:"#d4ede2",color:"#1b4332",whiteSpace:"nowrap"}}>⚡ Automation opportunity</span>}
+                    {isDelayRisk&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.78rem",fontWeight:700,padding:"4px 10px",borderRadius:100,background:"#faf0d6",color:"#8a6a1e",whiteSpace:"nowrap"}}>⏳ Delay risk</span>}
                   </div>
                 </div>
               </div>
@@ -1091,7 +1089,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
   const anim=(d)=>({opacity:revealed?1:0,transform:revealed?"translateY(0)":"translateY(20px)",transition:`all 0.6s ease ${d}s`});
 
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px"}} className="page-pad">
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"108px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
       {showAuth && <AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={(user)=>{setShowAuth(false);onSave();}} />}
 
       {isDeepLink&&(
