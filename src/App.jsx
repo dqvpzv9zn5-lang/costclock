@@ -913,7 +913,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
   useEffect(()=>{
     const el = sentinelRef.current;
     if(!el) return;
-    const obs = new IntersectionObserver(([entry])=>setIsBarStuck(!entry.isIntersecting),{threshold:0,rootMargin:"0px 0px 0px 0px"});
+    const obs = new IntersectionObserver(([entry])=>setIsBarStuck(!entry.isIntersecting),{threshold:0,rootMargin:"-100px 0px 0px 0px"});
     obs.observe(el);
     return ()=>obs.disconnect();
   },[]);
