@@ -1124,9 +1124,9 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
             {label:"Client-facing delay",value:`${minDays}–${maxDays} days`,sub:"per process run",bg:"rgba(184,74,90,0.2)",color:"#f5a0aa"},
           ];
           return(
-            <div style={{display:"flex",gap:1,background:"rgba(255,255,255,0.1)",borderRadius:12,overflow:"hidden",maxWidth:680,margin:"0 auto",overflowX:"auto"}}>
+            <div style={{display:"flex",gap:1,background:"rgba(255,255,255,0.1)",borderRadius:12,overflow:"hidden",maxWidth:680,margin:"0 auto"}}>
               {panels.map((item,i)=>(
-                <div key={i} style={{flex:"0 0 160px",padding:"16px 14px",background:item.bg}}>
+                <div key={i} style={{flex:"1 1 0",minWidth:120,padding:"16px 14px",background:item.bg}}>
                   <div style={{fontSize:"0.7rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"rgba(255,255,255,0.5)",marginBottom:8}}>{item.label}</div>
                   <div style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.4rem",fontWeight:700,color:item.color}}>{item.value}</div>
                   <div style={{fontSize:"0.75rem",color:"rgba(255,255,255,0.4)",marginTop:4}}>{item.sub}</div>
