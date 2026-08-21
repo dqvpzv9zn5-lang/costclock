@@ -738,15 +738,15 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
       <div style={{ maxWidth:1080, margin:"0 auto", padding:"48px 40px 60px", position:"relative" }}>
 
         {auth.user && savedProcesses.length > 0 && (
-          <div style={{ marginBottom:36 }}>
-            <h3 style={{ fontFamily:"'Outfit',sans-serif", fontSize:"1rem", fontWeight:700, marginBottom:10 }}>
+          <div style={{ marginBottom:48, background:"#d4ede2", borderRadius:20, padding:"24px 28px", border:"1px solid #a8dcc0" }}>
+            <h3 style={{ fontFamily:"'Outfit',sans-serif", fontSize:"1rem", fontWeight:700, marginBottom:14, color:"#1b4332" }}>
               Your saved processes
             </h3>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {savedProcesses.map((p,idx) => {
                 const { totalCost, annualCost } = calcCosts(p.roles||DEFAULT_ROLES, p.steps, p.annual_volume||p.annualVolume);
                 return (
-                  <Card key={p.id||idx} hover onClick={()=>onLoadSaved(idx)} style={{padding:"14px 20px",cursor:"pointer"}}>
+                  <Card key={p.id||idx} hover onClick={()=>onLoadSaved(idx)} style={{padding:"14px 20px",cursor:"pointer",background:"#ffffff",border:"1px solid #a8dcc0"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
                       <div>
                         <div style={{fontWeight:600,fontSize:"0.92rem"}}>{p.name||p.processName}</div>
