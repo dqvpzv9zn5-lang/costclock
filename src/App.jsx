@@ -1423,7 +1423,7 @@ export default function CostClock() {
           <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.97)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc"}}>
             {/* Row 1: logo + auth */}
             <div style={{maxWidth:1080,width:"100%",margin:"0 auto",padding:"0 20px",height:48,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",padding:0,opacity:navMounted?1:0,transition:"opacity 0.4s ease",marginLeft:20,marginTop:2}}>
+              <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",padding:0,opacity:navMounted?1:0,transition:"opacity 0.4s ease",marginLeft:20,marginTop:5}}>
                 <img src="/logo_costclock_svg.svg" alt="costclock by workthru" style={{height:28,width:"auto",display:"block"}}/>
               </button>
               {user?(
