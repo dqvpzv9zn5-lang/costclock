@@ -1193,7 +1193,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
           <table style={{width:"100%",borderCollapse:"collapse"}}>
             <thead style={{position:"sticky",top:64,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 3px 10px rgba(0,0,0,0.08), -4px 0 0 #fff, 4px 0 0 #fff":"none"}}>
               <tr><th colSpan={6} style={{padding:"20px 24px 8px",fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,color:"#1a1f2e",textAlign:"left",borderBottom:"none",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",background:"#fff"}}>Full step breakdown</th></tr>
-              <tr>{["Step","Owner","Time","Cost","Friction","Type"].map(h=><th key={h} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"8px 16px 12px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600,background:"#fff"}}>{h}</th>)}</tr>
+              <tr>{[["Step",""],["Owner","col-owner"],["Time","col-time"],["Cost",""],["Friction","col-friction"],["Type","col-type"]].map(([h,cn])=><th key={h} className={cn} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"8px 16px 12px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600,background:"#fff"}}>{h}</th>)}</tr>
             </thead>
             <tbody>{steps.map(step=>{
                 const role=roles.find(r=>r.id===step.roleId);
@@ -1210,11 +1210,11 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
                     {isAuto&&<div style={{marginTop:4}}><span style={{fontSize:"0.62rem",fontWeight:700,padding:"2px 7px",borderRadius:100,background:"#d4ede2",color:"#1b4332"}}>⚡ Automation</span></div>}
                     {isDelay&&<div style={{marginTop:4}}><span style={{fontSize:"0.62rem",fontWeight:700,padding:"2px 7px",borderRadius:100,background:"#faf0d6",color:"#8a6a1e"}}>⏳ Delay risk</span></div>}
                   </td>
-                  <td style={{padding:"12px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{role?.name||"—"}</td>
-                  <td style={{padding:"12px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{step.minutes}m</td>
+                  <td className="col-owner" style={{padding:"12px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{role?.name||"—"}</td>
+                  <td className="col-time" style={{padding:"12px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{step.minutes}m</td>
                   <td style={{padding:"12px 16px",fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.9rem",color:role?getRoleColor(role,roles):"#2d6a4f"}}>£{cost.toFixed(0)}</td>
-                  <td style={{padding:"12px 16px"}}><FrictionBadge level={step.friction}/></td>
-                  <td style={{padding:"12px 16px"}}><span style={{fontSize:"0.72rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:wt.bg,color:wt.color}}>{wt.icon} {wt.short}</span></td>
+                  <td className="col-friction" style={{padding:"12px 16px"}}><FrictionBadge level={step.friction}/></td>
+                  <td className="col-type" style={{padding:"12px 16px"}}><span style={{fontSize:"0.72rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:wt.bg,color:wt.color}}>{wt.icon} {wt.short}</span></td>
                 </tr>);})}</tbody>
           </table>
         </Card>

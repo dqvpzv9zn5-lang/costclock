@@ -33,6 +33,17 @@
       .badge-short { display: inline; }
       .template-grid { grid-template-columns: 1fr !important; }
     }
+    /* Results table: progressive column hiding on narrow screens */
+    @media (max-width: 680px) {
+      .col-friction { display: none; }
+    }
+    @media (max-width: 520px) {
+      .col-type { display: none; }
+    }
+    @media (max-width: 400px) {
+      .col-time { display: none; }
+      .col-owner { display: none; }
+    }
   </style>
 </head>
 <body>
