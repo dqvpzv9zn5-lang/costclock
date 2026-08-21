@@ -913,6 +913,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
   const addStep=()=>setSteps([...steps,{id:Date.now(),name:"",roleId:roles[0]?.id||"",minutes:15,friction:"low",workType:"manual"}]);
   const updateStep=(i,f,v)=>{const u=[...steps];u[i]={...u[i],[f]:v};setSteps(u);};
   const removeStep=(i)=>setSteps(steps.filter((_,j)=>j!==i));
+  const moveStep=(i,dir)=>{const u=[...steps];const to=i+dir;if(to<0||to>=u.length)return;[u[i],u[to]]=[u[to],u[i]];setSteps(u);};
   const addRole=()=>{setRoles([...roles,{id:`r-${Date.now()}`,name:"New Role",salary:35000,rate:salaryToRate(35000)}]);};
   const updateRole=(i,f,v)=>{
     const u=[...roles];
@@ -1018,7 +1019,11 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolu
           return(
             <div key={step.id} style={{background:cardBg,border:cardBorder,borderLeft:isAutoOpportunity?"4px solid #2d6a4f":isDelayRisk?"4px solid #c4942a":`4px solid ${rc}`,borderRadius:16,padding:"18px 22px",transition:"all 0.2s"}}>
               <div style={{display:"flex",gap:12,alignItems:"flex-start",flexWrap:"wrap"}}>
-                <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.9rem",color:"#6b7280",minWidth:24}}>{idx+1}</span>
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,minWidth:24}}>
+                  <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.9rem",color:"#6b7280"}}>{idx+1}</span>
+                  <button onClick={()=>moveStep(idx,-1)} disabled={idx===0} style={{background:"none",border:"none",cursor:idx===0?"default":"pointer",color:idx===0?"#d1d5db":"#9ca3af",fontSize:"0.7rem",padding:"1px 0",lineHeight:1,opacity:idx===0?0.3:1}}>▲</button>
+                  <button onClick={()=>moveStep(idx,1)} disabled={idx===steps.length-1} style={{background:"none",border:"none",cursor:idx===steps.length-1?"default":"pointer",color:idx===steps.length-1?"#d1d5db":"#9ca3af",fontSize:"0.7rem",padding:"1px 0",lineHeight:1,opacity:idx===steps.length-1?0.3:1}}>▼</button>
+                </div>
                 <div style={{flex:1,minWidth:200}}>
                   <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
                     <input type="text" value={step.name} onChange={e=>updateStep(idx,"name",e.target.value)} placeholder="What happens at this step?" style={{flex:1,padding:"6px 0",border:"none",borderBottom:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",background:"transparent"}}/>
