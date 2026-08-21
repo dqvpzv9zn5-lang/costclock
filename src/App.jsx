@@ -729,6 +729,59 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
         </div>
       </div>
 
+      {/* SAVED PROCESSES PANEL — flush under hero, square top edge */}
+      {auth.user && savedProcesses.length > 0 && (
+        <div style={{ background:"#d4ede2", borderBottom:"1px solid #a8dcc0" }}>
+          <div style={{ maxWidth:1080, margin:"0 auto", padding:"32px 40px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:40, alignItems:"start" }}>
+            {/* Left: saved journeys */}
+            <div>
+              <h3 style={{ fontFamily:"'Outfit',sans-serif", fontSize:"1rem", fontWeight:700, marginBottom:14, color:"#1b4332" }}>
+                Your saved processes
+              </h3>
+              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                {savedProcesses.map((p,idx) => {
+                  const { totalCost, annualCost } = calcCosts(p.roles||DEFAULT_ROLES, p.steps, p.annual_volume||p.annualVolume);
+                  return (
+                    <Card key={p.id||idx} hover onClick={()=>onLoadSaved(idx)} style={{padding:"14px 20px",cursor:"pointer",background:"#ffffff",border:"1px solid #a8dcc0"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+                        <div>
+                          <div style={{fontWeight:600,fontSize:"0.92rem"}}>{p.name||p.processName}</div>
+                          <div style={{fontSize:"0.75rem",color:"#6b7280",marginTop:2}}>
+                            {(p.steps||[]).length} steps · {p.annual_volume||p.annualVolume}×/year · £{annualCost.toLocaleString("en-GB",{maximumFractionDigits:0})}/year
+                          </div>
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:16}}>
+                          <div style={{textAlign:"right"}}>
+                            <div style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,color:"#2d6a4f",fontSize:"1.05rem"}}>£{totalCost.toFixed(0)}</div>
+                            <div style={{fontSize:"0.7rem",color:"#6b7280"}}>per run</div>
+                          </div>
+                          <button onClick={e=>{e.stopPropagation();onDeleteSaved(idx);}}
+                            style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1rem",padding:4}}>×</button>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+            {/* Right: CTA */}
+            <div style={{ display:"flex", flexDirection:"column", justifyContent:"center", padding:"8px 0 8px 32px", borderLeft:"1px solid #a8dcc0" }}>
+              <div style={{ fontSize:"1.3rem", marginBottom:10 }}>📞</div>
+              <h3 style={{ fontFamily:"'Outfit',sans-serif", fontSize:"1.1rem", fontWeight:700, color:"#1b4332", marginBottom:10, lineHeight:1.3 }}>
+                Ready to act on what you've found?
+              </h3>
+              <p style={{ fontSize:"0.88rem", color:"#2d6a4f", lineHeight:1.6, marginBottom:20 }}>
+                You've mapped the cost. Now let's build the plan. Book a free 15-minute call to talk through your biggest opportunities and what automation could realistically save your firm.
+              </p>
+              <a href="https://cal.com/workthru/15min?overlayCalendar=true&source=costclock-saved" target="_blank" rel="noopener noreferrer"
+                style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"12px 22px", borderRadius:10, background:"#2d6a4f", color:"#ffffff", fontFamily:"'DM Sans',sans-serif", fontWeight:600, fontSize:"0.9rem", textDecoration:"none", alignSelf:"flex-start" }}>
+                Book a free discovery call →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* TEMPLATE CARDS */}
       <div style={{ position:"relative" }}>
         <div style={{ position:"absolute", inset:0,
@@ -736,39 +789,8 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
           pointerEvents:"none",
         }} />
       <div style={{ maxWidth:1080, margin:"0 auto", padding:"48px 40px 60px", position:"relative" }}>
-
-        {auth.user && savedProcesses.length > 0 && (
-          <div style={{ marginBottom:48, background:"#d4ede2", borderRadius:20, padding:"24px 28px", border:"1px solid #a8dcc0" }}>
-            <h3 style={{ fontFamily:"'Outfit',sans-serif", fontSize:"1rem", fontWeight:700, marginBottom:14, color:"#1b4332" }}>
-              Your saved processes
-            </h3>
-            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-              {savedProcesses.map((p,idx) => {
-                const { totalCost, annualCost } = calcCosts(p.roles||DEFAULT_ROLES, p.steps, p.annual_volume||p.annualVolume);
-                return (
-                  <Card key={p.id||idx} hover onClick={()=>onLoadSaved(idx)} style={{padding:"14px 20px",cursor:"pointer",background:"#ffffff",border:"1px solid #a8dcc0"}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
-                      <div>
-                        <div style={{fontWeight:600,fontSize:"0.92rem"}}>{p.name||p.processName}</div>
-                        <div style={{fontSize:"0.75rem",color:"#6b7280",marginTop:2}}>
-                          {(p.steps||[]).length} steps · {p.annual_volume||p.annualVolume}×/year · £{annualCost.toLocaleString("en-GB",{maximumFractionDigits:0})}/year
-                        </div>
-                      </div>
-                      <div style={{display:"flex",alignItems:"center",gap:16}}>
-                        <div style={{textAlign:"right"}}>
-                          <div style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,color:"#2d6a4f",fontSize:"1.05rem"}}>£{totalCost.toFixed(0)}</div>
-                          <div style={{fontSize:"0.7rem",color:"#6b7280"}}>per run</div>
-                        </div>
-                        <button onClick={e=>{e.stopPropagation();onDeleteSaved(idx);}}
-                          style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1rem",padding:4}}>×</button>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* (saved processes now shown above, outside this section) */}
+        {false && null}
 
         <div style={cardsStyle(0)}>
           <h3 style={{ fontFamily:"'Outfit',sans-serif", fontSize:"1rem", fontWeight:700, marginBottom:6 }}>
