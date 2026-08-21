@@ -732,7 +732,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
       {/* SAVED PROCESSES PANEL — flush under hero, square top edge */}
       {auth.user && savedProcesses.length > 0 && (
         <div style={{ background:"#d4ede2", borderBottom:"1px solid #a8dcc0" }}>
-          <div style={{ maxWidth:1080, margin:"0 auto", padding:"32px 40px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:40, alignItems:"start" }}>
+          <div style={{ maxWidth:1080, margin:"0 auto", padding:"32px 40px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:60, alignItems:"start" }}>
             {/* Left: saved journeys */}
             <div>
               <h3 style={{ fontFamily:"'Outfit',sans-serif", fontSize:"1rem", fontWeight:700, marginBottom:14, color:"#1b4332" }}>
