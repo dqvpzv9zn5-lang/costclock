@@ -1257,6 +1257,10 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
         display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ maxWidth: 1080, width: "100%", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Button onClick={onBack}>← {fromTemplate ? "Templates" : "Back"}</Button>
+          <span style={{ fontSize: "0.72rem", color: "#9ca3af", fontFamily: "'DM Sans',sans-serif", textAlign: "center" }}>
+            <a href="https://www.workthru.co.uk" target="_blank" rel="noopener noreferrer" style={{ color: "#2d6a4f", textDecoration: "none", fontWeight: 600 }}>workthru.co.uk</a>
+            {" · "}Operational audits & workflow automation for SMEs
+          </span>
           <Button primary onClick={onNext} disabled={steps.filter(s => s.name.trim()).length === 0}>See the results →</Button>
         </div>
       </div>
@@ -1636,11 +1640,14 @@ export default function CostClock() {
               <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",padding:0,opacity:navMounted?1:0,transition:"opacity 0.4s ease",marginTop:5}}>
                 <img src="/logo_costclock_svg.svg" alt="costclock by workthru" style={{height:28,width:"auto",display:"block"}}/>
               </button>
-              {user?(
-                <button onClick={authCtx.signOut} style={{fontSize:"0.78rem",color:"#6b7280",background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign out</button>
-              ):(
-                <button onClick={()=>setShowAuth(true)} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign in</button>
-              )}
+              <div style={{display:"flex",alignItems:"center",gap:12}}>
+                {user&&<span style={{fontSize:"0.72rem",color:"#9ca3af",fontFamily:"'DM Sans',sans-serif"}}>{user.email}</span>}
+                {user?(
+                  <button onClick={authCtx.signOut} style={{fontSize:"0.78rem",color:"#6b7280",background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign out</button>
+                ):(
+                  <button onClick={()=>setShowAuth(true)} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign in</button>
+                )}
+              </div>
             </div>
           </nav>
         )}
@@ -1651,11 +1658,6 @@ export default function CostClock() {
           {screen==="results"&&<ResultsScreen roles={roles} steps={steps} processName={processName} annualVolume={annualVolume} templateUsed={templateUsed} onBack={()=>setScreen("build")} onReset={reset} onSave={handleSave} isSaved={savedIdx!==null} isDeepLink={isDeepLink}/>}
         </div>
 
-        <footer style={{padding:"30px 24px",textAlign:"center",fontSize:"0.78rem",color:"#6b7280",borderTop:"1px solid #e5e2dc"}}>
-          <a href="https://www.workthru.co.uk" target="_blank" rel="noopener noreferrer" style={{color:"#2d6a4f",textDecoration:"none",fontWeight:600}}>workthru.co.uk</a>
-          <span style={{margin:"0 8px"}}>·</span>Operational audits & workflow automation for SMEs
-          {user&&<span style={{marginLeft:16,color:"#6b7280"}}>Signed in as {user.email}</span>}
-        </footer>
       </div>
     </AuthContext.Provider>
   );
