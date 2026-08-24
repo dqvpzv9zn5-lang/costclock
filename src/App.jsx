@@ -1078,8 +1078,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
         <div className="panel-row" style={{ marginBottom: 20 }}>
 
           {/* Panel 1 — Team roles & rates */}
-          <Card className={rolesOpen ? "roles-card-open" : ""}
-            style={{ flex: 1, minWidth: 0, padding: 0, overflow: rolesOpen ? "visible" : "hidden" }}>
+          <Card style={{ flex: 1, minWidth: 0, padding: 0, overflow: "hidden" }}>
             <button onClick={() => setRolesOpen(!rolesOpen)}
               style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px",
                 background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", gap: 8 }}>
@@ -1176,7 +1175,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
           style={{ display: "flex", gap: 12, overflowX: "auto", scrollSnapType: "x proximity",
             paddingBottom: 12,
             msOverflowStyle: "none", scrollbarWidth: "none" }}
-          className="step-scroll-row card-scroll-row">
+          className="step-scroll-row">
           {steps.map((step, idx) => {
             const role = roles.find(r => r.id === step.roleId);
             const rc = role ? getRoleColor(role, roles) : "#e5e2dc";

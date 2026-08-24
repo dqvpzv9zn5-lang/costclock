@@ -117,31 +117,10 @@
     .build-hero-sticky {
       top: calc(48px + env(safe-area-inset-top, 0px));
     }
-    /* ── Scroll rows: edge-to-edge on mobile ──
-       On mobile the content div has 16px horizontal padding. Negative margins pull
-       the scroll rows flush to the viewport edges so cards snap to the true left
-       edge of the screen. The paddingRight: 40 hack (which caused page-level
-       overflow) is replaced with a trailing spacer div inside each row.
-       Not applied on desktop — the current inset framing is correct there. */
-    @media (max-width: 600px) {
-      .card-scroll-row { margin-left: -16px; margin-right: -16px; }
-    }
-
     /* ── Roles card: full-width when expanded ──
-       On mobile, extend to screen edges (negative margins + no border-radius).
-       On desktop, the freq card hides (display:none via React) and flex handles
-       the width — no extra CSS needed there. */
-    @media (max-width: 600px) {
-      .roles-card-open {
-        margin-left: -16px !important;
-        margin-right: -16px !important;
-        border-radius: 0 !important;
-        border-left: none !important;
-        border-right: none !important;
-      }
-      /* Expand area: no horizontal padding on mobile so scroll row reaches card edge */
-      .roles-expand-inner { padding-left: 0 !important; padding-right: 0 !important; }
-    }
+       Freq card hides via React (display:none) so roles card fills the full
+       panel-row width via flex:1 — left edge stays aligned with content,
+       right edge covers where the freq panel was. No extra CSS needed. */
 
     /* ── iOS zoom prevention (mobile only) ──
        iOS Safari zooms in on focus when input font-size < 16px.
