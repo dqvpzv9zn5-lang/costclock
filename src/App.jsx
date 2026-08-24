@@ -774,9 +774,9 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
                   const { totalCost, annualCost, potentialSaving } = calcCosts(p.roles||DEFAULT_ROLES, p.steps, p.annual_volume||p.annualVolume);
                   return (
                     <Card key={p.id||idx} hover onClick={()=>onLoadSaved(idx)} style={{padding:"14px 20px",cursor:"pointer",background:"#ffffff",border:"1px solid #a8dcc0"}}>
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
-                        <div>
-                          <div style={{fontWeight:600,fontSize:"0.92rem"}}>{p.name||p.processName}</div>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"nowrap",gap:12}}>
+                        <div style={{minWidth:0,flex:1}}>
+                          <div style={{fontWeight:600,fontSize:"0.92rem",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name||p.processName}</div>
                           <div style={{fontSize:"0.75rem",color:"#6b7280",marginTop:2}}>
                             {(p.steps||[]).length} steps · {p.annual_volume||p.annualVolume}×/year · £{annualCost.toLocaleString("en-GB",{maximumFractionDigits:0})}/year
                           </div>
