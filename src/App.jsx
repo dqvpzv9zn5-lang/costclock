@@ -976,10 +976,10 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
   const wtBorderColor = (wt) => wt === "decision" ? "#b3413a" : wt === "waiting" ? "#b8862e" : "#2d6a4f";
 
   return (
-    <div style={{ position: "relative", zIndex: 1, paddingTop: 48 }}>
+    <div className="build-outer" style={{ position: "relative", zIndex: 1 }}>
 
       {/* ── Dark pinned hero panel ── */}
-      <div style={{ position: "sticky", top: 48, zIndex: 50 }}>
+      <div className="build-hero-sticky" style={{ position: "sticky", top: 48, zIndex: 50 }}>
         <div style={{ background: "#1a1f2e", backgroundImage: "url(/topography-dark.svg)", backgroundSize: "600px 600px",
           padding: "20px 0 0", color: "#fff" }}>
           <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
@@ -1049,7 +1049,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
         </div>
       </div>
 
-      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "20px 20px 140px", position: "relative", zIndex: 1 }} className="page-pad">
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "20px 20px 140px", position: "relative", zIndex: 1 }} className="page-pad build-content-pad">
 
         {/* ── Two-panel row: Team roles | Frequency ── */}
         <div className="panel-row" style={{ marginBottom: 20 }}>
@@ -1253,7 +1253,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
       </div>
 
       {/* ── Sticky bottom action bar ── */}
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 60,
+      <div className="bottom-action-bar" style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 60,
         background: "rgba(250,249,247,0.97)", backdropFilter: "blur(12px)",
         borderTop: "1px solid #e5e2dc", padding: "12px 20px",
         display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1636,7 +1636,7 @@ export default function CostClock() {
         {showAuth&&<AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={handleAuth}/>}
 
         {screen!=="welcome"&&(
-          <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.97)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc"}}>
+          <nav className="app-nav" style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.97)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc"}}>
             {/* Row 1: logo + auth */}
             <div style={{maxWidth:1080,width:"100%",margin:"0 auto",padding:"0 20px",height:48,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",padding:0,opacity:navMounted?1:0,transition:"opacity 0.4s ease",marginTop:5}}>

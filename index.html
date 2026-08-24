@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>CostClock — Free Process Cost Calculator | Workthru</title>
   <meta name="description" content="Map any business process step by step and see the true fully-loaded cost. Free process cost calculator for accounting firms, legal practices, and SMEs. By Workthru.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -96,6 +96,27 @@
     .panel-row { display: flex; gap: 12px; align-items: flex-start; }
     @media (max-width: 600px) {
       .panel-row { flex-direction: column; }
+    }
+    /* Safe-area / bottom-bar clearance on mobile.
+       The fixed action bar is ~56px; add extra for iOS home indicator. */
+    .build-content-pad {
+      padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+    /* Fixed bottom bar: respect iOS home indicator */
+    .bottom-action-bar {
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+    /* Fixed nav: add top safe area (notch/Dynamic Island) */
+    .app-nav {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+    /* BuildScreen outer: clear fixed nav including safe area */
+    .build-outer {
+      padding-top: calc(48px + env(safe-area-inset-top, 0px));
+    }
+    /* Sticky hero: sits flush under fixed nav */
+    .build-hero-sticky {
+      top: calc(48px + env(safe-area-inset-top, 0px));
     }
     /* Results table: progressive column hiding on narrow screens */
     @media (max-width: 760px) {
