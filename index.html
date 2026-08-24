@@ -117,6 +117,21 @@
     .build-hero-sticky {
       top: calc(48px + env(safe-area-inset-top, 0px));
     }
+    /* ── Scroll rows: full-bleed with inset snap on mobile ──
+       Negative margins extend the scroll container to the viewport edges so
+       cards scroll into the visible screen gutter. padding-left + scroll-padding-left
+       set the snap position at the content inset (16px), so the leftmost card
+       aligns with the Team roles panel and other content above/below.
+       Cards bleed to the right screen edge; snap aligns to content column. */
+    @media (max-width: 600px) {
+      .card-scroll-row {
+        margin-left: -16px;
+        margin-right: -16px;
+        padding-left: 16px;
+        scroll-padding-left: 16px;
+      }
+    }
+
     /* ── Roles card: full-width when expanded ──
        Freq card hides via React (display:none) so roles card fills the full
        panel-row width via flex:1 — left edge stays aligned with content,

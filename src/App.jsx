@@ -1175,7 +1175,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
           style={{ display: "flex", gap: 12, overflowX: "auto", scrollSnapType: "x proximity",
             paddingBottom: 12,
             msOverflowStyle: "none", scrollbarWidth: "none" }}
-          className="step-scroll-row">
+          className="step-scroll-row card-scroll-row">
           {steps.map((step, idx) => {
             const role = roles.find(r => r.id === step.roleId);
             const rc = role ? getRoleColor(role, roles) : "#e5e2dc";
