@@ -763,7 +763,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
         <div style={{ background:"#d4ede2", borderBottom:"1px solid #a8dcc0",
           opacity: transitioning ? 0 : mounted ? 1 : 0,
           transition: transitioning ? "opacity 0.3s ease" : "opacity 0.5s ease 0.1s" }}>
-          <div style={{ maxWidth:1080, margin:"0 auto", padding:"32px 40px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:60, alignItems:"start" }}>
+          <div style={{ maxWidth:1080, margin:"0 auto", padding:"32px 24px", display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:32, alignItems:"start" }}>
             {/* Left: saved journeys */}
             <div>
               <h3 style={{ fontFamily:"'Outfit',sans-serif", fontSize:"1rem", fontWeight:700, marginBottom:14, color:"#1b4332" }}>
@@ -796,7 +796,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
               </div>
             </div>
             {/* Right: CTA */}
-            <div style={{ display:"flex", flexDirection:"column", justifyContent:"center", padding:"8px 0 8px 32px", borderLeft:"1px solid #a8dcc0" }}>
+            <div style={{ display:"flex", flexDirection:"column", justifyContent:"center", padding:"8px 0" }}>
               <div style={{ fontSize:"1.3rem", marginBottom:10 }}>📞</div>
               <h3 style={{ fontFamily:"'Outfit',sans-serif", fontSize:"1.1rem", fontWeight:700, color:"#1b4332", marginBottom:10, lineHeight:1.3 }}>
                 Ready to act on what you've found?
@@ -1022,7 +1022,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
             </div>
           </div>
           {/* Stat chips row */}
-          <div style={{ maxWidth: 1080, margin: "0 auto", padding: "12px 20px 0", overflowX: "auto", display: "flex", gap: 8, flexWrap: "nowrap", paddingBottom: 16 }}>
+          <div style={{ maxWidth: 1080, margin: "0 auto", padding: "12px 20px 0", display: "flex", gap: 8, flexWrap: "wrap", paddingBottom: 16 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(255,255,255,0.08)", flexShrink: 0 }}>
               <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>Cost/run</span>
               <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#fff", whiteSpace: "nowrap" }}>£{totalCost.toFixed(0)}</span>
@@ -1071,7 +1071,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
             <button onClick={() => setRolesOpen(!rolesOpen)}
               style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px",
                 background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", gap: 8 }}>
-              <div style={{ display: "flex", flexWrap: "nowrap", alignItems: "center", gap: 6, flex: 1, minWidth: 0, overflow: "hidden" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
                 <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#1a1f2e", whiteSpace: "nowrap" }}>Team roles & rates</span>
                 {roles.map(r => { const rc = getRoleColor(r, roles); return (
                   <span key={r.id} style={{ fontSize: "0.68rem", fontWeight: 600, padding: "2px 8px", borderRadius: 100, background: `${rc}15`, color: rc, whiteSpace: "nowrap", flexShrink: 0 }}>
