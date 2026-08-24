@@ -39,6 +39,54 @@
     }
     /* Hide scrollbar on horizontal step row */
     .step-scroll-row::-webkit-scrollbar { display: none; }
+    /* Editable field affordance — hover/focus reveals input styling */
+    .editable-field {
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      transition: background 0.15s ease, border-color 0.15s ease, padding 0.15s ease;
+      padding: 2px 4px;
+      margin: -2px -4px;
+      outline: none;
+    }
+    .editable-field:hover, .editable-field:focus {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.25);
+      padding: 2px 4px;
+    }
+    /* On dark backgrounds (hero panel) — same as above, already white-tinted */
+    /* On light backgrounds (role cards) — use a light-mode tint */
+    .editable-field-light {
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      padding: 2px 4px;
+      margin: -2px -4px;
+      outline: none;
+    }
+    .editable-field-light:hover, .editable-field-light:focus {
+      background: rgba(0,0,0,0.05);
+      border-color: #d1d5db;
+    }
+    /* Touch devices: always show a faint affordance (no hover state) */
+    @media (hover: none) {
+      .editable-field {
+        background: rgba(255,255,255,0.07);
+        border-color: rgba(255,255,255,0.15);
+        padding: 2px 4px;
+      }
+      .editable-field-light {
+        background: rgba(0,0,0,0.04);
+        border-color: #e5e2dc;
+        padding: 2px 4px;
+      }
+    }
+    /* Two-panel row: stack vertically on narrow screens */
+    .panel-row { display: flex; gap: 12px; align-items: flex-start; }
+    @media (max-width: 600px) {
+      .panel-row { flex-direction: column; }
+    }
     /* Results table: progressive column hiding on narrow screens */
     @media (max-width: 760px) {
       .col-friction { display: none; }

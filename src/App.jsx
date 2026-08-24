@@ -55,6 +55,29 @@ function getRoleColor(role, allRoles) {
   }
 }
 
+// ── Saving / time-recovery rates ─────────────────────────────────────────────
+// These are starting estimates — adjust once you've seen the effect on a few
+// real processes beyond Client Onboarding.
+//
+// MANUAL_SAVING_RATE: fraction of a manual step's labour cost recoverable via
+//   automation. 0.70 = 70% — accounts for setup, edge-cases, oversight still needed.
+//
+// WAITING_SAVING_RATE: fraction of a waiting step's labour cost recoverable.
+//   Much lower than manual because most of a "30 min chasing" step is elapsed
+//   calendar time, not continuous staff attention — the real cost saving is small.
+//
+// DELAY_REDUCTION_RATE: fraction of calendar-day delay removed when waiting steps
+//   are automated. Applied to both min and max day range from calcDelayDays.
+//   0.70 = automation typically removes ~70% of the calendar-day wait.
+//
+// WAITING_ATTENTION_RATE: fraction of a waiting step's logged minutes that is
+//   genuine staff attention (vs. true elapsed/waiting time). Used for "hours freed"
+//   — distinct from WAITING_SAVING_RATE which is a cost figure.
+const MANUAL_SAVING_RATE    = 0.70;
+const WAITING_SAVING_RATE   = 0.25;
+const DELAY_REDUCTION_RATE  = 0.70;
+const WAITING_ATTENTION_RATE = 0.40;
+
 // Work type categories — replaces binary "automatable" flag
 const WORK_TYPES = [
   { value: "manual", label: "Manual / Repetitive", short: "Manual", color: "#c4942a", bg: "#faf0d6", icon: "⟳", saveable: true, desc: "Same thing every time — data entry, standard emails, filing" },
@@ -299,8 +322,6 @@ const TEMPLATES = [
 // ═══════════════════════════════════════════════════
 function isSaveable(step) {
   const wt = WORK_TYPES.find(w => w.value === step.workType);
-  // Backwards compat: if step has old automatable field, use it
-  if (!wt && step.automatable !== undefined) return step.automatable;
   return wt ? wt.saveable : false;
 }
 
@@ -310,7 +331,12 @@ function calcDelayDays(steps) {
   const waitingCount = waitingSteps.length;
   const minDays = waitingCount * 1;
   const maxDays = waitingCount * 3;
-  return { waitingMins, waitingCount, minDays, maxDays };
+  // Days saved if waiting steps are automated (DELAY_REDUCTION_RATE applied to range)
+  const minDaysSaved = Math.round(minDays * DELAY_REDUCTION_RATE);
+  const maxDaysSaved = Math.round(maxDays * DELAY_REDUCTION_RATE);
+  // Staff attention hours freed per run from waiting steps (not counted in cost saving)
+  const attentionMinsFreed = Math.round(waitingMins * WAITING_ATTENTION_RATE);
+  return { waitingMins, waitingCount, minDays, maxDays, minDaysSaved, maxDaysSaved, attentionMinsFreed };
 }
 
 function getRevenueAtRisk(templateUsed, delayDays) {
@@ -367,8 +393,11 @@ function getRevenueAtRisk(templateUsed, delayDays) {
 
 function calcCosts(roles, steps, annualVolume) {
   const totalCost = steps.reduce((s, st) => { const r = roles.find(rl => rl.id === st.roleId); return s + (r ? (st.minutes / 60) * r.rate : 0); }, 0);
-  const saveableCost = steps.filter(s => isSaveable(s)).reduce((s, st) => { const r = roles.find(rl => rl.id === st.roleId); return s + (r ? (st.minutes / 60) * r.rate : 0); }, 0);
-  return { totalCost, annualCost: totalCost * annualVolume, potentialSaving: saveableCost * annualVolume * 0.7 };
+  const stepCost = (st) => { const r = roles.find(rl => rl.id === st.roleId); return r ? (st.minutes / 60) * r.rate : 0; };
+  const manualSaving  = steps.filter(s => s.workType === "manual"  && isSaveable(s)).reduce((sum, st) => sum + stepCost(st), 0) * MANUAL_SAVING_RATE;
+  const waitingSaving = steps.filter(s => s.workType === "waiting").reduce((sum, st) => sum + stepCost(st), 0) * WAITING_SAVING_RATE;
+  const potentialSaving = (manualSaving + waitingSaving) * annualVolume;
+  return { totalCost, annualCost: totalCost * annualVolume, potentialSaving };
 }
 
 function generateReport(processName, roles, steps, annualVolume) {
@@ -866,7 +895,7 @@ function FrictionCycler({ value, onChange }) {
       style={{ display:"inline-flex", alignItems:"center", gap:4, padding:"3px 10px", borderRadius:100,
         fontSize:"0.72rem", fontWeight:700, background:f.color, color:f.text,
         border:"none", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
-      {f.label}
+      <span style={{ opacity:0.65, fontWeight:500 }}>Friction: </span>{f.label}
     </button>
   );
 }
@@ -891,6 +920,7 @@ function StepNameArea({ value, onChange }) {
 
 function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcessName, annualVolume, setAnnualVolume, onNext, onBack, fromTemplate }) {
   const [rolesOpen, setRolesOpen] = useState(false);
+  const [freqOpen, setFreqOpen] = useState(false);
   const scrollRef = useRef(null);
   const cardRefs = useRef([]);
 
@@ -935,7 +965,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
   const { totalCost, annualCost, potentialSaving } = calcCosts(roles, steps, annualVolume);
   const totalMinutes = steps.reduce((s, st) => s + st.minutes, 0);
   const totalHours = totalMinutes / 60;
-  const { minDays, maxDays, waitingMins } = calcDelayDays(steps);
+  const { minDays, maxDays, waitingMins, minDaysSaved, maxDaysSaved, attentionMinsFreed } = calcDelayDays(steps);
   const automatableMins = steps.filter(s => s.workType === "manual" && isSaveable(s)).reduce((sum, s) => sum + s.minutes, 0);
   const saveableCount = steps.filter(s => isSaveable(s)).length;
   const fmtMins = (m) => m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
@@ -944,7 +974,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
   const wtBorderColor = (wt) => wt === "decision" ? "#b3413a" : wt === "waiting" ? "#b8862e" : "#2d6a4f";
 
   return (
-    <div style={{ position: "relative", zIndex: 1 }}>
+    <div style={{ position: "relative", zIndex: 1, paddingTop: 48 }}>
 
       {/* ── Dark pinned hero panel ── */}
       <div style={{ position: "sticky", top: 48, zIndex: 50 }}>
@@ -955,29 +985,38 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Process</div>
               <input value={processName} onChange={e => setProcessName(e.target.value)} placeholder="Name your process"
+                className="editable-field"
                 style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "clamp(1rem,2.5vw,1.25rem)", color: "#fff",
-                  background: "transparent", border: "none", outline: "none", width: "100%", padding: 0 }} />
+                  border: "none", width: "100%", display: "block" }} />
             </div>
-            {/* Hero cost figure */}
+            {/* Hero saving figure */}
             <div style={{ textAlign: "right", flexShrink: 0 }}>
-              <div style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "clamp(2rem,5vw,3rem)", color: "#6ee7a8", lineHeight: 1, letterSpacing: "-0.02em" }}>
-                £{totalCost.toFixed(0)}
-              </div>
-              <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)", marginTop: 3 }}>per run · {totalHours.toFixed(1)}h</div>
+              {potentialSaving > 0 ? (<>
+                <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(110,231,168,0.6)", marginBottom: 2 }}>Potential saving</div>
+                <div style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "clamp(2rem,5vw,3rem)", color: "#6ee7a8", lineHeight: 1, letterSpacing: "-0.02em" }}>
+                  £{potentialSaving.toLocaleString("en-GB", { maximumFractionDigits: 0 })}
+                </div>
+                <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)", marginTop: 3 }}>
+                  per year{minDaysSaved > 0 ? ` · ${minDaysSaved}–${maxDaysSaved} days faster` : ""}
+                </div>
+              </>) : (<>
+                <div style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "clamp(2rem,5vw,3rem)", color: "#6ee7a8", lineHeight: 1, letterSpacing: "-0.02em" }}>
+                  £{totalCost.toFixed(0)}
+                </div>
+                <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)", marginTop: 3 }}>per run · {totalHours.toFixed(1)}h</div>
+              </>)}
             </div>
           </div>
           {/* Stat chips row */}
           <div style={{ maxWidth: 1080, margin: "0 auto", padding: "12px 20px 0", overflowX: "auto", display: "flex", gap: 8, flexWrap: "nowrap", paddingBottom: 16 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(255,255,255,0.08)", flexShrink: 0 }}>
+              <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>Cost/run</span>
+              <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#fff", whiteSpace: "nowrap" }}>£{totalCost.toFixed(0)}</span>
+            </div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(255,255,255,0.08)", flexShrink: 0 }}>
               <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>Annual</span>
               <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#fff", whiteSpace: "nowrap" }}>£{annualCost.toLocaleString("en-GB", { maximumFractionDigits: 0 })}</span>
             </div>
-            {potentialSaving > 0 && (
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(45,106,79,0.3)", flexShrink: 0 }}>
-                <span style={{ fontSize: "0.7rem", color: "#6ee7a8", whiteSpace: "nowrap" }}>Saving</span>
-                <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#6ee7a8", whiteSpace: "nowrap" }}>£{potentialSaving.toLocaleString("en-GB", { maximumFractionDigits: 0 })}/yr</span>
-              </div>
-            )}
             {automatableMins > 0 && (
               <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(110,231,168,0.1)", flexShrink: 0 }}>
                 <span style={{ fontSize: "0.82rem" }}>⚡</span>
@@ -988,6 +1027,12 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
               <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(184,74,90,0.2)", flexShrink: 0 }}>
                 <span style={{ fontSize: "0.82rem" }}>🕐</span>
                 <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#f5a0aa", whiteSpace: "nowrap" }}>{minDays}–{maxDays} days delay</span>
+              </div>
+            )}
+            {minDaysSaved > 0 && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(110,231,168,0.1)", flexShrink: 0 }}>
+                <span style={{ fontSize: "0.82rem" }}>🚀</span>
+                <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#6ee7a8", whiteSpace: "nowrap" }}>{minDaysSaved}–{maxDaysSaved} days faster</span>
               </div>
             )}
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(255,255,255,0.06)", flexShrink: 0 }}>
@@ -1002,75 +1047,98 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
         </div>
       </div>
 
-      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "20px 20px 80px", position: "relative", zIndex: 1 }} className="page-pad">
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "20px 20px 140px", position: "relative", zIndex: 1 }} className="page-pad">
 
-        {/* ── Collapsible roles & process settings strip ── */}
-        <Card style={{ marginBottom: 20, padding: 0, overflow: "hidden" }}>
-          <button onClick={() => setRolesOpen(!rolesOpen)}
-            style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "14px 20px",
-              background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", gap: 8 }}>
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
-              <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#1a1f2e", whiteSpace: "nowrap" }}>Team roles & rates</span>
-              {roles.map(r => { const rc = getRoleColor(r, roles); return (
-                <span key={r.id} style={{ fontSize: "0.68rem", fontWeight: 600, padding: "2px 8px", borderRadius: 100, background: `${rc}15`, color: rc, whiteSpace: "nowrap" }}>
-                  {r.name.split(" ")[0]} £{Math.round(r.rate)}/hr
-                </span>
-              ); })}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, paddingTop: 2 }}>
-              <span style={{ fontSize: "0.72rem", color: "#6b7280", whiteSpace: "nowrap" }}>{annualVolume}×/yr</span>
-              <span style={{ fontSize: "0.8rem", color: "#6b7280", transform: rolesOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>▾</span>
-            </div>
-          </button>
-          {rolesOpen && (
-            <div style={{ padding: "0 20px 20px", borderTop: "1px solid #e5e2dc" }}>
-              {/* Process name + volume when panel is open */}
-              <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 16, marginBottom: 16, flexWrap: "wrap" }}>
-                <div style={{ flex: 1, minWidth: 160 }}>
-                  <label style={{ fontSize: "0.68rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6b7280", display: "block", marginBottom: 6 }}>Process name</label>
-                  <input type="text" value={processName} onChange={e => setProcessName(e.target.value)} placeholder="e.g. Client Onboarding"
-                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #e5e2dc", background: "#EFEFEF",
-                      fontFamily: "'DM Sans',sans-serif", fontSize: "0.88rem", color: "#1a1f2e", outline: "none", boxSizing: "border-box" }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: "0.68rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6b7280", display: "block", marginBottom: 6 }}>Times per year</label>
-                  <NumberInput value={annualVolume} onChange={setAnnualVolume} suffix="/year" />
-                </div>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <label style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6b7280" }}>Team roles</label>
-                <button onClick={addRole} style={{ fontSize: "0.78rem", color: "#2d6a4f", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>+ Add role</button>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {roles.map((role, i) => { const rc = getRoleColor(role, roles); return (
-                  <div key={role.id} style={{ padding: "12px 14px", borderRadius: 10, background: "#EFEFEF", border: "1px solid #e5e2dc" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                      <div style={{ width: 10, height: 10, borderRadius: "50%", background: rc, flexShrink: 0 }} />
-                      <input type="text" value={role.name} onChange={e => updateRole(i, "name", e.target.value)}
-                        style={{ flex: 1, minWidth: 100, padding: "4px 8px", borderRadius: 6, border: "1px solid #e5e2dc",
-                          fontFamily: "'DM Sans',sans-serif", fontSize: "0.88rem", fontWeight: 600, outline: "none", background: "#fff" }} />
-                      {roles.length > 1 && <button onClick={() => removeRole(i)} style={{ background: "none", border: "none", color: "#b84a5a", cursor: "pointer", fontSize: "0.9rem", padding: "0 4px" }}>×</button>}
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, paddingLeft: 20 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>Salary</span>
-                        <SalaryInput value={role.salary || rateToSalary(role.rate)} onChange={v => updateRole(i, "salary", v)} />
-                      </div>
-                      <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>→</div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.95rem", color: rc }}>£{Math.round(role.rate)}/hr</span>
-                        <span style={{ fontSize: "0.68rem", color: "#6b7280" }}>fully loaded</span>
-                      </div>
-                    </div>
-                  </div>
+        {/* ── Two-panel row: Team roles | Frequency ── */}
+        <div className="panel-row" style={{ marginBottom: 20 }}>
+
+          {/* Panel 1 — Team roles & rates */}
+          <Card style={{ flex: 1, minWidth: 0, padding: 0, overflow: "hidden" }}>
+            <button onClick={() => setRolesOpen(!rolesOpen)}
+              style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px",
+                background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", gap: 8 }}>
+              <div style={{ display: "flex", flexWrap: "nowrap", alignItems: "center", gap: 6, flex: 1, minWidth: 0, overflow: "hidden" }}>
+                <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#1a1f2e", whiteSpace: "nowrap" }}>Team roles & rates</span>
+                {roles.map(r => { const rc = getRoleColor(r, roles); return (
+                  <span key={r.id} style={{ fontSize: "0.68rem", fontWeight: 600, padding: "2px 8px", borderRadius: 100, background: `${rc}15`, color: rc, whiteSpace: "nowrap", flexShrink: 0 }}>
+                    {r.name.split(" ")[0]} £{Math.round(r.rate)}/hr
+                  </span>
                 ); })}
               </div>
-              <p style={{ fontSize: "0.72rem", color: "#6b7280", marginTop: 10, lineHeight: 1.6 }}>
-                Hourly rates: annual salary × {BURDEN_MULTIPLIER} (NI, pension & overhead) ÷ {PRODUCTIVE_HOURS.toLocaleString()} productive hours/year.
-              </p>
-            </div>
-          )}
-        </Card>
+              <span style={{ fontSize: "0.8rem", color: "#6b7280", flexShrink: 0, transform: rolesOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>▾</span>
+            </button>
+            {rolesOpen && (
+              <div style={{ padding: "0 20px 20px", borderTop: "1px solid #e5e2dc" }}>
+                {/* Horizontal scroll-snap role cards */}
+                <div style={{ display: "flex", gap: 12, overflowX: "auto", scrollSnapType: "x proximity",
+                  paddingBottom: 12, paddingTop: 16, paddingRight: 40, msOverflowStyle: "none", scrollbarWidth: "none" }}
+                  className="step-scroll-row">
+                  {roles.map((role, i) => { const rc = getRoleColor(role, roles); return (
+                    <div key={role.id}
+                      style={{ flexShrink: 0, width: 180, scrollSnapAlign: "start",
+                        background: "#fff", border: "1px solid #e5e2dc",
+                        borderTop: `3px solid ${rc}`, borderRadius: 12, overflow: "hidden",
+                        display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
+                      <div style={{ background: `${rc}10`, padding: "10px 12px 8px", display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: rc, flexShrink: 0 }} />
+                        <input type="text" value={role.name} onChange={e => updateRole(i, "name", e.target.value)}
+                          className="editable-field-light"
+                          style={{ flex: 1, minWidth: 0, fontFamily: "'DM Sans',sans-serif",
+                            fontSize: "0.82rem", fontWeight: 700, color: "#1a1f2e", border: "none" }} />
+                        {roles.length > 1 && (
+                          <button onClick={() => removeRole(i)}
+                            style={{ background: "none", border: "none", color: "#b84a5a", cursor: "pointer",
+                              fontSize: "0.9rem", padding: "0 2px", lineHeight: 1, flexShrink: 0 }}>×</button>
+                        )}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "10px 12px 12px" }}>
+                        <div>
+                          <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>Annual salary</div>
+                          <SalaryInput value={role.salary || rateToSalary(role.rate)} onChange={v => updateRole(i, "salary", v)} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>Loaded rate</div>
+                          <div style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "1.1rem", color: rc }}>£{Math.round(role.rate)}/hr</div>
+                          <div style={{ fontSize: "0.62rem", color: "#9ca3af", marginTop: 1 }}>incl. NI, pension & overhead</div>
+                        </div>
+                      </div>
+                    </div>
+                  ); })}
+                  <div style={{ flexShrink: 0, width: 140, scrollSnapAlign: "start",
+                    background: "#f9f9f9", border: "2px dashed #e5e2dc", borderRadius: 12,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    gap: 6, cursor: "pointer", padding: 16, boxSizing: "border-box", minHeight: 140 }}
+                    onClick={addRole}>
+                    <span style={{ fontSize: "1.4rem", lineHeight: 1, color: "#6b7280" }}>+</span>
+                    <span style={{ fontSize: "0.78rem", fontWeight: 500, fontFamily: "'DM Sans',sans-serif", color: "#6b7280", textAlign: "center" }}>Add role</span>
+                  </div>
+                </div>
+                <p style={{ fontSize: "0.72rem", color: "#6b7280", marginTop: 4, lineHeight: 1.6 }}>
+                  Hourly rates: annual salary × {BURDEN_MULTIPLIER} (NI, pension & overhead) ÷ {PRODUCTIVE_HOURS.toLocaleString()} productive hours/year.
+                </p>
+              </div>
+            )}
+          </Card>
+
+          {/* Panel 2 — Run frequency */}
+          <Card style={{ flexShrink: 0, width: 180, padding: 0, overflow: "hidden" }}>
+            <button onClick={() => setFreqOpen(!freqOpen)}
+              style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px",
+                background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", gap: 6 }}>
+              <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.82rem", color: "#2d6a4f" }}>{annualVolume} times per year</span>
+              <span style={{ fontSize: "0.8rem", color: "#6b7280", flexShrink: 0, transform: freqOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>▾</span>
+            </button>
+            {freqOpen && (
+              <div style={{ padding: "0 16px 16px", borderTop: "1px solid #e5e2dc" }}>
+                <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", display: "block", marginTop: 14, marginBottom: 8, lineHeight: 1.4 }}>
+                  How often does this happen?
+                </label>
+                <NumberInput value={annualVolume} onChange={setAnnualVolume} suffix="/year" />
+              </div>
+            )}
+          </Card>
+
+        </div>
 
         {/* ── Horizontal scroll-snap step row ── */}
         <div ref={scrollRef}
@@ -1109,12 +1177,12 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
                     <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
                       <button onClick={() => moveStep(idx, -1)} disabled={idx === 0}
                         style={{ background: "none", border: "none", cursor: idx === 0 ? "default" : "pointer",
-                          color: borderColor, fontSize: "1rem", padding: "2px 4px", opacity: idx === 0 ? 0.3 : 1,
+                          color: borderColor, fontSize: "1.3rem", padding: "2px 4px", opacity: idx === 0 ? 0.3 : 1,
                           minWidth: 28, minHeight: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
-                      <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.8rem", color: borderColor, minWidth: 20, textAlign: "center" }}>{idx + 1}</span>
+                      <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "1rem", color: borderColor, minWidth: 24, textAlign: "center" }}>{idx + 1}</span>
                       <button onClick={() => moveStep(idx, 1)} disabled={idx === steps.length - 1}
                         style={{ background: "none", border: "none", cursor: idx === steps.length - 1 ? "default" : "pointer",
-                          color: borderColor, fontSize: "1rem", padding: "2px 4px", opacity: idx === steps.length - 1 ? 0.3 : 1,
+                          color: borderColor, fontSize: "1.3rem", padding: "2px 4px", opacity: idx === steps.length - 1 ? 0.3 : 1,
                           minWidth: 28, minHeight: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -1132,14 +1200,17 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 12px 0" }}>
                   {/* Role */}
                   <div>
-                    <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>Role</div>
+                    <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>Who does this?</div>
                     <Select value={step.roleId} onChange={v => updateStep(idx, "roleId", v)}
                       options={roles.map(r => ({ value: r.id, label: r.name }))}
-                      style={{ width: "100%", fontSize: "0.8rem", padding: "6px 28px 6px 10px" }} />
+                      style={{ width: "100%", fontSize: "0.8rem", padding: "6px 28px 6px 10px",
+                        background: rc.startsWith("rgb") ? rc.replace("rgb(","rgba(").replace(")",",0.09)") : `${rc}18`,
+                        color: rc,
+                        border: `1px solid ${rc.startsWith("rgb") ? rc.replace("rgb(","rgba(").replace(")",",0.3)") : `${rc}50`}` }} />
                   </div>
                   {/* Minutes */}
                   <div>
-                    <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>Minutes</div>
+                    <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>How long? (min)</div>
                     <input type="number" min={1} value={step.minutes}
                       onChange={e => updateStep(idx, "minutes", Number(e.target.value) || 1)}
                       style={{ width: "100%", padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e2dc",
@@ -1148,10 +1219,10 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
                   </div>
                   {/* Type */}
                   <div>
-                    <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>Type</div>
+                    <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>What kind of work?</div>
                     <Select value={step.workType || "manual"} onChange={v => updateStep(idx, "workType", v)}
-                      options={WORK_TYPES.map(w => ({ value: w.value, label: `${w.icon} ${w.short}` }))}
-                      style={{ width: "100%", fontSize: "0.8rem", padding: "6px 28px 6px 10px",
+                      options={WORK_TYPES.map(w => ({ value: w.value, label: `${w.icon} ${w.label}` }))}
+                      style={{ width: "100%", fontSize: "0.78rem", padding: "6px 28px 6px 10px",
                         background: wt.bg, color: wt.color, fontWeight: 600, border: `1px solid ${wt.color}30` }} />
                   </div>
                 </div>
@@ -1159,8 +1230,8 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
                 {/* Badges row */}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 10, padding: "0 12px 12px" }}>
                   <FrictionCycler value={step.friction} onChange={v => updateStep(idx, "friction", v)} />
-                  {isAutoOpp && <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 8px", borderRadius: 100, fontSize: "0.68rem", fontWeight: 700, background: "#d4ede2", color: "#1b4332", whiteSpace: "nowrap" }}>⚡ Auto</span>}
-                  {isDelay && <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 8px", borderRadius: 100, fontSize: "0.68rem", fontWeight: 700, background: "#faf0d6", color: "#8a6a1e", whiteSpace: "nowrap" }}>⏳ Delay</span>}
+                  {isAutoOpp && <span title="This step could be handled by automation" style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 8px", borderRadius: 100, fontSize: "0.68rem", fontWeight: 700, background: "#d4ede2", color: "#1b4332", whiteSpace: "nowrap", cursor: "help" }}>⚡ Automatable</span>}
+                  {isDelay && <span title="This step introduces client-facing wait time" style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 8px", borderRadius: 100, fontSize: "0.68rem", fontWeight: 700, background: "#faf0d6", color: "#8a6a1e", whiteSpace: "nowrap", cursor: "help" }}>⏳ Delay risk</span>}
                 </div>
               </div>
             );
@@ -1177,8 +1248,14 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
           </div>
         </div>
 
-        {/* ── Actions ── */}
-        <div style={{ marginTop: 24, display: "flex", justifyContent: "space-between" }}>
+      </div>
+
+      {/* ── Sticky bottom action bar ── */}
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 60,
+        background: "rgba(250,249,247,0.97)", backdropFilter: "blur(12px)",
+        borderTop: "1px solid #e5e2dc", padding: "12px 20px",
+        display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ maxWidth: 1080, width: "100%", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Button onClick={onBack}>← {fromTemplate ? "Templates" : "Back"}</Button>
           <Button primary onClick={onNext} disabled={steps.filter(s => s.name.trim()).length === 0}>See the results →</Button>
         </div>
@@ -1234,15 +1311,18 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
 
       <div style={{background:"#1a1f2e",borderRadius:20,padding:"60px 40px",textAlign:"center",color:"#fff",margin:"0 0 40px",...anim(0)}}>
         <Badge>Your results</Badge>
-        <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.5rem,3.5vw,2rem)",fontWeight:700,lineHeight:1.2,margin:"20px 0 8px",color:"#fff"}}>Each "{processName}" costs you</h2>
-        <div style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(3rem,8vw,4.5rem)",fontWeight:700,color:"#6ee7a8",letterSpacing:"-0.02em",margin:"8px 0"}}>£{totalCost.toFixed(0)}</div>
-        <p style={{color:"rgba(255,255,255,0.6)",fontSize:"1.05rem",marginBottom:32}}>across {totalHours.toFixed(1)} hours and {new Set(steps.map(s=>s.roleId)).size} roles</p>
+        <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.5rem,3.5vw,2rem)",fontWeight:700,lineHeight:1.2,margin:"20px 0 8px",color:"#fff"}}>Automating "{processName}" could save you</h2>
+        <div style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(3rem,8vw,4.5rem)",fontWeight:700,color:"#6ee7a8",letterSpacing:"-0.02em",margin:"8px 0"}}>£{potentialSaving.toLocaleString("en-GB",{maximumFractionDigits:0})}/yr</div>
+        {(()=>{const {minDaysSaved,maxDaysSaved}=calcDelayDays(steps);return minDaysSaved>0&&(<p style={{color:"rgba(110,231,168,0.8)",fontSize:"1.05rem",margin:"4px 0 0",fontWeight:600}}>🚀 {minDaysSaved}–{maxDaysSaved} days faster per run</p>);})()}
+        <p style={{color:"rgba(255,255,255,0.4)",fontSize:"0.85rem",marginTop:6,marginBottom:32}}>based on {totalHours.toFixed(1)}h · £{totalCost.toFixed(0)}/run · {annualVolume}× per year</p>
         {(()=>{
-          const {minDays,maxDays}=calcDelayDays(steps);
+          const {minDays,maxDays,minDaysSaved,maxDaysSaved,attentionMinsFreed}=calcDelayDays(steps);
+          const fmtM=(m)=>m>=60?`${Math.floor(m/60)}h ${m%60>0?m%60+"m":""}`.trim():`${m}m`;
           const panels=[
+            {label:"Cost per run",value:`£${totalCost.toFixed(0)}`,sub:`${totalHours.toFixed(1)}h per run`,bg:"rgba(255,255,255,0.06)",color:"#fff"},
             {label:"Annual cost",value:`£${annualCost.toLocaleString("en-GB",{maximumFractionDigits:0})}`,sub:`${annualVolume}× per year`,bg:"rgba(255,255,255,0.06)",color:"#fff"},
-            {label:"Potential saving",value:`£${potentialSaving.toLocaleString("en-GB",{maximumFractionDigits:0})}`,sub:"per year with automation",bg:"rgba(45,106,79,0.2)",color:"#6ee7a8"},
             {label:"Client-facing delay",value:`${minDays}–${maxDays} days`,sub:"per process run",bg:"rgba(184,74,90,0.2)",color:"#f5a0aa"},
+            ...(attentionMinsFreed>0?[{label:"Team time freed",value:fmtM(attentionMinsFreed),sub:"per run from waiting steps",bg:"rgba(255,255,255,0.06)",color:"#c4942a"}]:[]),
           ];
           return(
             <div style={{display:"flex",gap:1,background:"rgba(255,255,255,0.1)",borderRadius:12,overflow:"hidden",maxWidth:680,margin:"0 auto"}}>
@@ -1350,7 +1430,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
                   <td className="col-time" style={{padding:"12px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{step.minutes}m</td>
                   <td style={{padding:"12px 16px",fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.9rem",color:role?getRoleColor(role,roles):"#2d6a4f"}}>£{cost.toFixed(0)}</td>
                   <td className="col-friction" style={{padding:"12px 16px"}}><FrictionBadge level={step.friction}/></td>
-                  <td className="col-type" style={{padding:"12px 16px"}}><span style={{fontSize:"0.72rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:wt.bg,color:wt.color,whiteSpace:"nowrap",display:"inline-block"}}>{wt.icon} {wt.short}</span></td>
+                  <td className="col-type" style={{padding:"12px 16px"}}><span style={{fontSize:"0.72rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:wt.bg,color:wt.color,whiteSpace:"nowrap",display:"inline-block"}}>{wt.icon} {wt.label}</span></td>
                 </tr>);})}</tbody>
           </table>
         </Card>
@@ -1553,7 +1633,7 @@ export default function CostClock() {
           <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.97)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc"}}>
             {/* Row 1: logo + auth */}
             <div style={{maxWidth:1080,width:"100%",margin:"0 auto",padding:"0 20px",height:48,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",padding:0,opacity:navMounted?1:0,transition:"opacity 0.4s ease",marginLeft:20,marginTop:5}}>
+              <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",padding:0,opacity:navMounted?1:0,transition:"opacity 0.4s ease",marginTop:5}}>
                 <img src="/logo_costclock_svg.svg" alt="costclock by workthru" style={{height:28,width:"auto",display:"block"}}/>
               </button>
               {user?(
