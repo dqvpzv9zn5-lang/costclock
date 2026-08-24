@@ -968,6 +968,10 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
 
   // Detect keyboard open via visualViewport shrink — hide bottom bar so it doesn't
   // jump up into the card area on mobile Safari when an input is focused.
+  // Scroll to top on mount — ensures the page starts at the top whether
+  // navigating from the welcome screen or loading a template.
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, []);
+
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
