@@ -118,16 +118,18 @@
     .build-hero-sticky {
       top: calc(48px + env(safe-area-inset-top, 0px));
     }
-    /* ── Mobile: overflow containment ── */
-    /* Prevent role/step scroll rows from creating page-level horizontal overflow
-       which causes mobile browsers to zoom out to fit the scroll area width */
-    .build-outer { overflow-x: hidden; }
+    /* ── Mobile: overflow containment ──
+       overflow-x: clip (NOT hidden) clips paint overflow without creating a new
+       scroll container — unlike hidden, clip does not break position:sticky on
+       child elements (.build-hero-sticky relies on this). */
+    .build-outer { overflow-x: clip; }
 
-    /* ── iOS zoom prevention ──
-       iOS Safari zooms in when focusing an input with font-size < 16px.
-       Force 1rem on all inputs so focus never triggers an unwanted zoom.
-       Visual sizing is handled via padding/width on each input, not font-size. */
-    input, select, textarea { font-size: 1rem !important; }
+    /* ── iOS zoom prevention (mobile only) ──
+       iOS Safari zooms in on focus when input font-size < 16px.
+       Scoped to mobile only so desktop select/input sizes are unaffected. */
+    @media (max-width: 600px) {
+      input, select, textarea { font-size: 1rem !important; }
+    }
 
     /* ── Hero panel detail chips: collapse on mobile ── */
     /* On desktop the chips row is always visible (display:flex set inline). */

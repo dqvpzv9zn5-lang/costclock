@@ -1282,9 +1282,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
         transition: "opacity 0.15s ease" }}>
         <div style={{ maxWidth: 1080, width: "100%", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Button onClick={onBack}>← {fromTemplate ? "Templates" : "Back"}</Button>
-          <span style={{ fontSize: "0.72rem", color: "#9ca3af", fontFamily: "'DM Sans',sans-serif", textAlign: "center" }}>
-            <a href="https://www.workthru.co.uk" target="_blank" rel="noopener noreferrer" style={{ color: "#2d6a4f", textDecoration: "none", fontWeight: 500 }}>by workthru</a>
-          </span>
+          <span />
           <Button primary onClick={onNext} disabled={steps.filter(s => s.name.trim()).length === 0}>See the results →</Button>
         </div>
       </div>
