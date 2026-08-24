@@ -923,6 +923,7 @@ function StepNameArea({ value, onChange }) {
 function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcessName, annualVolume, setAnnualVolume, onNext, onBack, fromTemplate }) {
   const [rolesOpen, setRolesOpen] = useState(false);
   const [freqOpen, setFreqOpen] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
   const scrollRef = useRef(null);
   const cardRefs = useRef([]);
 
@@ -963,6 +964,17 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
     setRoles(u);
   };
   const removeRole = (i) => { if (roles.length > 1) setRoles(roles.filter((_, j) => j !== i)); };
+
+  // Detect keyboard open via visualViewport shrink — hide bottom bar so it doesn't
+  // jump up into the card area on mobile Safari when an input is focused.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const threshold = 0.75; // keyboard is open if visible height < 75% of layout height
+    const onResize = () => setKeyboardOpen(vv.height < window.innerHeight * threshold);
+    vv.addEventListener("resize", onResize);
+    return () => vv.removeEventListener("resize", onResize);
+  }, []);
 
   const { totalCost, annualCost, potentialSaving } = calcCosts(roles, steps, annualVolume);
   const totalMinutes = steps.reduce((s, st) => s + st.minutes, 0);
@@ -1253,10 +1265,13 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
       </div>
 
       {/* ── Sticky bottom action bar ── */}
+      {/* Action bar: fixed to viewport. On mobile, hides behind keyboard — acceptable; keyboard has its own Done/return. */}
       <div className="bottom-action-bar" style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 60,
         background: "rgba(250,249,247,0.97)", backdropFilter: "blur(12px)",
         borderTop: "1px solid #e5e2dc", padding: "12px 20px",
-        display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        opacity: keyboardOpen ? 0 : 1, pointerEvents: keyboardOpen ? "none" : "auto",
+        transition: "opacity 0.15s ease" }}>
         <div style={{ maxWidth: 1080, width: "100%", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Button onClick={onBack}>← {fromTemplate ? "Templates" : "Back"}</Button>
           <span style={{ fontSize: "0.72rem", color: "#9ca3af", fontFamily: "'DM Sans',sans-serif", textAlign: "center" }}>

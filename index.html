@@ -79,16 +79,16 @@
       background: rgba(0,0,0,0.05);
       border-color: #d1d5db;
     }
-    /* Touch devices: always show a faint affordance (no hover state) */
+    /* Touch devices: show only a very faint hint — not a highlighted/selected look */
     @media (hover: none) {
       .editable-field {
-        background: rgba(255,255,255,0.07);
-        border-color: rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.04);
+        border-color: rgba(255,255,255,0.09);
         padding: 2px 4px;
       }
       .editable-field-light {
-        background: rgba(0,0,0,0.04);
-        border-color: #e5e2dc;
+        background: rgba(0,0,0,0.02);
+        border-color: rgba(0,0,0,0.06);
         padding: 2px 4px;
       }
     }
