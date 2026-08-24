@@ -55,6 +55,29 @@ function getRoleColor(role, allRoles) {
   }
 }
 
+// ── Saving / time-recovery rates ─────────────────────────────────────────────
+// These are starting estimates — adjust once you've seen the effect on a few
+// real processes beyond Client Onboarding.
+//
+// MANUAL_SAVING_RATE: fraction of a manual step's labour cost recoverable via
+//   automation. 0.70 = 70% — accounts for setup, edge-cases, oversight still needed.
+//
+// WAITING_SAVING_RATE: fraction of a waiting step's labour cost recoverable.
+//   Much lower than manual because most of a "30 min chasing" step is elapsed
+//   calendar time, not continuous staff attention — the real cost saving is small.
+//
+// DELAY_REDUCTION_RATE: fraction of calendar-day delay removed when waiting steps
+//   are automated. Applied to both min and max day range from calcDelayDays.
+//   0.70 = automation typically removes ~70% of the calendar-day wait.
+//
+// WAITING_ATTENTION_RATE: fraction of a waiting step's logged minutes that is
+//   genuine staff attention (vs. true elapsed/waiting time). Used for "hours freed"
+//   — distinct from WAITING_SAVING_RATE which is a cost figure.
+const MANUAL_SAVING_RATE    = 0.70;
+const WAITING_SAVING_RATE   = 0.25;
+const DELAY_REDUCTION_RATE  = 0.70;
+const WAITING_ATTENTION_RATE = 0.40;
+
 // Work type categories — replaces binary "automatable" flag
 const WORK_TYPES = [
   { value: "manual", label: "Manual / Repetitive", short: "Manual", color: "#c4942a", bg: "#faf0d6", icon: "⟳", saveable: true, desc: "Same thing every time — data entry, standard emails, filing" },
@@ -299,8 +322,6 @@ const TEMPLATES = [
 // ═══════════════════════════════════════════════════
 function isSaveable(step) {
   const wt = WORK_TYPES.find(w => w.value === step.workType);
-  // Backwards compat: if step has old automatable field, use it
-  if (!wt && step.automatable !== undefined) return step.automatable;
   return wt ? wt.saveable : false;
 }
 
@@ -310,7 +331,12 @@ function calcDelayDays(steps) {
   const waitingCount = waitingSteps.length;
   const minDays = waitingCount * 1;
   const maxDays = waitingCount * 3;
-  return { waitingMins, waitingCount, minDays, maxDays };
+  // Days saved if waiting steps are automated (DELAY_REDUCTION_RATE applied to range)
+  const minDaysSaved = Math.round(minDays * DELAY_REDUCTION_RATE);
+  const maxDaysSaved = Math.round(maxDays * DELAY_REDUCTION_RATE);
+  // Staff attention hours freed per run from waiting steps (not counted in cost saving)
+  const attentionMinsFreed = Math.round(waitingMins * WAITING_ATTENTION_RATE);
+  return { waitingMins, waitingCount, minDays, maxDays, minDaysSaved, maxDaysSaved, attentionMinsFreed };
 }
 
 function getRevenueAtRisk(templateUsed, delayDays) {
@@ -367,8 +393,11 @@ function getRevenueAtRisk(templateUsed, delayDays) {
 
 function calcCosts(roles, steps, annualVolume) {
   const totalCost = steps.reduce((s, st) => { const r = roles.find(rl => rl.id === st.roleId); return s + (r ? (st.minutes / 60) * r.rate : 0); }, 0);
-  const saveableCost = steps.filter(s => isSaveable(s)).reduce((s, st) => { const r = roles.find(rl => rl.id === st.roleId); return s + (r ? (st.minutes / 60) * r.rate : 0); }, 0);
-  return { totalCost, annualCost: totalCost * annualVolume, potentialSaving: saveableCost * annualVolume * 0.7 };
+  const stepCost = (st) => { const r = roles.find(rl => rl.id === st.roleId); return r ? (st.minutes / 60) * r.rate : 0; };
+  const manualSaving  = steps.filter(s => s.workType === "manual"  && isSaveable(s)).reduce((sum, st) => sum + stepCost(st), 0) * MANUAL_SAVING_RATE;
+  const waitingSaving = steps.filter(s => s.workType === "waiting").reduce((sum, st) => sum + stepCost(st), 0) * WAITING_SAVING_RATE;
+  const potentialSaving = (manualSaving + waitingSaving) * annualVolume;
+  return { totalCost, annualCost: totalCost * annualVolume, potentialSaving };
 }
 
 function generateReport(processName, roles, steps, annualVolume) {
@@ -852,212 +881,384 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
   );
 }
 
-function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolume, setAnnualVolume, onNext, onBack }) {
-  const addRole=()=>{setRoles([...roles,{id:`r-${Date.now()}`,name:"New Role",salary:35000,rate:salaryToRate(35000)}]);};
-  const updateRole=(i,f,v)=>{
-    const u=[...roles];
-    if(f==="salary"){u[i]={...u[i],salary:v,rate:salaryToRate(v)};}
-    else if(f==="rate"){u[i]={...u[i],rate:v,salary:rateToSalary(v)};}
-    else{u[i]={...u[i],[f]:v};}
-    setRoles(u);
-  };
-  const removeRole=(i)=>{if(roles.length>1)setRoles(roles.filter((_,j)=>j!==i));};
+// ═══════════════════════════════════════════════════
+// BUILD SCREEN — merged Setup + Map steps, horizontal step cards
+// ═══════════════════════════════════════════════════
+
+// Cycling friction badge: tap to advance through levels
+function FrictionCycler({ value, onChange }) {
+  const idx = FRICTION_LEVELS.findIndex(f => f.value === value);
+  const f = FRICTION_LEVELS[Math.max(0, idx)];
+  const next = () => onChange(FRICTION_LEVELS[(idx + 1) % FRICTION_LEVELS.length].value);
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
-      <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Set up your team and process</h2>
-      <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:36,lineHeight:1.7}}>Define the roles in your team. Enter their annual salary and we'll calculate the true fully-loaded hourly cost.</p>
-      <Card style={{marginBottom:20}}>
-        <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280",display:"block",marginBottom:10}}>Process name</label>
-        <input type="text" value={processName} onChange={e=>setProcessName(e.target.value)} placeholder="e.g. Client Onboarding" style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",marginBottom:16,boxSizing:"border-box"}}/>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <span style={{fontSize:"0.85rem",color:"#3d4455"}}>How many times per year?</span>
-          <NumberInput value={annualVolume} onChange={setAnnualVolume} suffix="/year"/>
-        </div>
-      </Card>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-        <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280"}}>Team roles</label>
-        <button onClick={addRole} style={{fontSize:"0.8rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>+ Add role</button>
-      </div>
-      <div style={{display:"flex",flexDirection:"column",gap:8}}>
-        {roles.map((role,i)=>{const rc=getRoleColor(role,roles);return(
-          <Card key={role.id} style={{padding:"12px 20px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-              <div style={{width:10,height:10,borderRadius:"50%",background:rc,flexShrink:0}}/>
-              <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:"1 1 140px",minWidth:120,padding:"5px 10px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",fontWeight:600,outline:"none",background:"transparent"}}/>
-              <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-                <SalaryInput value={role.salary||rateToSalary(role.rate)} onChange={v=>updateRole(i,"salary",v)}/>
-              </div>
-              <div style={{fontSize:"0.78rem",color:"#6b7280",flexShrink:0}}>→</div>
-              <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
-                <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1rem",color:rc}}>£{Math.round(role.rate)}/hr</span>
-                <span style={{fontSize:"0.72rem",color:"#6b7280"}}>fully loaded</span>
-              </div>
-              {roles.length>1&&<button onClick={()=>removeRole(i)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1rem",padding:4,marginLeft:"auto",flexShrink:0}}>×</button>}
-            </div>
-          </Card>
-        )})}
-      </div>
-      <p style={{fontSize:"0.72rem",color:"#6b7280",marginTop:10,lineHeight:1.6}}>Hourly rates are calculated automatically: annual salary × {BURDEN_MULTIPLIER} (employer NI, pension & overhead) ÷ {PRODUCTIVE_HOURS.toLocaleString()} productive hours per year.</p>
-      <div style={{marginTop:32,display:"flex",justifyContent:"space-between"}}>
-        <Button onClick={onBack}>← Back</Button>
-        <Button primary onClick={onNext} disabled={!processName}>Next: Map the steps →</Button>
-      </div>
-    </div>
+    <button onClick={next} title="Tap to change friction level"
+      style={{ display:"inline-flex", alignItems:"center", gap:4, padding:"3px 10px", borderRadius:100,
+        fontSize:"0.72rem", fontWeight:700, background:f.color, color:f.text,
+        border:"none", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
+      <span style={{ opacity:0.65, fontWeight:500 }}>Friction: </span>{f.label}
+    </button>
   );
 }
 
-function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolume, setAnnualVolume, onNext, onBack, fromTemplate }) {
+// Auto-growing textarea for step name
+function StepNameArea({ value, onChange }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) { ref.current.style.height = "auto"; ref.current.style.height = ref.current.scrollHeight + "px"; }
+  }, [value]);
+  return (
+    <textarea ref={ref} value={value}
+      onChange={e => { onChange(e.target.value); if (ref.current) { ref.current.style.height = "auto"; ref.current.style.height = ref.current.scrollHeight + "px"; } }}
+      placeholder="What happens at this step?"
+      rows={1}
+      style={{ width:"100%", resize:"none", overflow:"hidden", border:"none", outline:"none", background:"transparent",
+        fontFamily:"'Outfit',sans-serif", fontWeight:600, fontSize:"0.88rem", color:"#1a1f2e", caretColor:"#1a1f2e",
+        lineHeight:1.4, padding:0, boxSizing:"border-box" }}
+    />
+  );
+}
+
+function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcessName, annualVolume, setAnnualVolume, onNext, onBack, fromTemplate }) {
   const [rolesOpen, setRolesOpen] = useState(false);
-  const [isBarStuck, setIsBarStuck] = useState(false);
-  const sentinelRef = useRef(null);
-  useEffect(()=>{
-    const el = sentinelRef.current;
-    if(!el) return;
-    const obs = new IntersectionObserver(([entry])=>setIsBarStuck(!entry.isIntersecting),{threshold:0,rootMargin:"-100px 0px 0px 0px"});
-    obs.observe(el);
-    return ()=>obs.disconnect();
-  },[]);
-  const addStep=()=>setSteps([...steps,{id:Date.now(),name:"",roleId:roles[0]?.id||"",minutes:15,friction:"low",workType:"manual"}]);
-  const updateStep=(i,f,v)=>{const u=[...steps];u[i]={...u[i],[f]:v};setSteps(u);};
-  const removeStep=(i)=>setSteps(steps.filter((_,j)=>j!==i));
-  const moveStep=(i,dir)=>{const u=[...steps];const to=i+dir;if(to<0||to>=u.length)return;[u[i],u[to]]=[u[to],u[i]];setSteps(u);};
-  const addRole=()=>{setRoles([...roles,{id:`r-${Date.now()}`,name:"New Role",salary:35000,rate:salaryToRate(35000)}]);};
-  const updateRole=(i,f,v)=>{
-    const u=[...roles];
-    if(f==="salary"){u[i]={...u[i],salary:v,rate:salaryToRate(v)};}
-    else if(f==="rate"){u[i]={...u[i],rate:v,salary:rateToSalary(v)};}
-    else{u[i]={...u[i],[f]:v};}
+  const [freqOpen, setFreqOpen] = useState(false);
+  const scrollRef = useRef(null);
+  const cardRefs = useRef([]);
+
+  const addStep = () => {
+    const newStep = { id: Date.now(), name: "", roleId: roles[0]?.id || "", minutes: 15, friction: "low", workType: "manual" };
+    setSteps(prev => {
+      const updated = [...prev, newStep];
+      // Scroll to new card after render
+      setTimeout(() => {
+        const last = cardRefs.current[updated.length - 1];
+        if (last) last.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+      }, 50);
+      return updated;
+    });
+  };
+
+  const updateStep = (i, f, v) => { const u = [...steps]; u[i] = { ...u[i], [f]: v }; setSteps(u); };
+  const removeStep = (i) => setSteps(steps.filter((_, j) => j !== i));
+
+  const moveStep = (i, dir) => {
+    const u = [...steps];
+    const to = i + dir;
+    if (to < 0 || to >= u.length) return;
+    [u[i], u[to]] = [u[to], u[i]];
+    setSteps(u);
+    setTimeout(() => {
+      const el = cardRefs.current[to];
+      if (el) el.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    }, 30);
+  };
+
+  const addRole = () => { setRoles([...roles, { id: `r-${Date.now()}`, name: "New Role", salary: 35000, rate: salaryToRate(35000) }]); };
+  const updateRole = (i, f, v) => {
+    const u = [...roles];
+    if (f === "salary") { u[i] = { ...u[i], salary: v, rate: salaryToRate(v) }; }
+    else if (f === "rate") { u[i] = { ...u[i], rate: v, salary: rateToSalary(v) }; }
+    else { u[i] = { ...u[i], [f]: v }; }
     setRoles(u);
   };
-  const removeRole=(i)=>{if(roles.length>1)setRoles(roles.filter((_,j)=>j!==i));};
-  const totalMinutes=steps.reduce((s,st)=>s+st.minutes,0);
-  const totalCost=steps.reduce((s,st)=>{const r=roles.find(rl=>rl.id===st.roleId);return s+(r?(st.minutes/60)*r.rate:0);},0);
+  const removeRole = (i) => { if (roles.length > 1) setRoles(roles.filter((_, j) => j !== i)); };
+
+  const { totalCost, annualCost, potentialSaving } = calcCosts(roles, steps, annualVolume);
+  const totalMinutes = steps.reduce((s, st) => s + st.minutes, 0);
+  const totalHours = totalMinutes / 60;
+  const { minDays, maxDays, waitingMins, minDaysSaved, maxDaysSaved, attentionMinsFreed } = calcDelayDays(steps);
+  const automatableMins = steps.filter(s => s.workType === "manual" && isSaveable(s)).reduce((sum, s) => sum + s.minutes, 0);
+  const saveableCount = steps.filter(s => isSaveable(s)).length;
+  const fmtMins = (m) => m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
+
+  // Work-type border colour per spec: manual→green, decision→red, waiting→amber
+  const wtBorderColor = (wt) => wt === "decision" ? "#b3413a" : wt === "waiting" ? "#b8862e" : "#2d6a4f";
 
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
-      <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Map the steps in "{processName}"</h2>
-      <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:20,lineHeight:1.7}}>Walk through the process from start to finish. Estimates are fine.</p>
+    <div style={{ position: "relative", zIndex: 1, paddingTop: 48 }}>
 
-      {/* Collapsible roles & settings panel */}
-      <Card style={{marginBottom:20,padding:0,overflow:"hidden"}}>
-        <button onClick={()=>setRolesOpen(!rolesOpen)} style={{width:"100%",display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"14px 20px",background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",gap:8}}>
-          <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:6,flex:1,minWidth:0}}>
-            <span style={{fontSize:"0.82rem",fontWeight:600,color:"#1a1f2e",whiteSpace:"nowrap"}}>Team roles & rates</span>
-            {roles.map(r=>{const rc=getRoleColor(r,roles);return(
-              <span key={r.id} style={{fontSize:"0.68rem",fontWeight:600,padding:"2px 8px",borderRadius:100,background:`${rc}15`,color:rc,whiteSpace:"nowrap"}}>
-                {r.name.split(" ")[0]} £{Math.round(r.rate)}/hr
-              </span>
-            )})}
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0,paddingTop:2}}>
-            <span style={{fontSize:"0.72rem",color:"#6b7280",whiteSpace:"nowrap"}}>{annualVolume}×/yr</span>
-            <span style={{fontSize:"0.8rem",color:"#6b7280",transform:rolesOpen?"rotate(180deg)":"rotate(0)",transition:"transform 0.2s"}}>▾</span>
-          </div>
-        </button>
-        {rolesOpen && (
-          <div style={{padding:"0 20px 20px",borderTop:"1px solid #e5e2dc"}}>
-            <div style={{display:"flex",alignItems:"center",gap:12,marginTop:16,marginBottom:16}}>
-              <span style={{fontSize:"0.82rem",color:"#3d4455"}}>How many times per year?</span>
-              <NumberInput value={annualVolume} onChange={setAnnualVolume} suffix="/year"/>
+      {/* ── Dark pinned hero panel ── */}
+      <div style={{ position: "sticky", top: 48, zIndex: 50 }}>
+        <div style={{ background: "#1a1f2e", backgroundImage: "url(/topography-dark.svg)", backgroundSize: "600px 600px",
+          padding: "20px 0 0", color: "#fff" }}>
+          <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            {/* Process name editable */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Process</div>
+              <input value={processName} onChange={e => setProcessName(e.target.value)} placeholder="Name your process"
+                className="editable-field"
+                style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "clamp(1rem,2.5vw,1.25rem)", color: "#fff",
+                  border: "none", width: "100%", display: "block" }} />
             </div>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280"}}>Team roles</label>
-              <button onClick={addRole} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>+ Add role</button>
+            {/* Hero saving figure */}
+            <div style={{ textAlign: "right", flexShrink: 0 }}>
+              {potentialSaving > 0 ? (<>
+                <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(110,231,168,0.6)", marginBottom: 2 }}>Potential saving</div>
+                <div style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "clamp(2rem,5vw,3rem)", color: "#6ee7a8", lineHeight: 1, letterSpacing: "-0.02em" }}>
+                  £{potentialSaving.toLocaleString("en-GB", { maximumFractionDigits: 0 })}
+                </div>
+                <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)", marginTop: 3 }}>
+                  per year{minDaysSaved > 0 ? ` · ${minDaysSaved}–${maxDaysSaved} days faster` : ""}
+                </div>
+              </>) : (<>
+                <div style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "clamp(2rem,5vw,3rem)", color: "#6ee7a8", lineHeight: 1, letterSpacing: "-0.02em" }}>
+                  £{totalCost.toFixed(0)}
+                </div>
+                <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)", marginTop: 3 }}>per run · {totalHours.toFixed(1)}h</div>
+              </>)}
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {roles.map((role,i)=>{const rc=getRoleColor(role,roles);return(
-                <div key={role.id} style={{padding:"12px 14px",borderRadius:10,background:"#EFEFEF",border:"1px solid #e5e2dc"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                    <div style={{width:10,height:10,borderRadius:"50%",background:rc,flexShrink:0}}/>
-                    <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:1,minWidth:100,padding:"4px 8px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",fontWeight:600,outline:"none",background:"#fff"}}/>
-                    {roles.length>1&&<button onClick={()=>removeRole(i)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"0.9rem",padding:"0 4px"}}>×</button>}
-                  </div>
-                  <div style={{display:"flex",alignItems:"center",gap:12,paddingLeft:20}}>
-                    <div style={{display:"flex",alignItems:"center",gap:4}}>
-                      <span style={{fontSize:"0.75rem",color:"#6b7280"}}>Salary</span>
-                      <SalaryInput value={role.salary||rateToSalary(role.rate)} onChange={v=>updateRole(i,"salary",v)}/>
+          </div>
+          {/* Stat chips row */}
+          <div style={{ maxWidth: 1080, margin: "0 auto", padding: "12px 20px 0", overflowX: "auto", display: "flex", gap: 8, flexWrap: "nowrap", paddingBottom: 16 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(255,255,255,0.08)", flexShrink: 0 }}>
+              <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>Cost/run</span>
+              <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#fff", whiteSpace: "nowrap" }}>£{totalCost.toFixed(0)}</span>
+            </div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(255,255,255,0.08)", flexShrink: 0 }}>
+              <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>Annual</span>
+              <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#fff", whiteSpace: "nowrap" }}>£{annualCost.toLocaleString("en-GB", { maximumFractionDigits: 0 })}</span>
+            </div>
+            {automatableMins > 0 && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(110,231,168,0.1)", flexShrink: 0 }}>
+                <span style={{ fontSize: "0.82rem" }}>⚡</span>
+                <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#6ee7a8", whiteSpace: "nowrap" }}>{fmtMins(automatableMins)} automatable</span>
+              </div>
+            )}
+            {waitingMins > 0 && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(184,74,90,0.2)", flexShrink: 0 }}>
+                <span style={{ fontSize: "0.82rem" }}>🕐</span>
+                <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#f5a0aa", whiteSpace: "nowrap" }}>{minDays}–{maxDays} days delay</span>
+              </div>
+            )}
+            {minDaysSaved > 0 && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(110,231,168,0.1)", flexShrink: 0 }}>
+                <span style={{ fontSize: "0.82rem" }}>🚀</span>
+                <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#6ee7a8", whiteSpace: "nowrap" }}>{minDaysSaved}–{maxDaysSaved} days faster</span>
+              </div>
+            )}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(255,255,255,0.06)", flexShrink: 0 }}>
+              <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>Steps</span>
+              <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#fff", whiteSpace: "nowrap" }}>{steps.length}</span>
+            </div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(255,255,255,0.06)", flexShrink: 0 }}>
+              <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>Opportunities</span>
+              <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#c4942a", whiteSpace: "nowrap" }}>{saveableCount}/{steps.length}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "20px 20px 140px", position: "relative", zIndex: 1 }} className="page-pad">
+
+        {/* ── Two-panel row: Team roles | Frequency ── */}
+        <div className="panel-row" style={{ marginBottom: 20 }}>
+
+          {/* Panel 1 — Team roles & rates */}
+          <Card style={{ flex: 1, minWidth: 0, padding: 0, overflow: "hidden" }}>
+            <button onClick={() => setRolesOpen(!rolesOpen)}
+              style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px",
+                background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", gap: 8 }}>
+              <div style={{ display: "flex", flexWrap: "nowrap", alignItems: "center", gap: 6, flex: 1, minWidth: 0, overflow: "hidden" }}>
+                <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#1a1f2e", whiteSpace: "nowrap" }}>Team roles & rates</span>
+                {roles.map(r => { const rc = getRoleColor(r, roles); return (
+                  <span key={r.id} style={{ fontSize: "0.68rem", fontWeight: 600, padding: "2px 8px", borderRadius: 100, background: `${rc}15`, color: rc, whiteSpace: "nowrap", flexShrink: 0 }}>
+                    {r.name.split(" ")[0]} £{Math.round(r.rate)}/hr
+                  </span>
+                ); })}
+              </div>
+              <span style={{ fontSize: "0.8rem", color: "#6b7280", flexShrink: 0, transform: rolesOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>▾</span>
+            </button>
+            {rolesOpen && (
+              <div style={{ padding: "0 20px 20px", borderTop: "1px solid #e5e2dc" }}>
+                {/* Horizontal scroll-snap role cards */}
+                <div style={{ display: "flex", gap: 12, overflowX: "auto", scrollSnapType: "x proximity",
+                  paddingBottom: 12, paddingTop: 16, paddingRight: 40, msOverflowStyle: "none", scrollbarWidth: "none" }}
+                  className="step-scroll-row">
+                  {roles.map((role, i) => { const rc = getRoleColor(role, roles); return (
+                    <div key={role.id}
+                      style={{ flexShrink: 0, width: 180, scrollSnapAlign: "start",
+                        background: "#fff", border: "1px solid #e5e2dc",
+                        borderTop: `3px solid ${rc}`, borderRadius: 12, overflow: "hidden",
+                        display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
+                      <div style={{ background: `${rc}10`, padding: "10px 12px 8px", display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: rc, flexShrink: 0 }} />
+                        <input type="text" value={role.name} onChange={e => updateRole(i, "name", e.target.value)}
+                          className="editable-field-light"
+                          style={{ flex: 1, minWidth: 0, fontFamily: "'DM Sans',sans-serif",
+                            fontSize: "0.82rem", fontWeight: 700, color: "#1a1f2e", border: "none" }} />
+                        {roles.length > 1 && (
+                          <button onClick={() => removeRole(i)}
+                            style={{ background: "none", border: "none", color: "#b84a5a", cursor: "pointer",
+                              fontSize: "0.9rem", padding: "0 2px", lineHeight: 1, flexShrink: 0 }}>×</button>
+                        )}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "10px 12px 12px" }}>
+                        <div>
+                          <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>Annual salary</div>
+                          <SalaryInput value={role.salary || rateToSalary(role.rate)} onChange={v => updateRole(i, "salary", v)} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>Loaded rate</div>
+                          <div style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "1.1rem", color: rc }}>£{Math.round(role.rate)}/hr</div>
+                          <div style={{ fontSize: "0.62rem", color: "#9ca3af", marginTop: 1 }}>incl. NI, pension & overhead</div>
+                        </div>
+                      </div>
                     </div>
-                    <div style={{fontSize:"0.75rem",color:"#6b7280"}}>→</div>
-                    <div style={{display:"flex",alignItems:"center",gap:4}}>
-                      <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.95rem",color:rc}}>£{Math.round(role.rate)}/hr</span>
-                      <span style={{fontSize:"0.68rem",color:"#6b7280"}}>fully loaded</span>
-                    </div>
+                  ); })}
+                  <div style={{ flexShrink: 0, width: 140, scrollSnapAlign: "start",
+                    background: "#f9f9f9", border: "2px dashed #e5e2dc", borderRadius: 12,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    gap: 6, cursor: "pointer", padding: 16, boxSizing: "border-box", minHeight: 140 }}
+                    onClick={addRole}>
+                    <span style={{ fontSize: "1.4rem", lineHeight: 1, color: "#6b7280" }}>+</span>
+                    <span style={{ fontSize: "0.78rem", fontWeight: 500, fontFamily: "'DM Sans',sans-serif", color: "#6b7280", textAlign: "center" }}>Add role</span>
                   </div>
                 </div>
-              )})}
-            </div>
-            <p style={{fontSize:"0.72rem",color:"#6b7280",marginTop:10,lineHeight:1.6}}>Hourly rates are calculated automatically: annual salary × {BURDEN_MULTIPLIER} (employer NI, pension & overhead) ÷ {PRODUCTIVE_HOURS.toLocaleString()} productive hours per year.</p>
-          </div>
-        )}
-      </Card>
+                <p style={{ fontSize: "0.72rem", color: "#6b7280", marginTop: 4, lineHeight: 1.6 }}>
+                  Hourly rates: annual salary × {BURDEN_MULTIPLIER} (NI, pension & overhead) ÷ {PRODUCTIVE_HOURS.toLocaleString()} productive hours/year.
+                </p>
+              </div>
+            )}
+          </Card>
 
-      <div ref={sentinelRef} style={{height:1,marginTop:-1}}/>
-      {(()=>{
-        const automatableMins=steps.filter(s=>s.workType==="manual"&&isSaveable(s)).reduce((sum,s)=>sum+s.minutes,0);
-        const delayMins=steps.filter(s=>s.workType==="waiting").reduce((sum,s)=>sum+s.minutes,0);
-        const fmtMins=(m)=>m>=60?`${Math.floor(m/60)}h ${m%60}m`:`${m}m`;
-        return(
-          <div style={{position:"sticky",top:100,zIndex:50,background:"rgba(250,249,247,0.95)",backdropFilter:"blur(12px)",borderRadius:isBarStuck?"0 0 12px 12px":12,border:"1px solid #e5e2dc",borderTop:isBarStuck?"none":"1px solid #e5e2dc",padding:"14px 20px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
-            <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
-              <span style={{fontSize:"0.8rem",color:"#6b7280",whiteSpace:"nowrap"}}>Steps: <strong style={{color:"#1a1f2e"}}>{steps.length}</strong></span>
-              <span style={{fontSize:"0.8rem",color:"#6b7280",whiteSpace:"nowrap"}}>Time: <strong style={{color:"#1a1f2e"}}>{totalMinutes>=60?`${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m`:`${totalMinutes}m`}</strong></span>
-              <span style={{fontSize:"0.8rem",color:"#6b7280",whiteSpace:"nowrap"}}>Cost: <strong style={{fontFamily:"'Outfit',sans-serif",color:"#2d6a4f"}}>£{totalCost.toFixed(0)}</strong></span>
-              {automatableMins>0&&<span style={{fontSize:"0.78rem",color:"#1b4332",background:"#d4ede2",padding:"2px 8px",borderRadius:100,fontWeight:600,whiteSpace:"nowrap"}}>⚡ {fmtMins(automatableMins)} auto</span>}
-              {(()=>{const {waitingMins,minDays,maxDays}=calcDelayDays(steps);if(!waitingMins)return null;return(<span style={{fontSize:"0.78rem",color:"#b84a5a",background:"#f5e0e3",padding:"2px 8px",borderRadius:100,fontWeight:600,whiteSpace:"nowrap"}}>🕐 {minDays}–{maxDays} days delay</span>);})()}
-            </div>
-            <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Saving opportunities: <strong style={{color:"#c4942a"}}>{steps.filter(s=>isSaveable(s)).length}/{steps.length}</strong></span>
-          </div>
-        );
-      })()}
-      <div style={{display:"flex",flexDirection:"column",gap:10}}>
-        {steps.map((step,idx)=>{
-          const role=roles.find(r=>r.id===step.roleId);
-          const rc=role?getRoleColor(role,roles):"#e5e2dc";
-          const cost=role?(step.minutes/60)*role.rate:0;
-          const wt=WORK_TYPES.find(w=>w.value===step.workType)||WORK_TYPES[0];
-          const isAutoOpportunity=step.workType==="manual"&&isSaveable(step);
-          const isDelayRisk=step.workType==="waiting";
-          const cardBg=isAutoOpportunity?"linear-gradient(135deg, #f0faf5 0%, #ffffff 60%)":isDelayRisk?"linear-gradient(135deg, #fdf8ec 0%, #ffffff 60%)":"#ffffff";
-          const cardBorder=isAutoOpportunity?"1px solid #a8dcc0":isDelayRisk?"1px solid #e8dbb8":"1px solid #e5e2dc";
-          return(
-            <div key={step.id} style={{background:cardBg,border:cardBorder,borderLeft:isAutoOpportunity?"4px solid #2d6a4f":isDelayRisk?"4px solid #c4942a":`4px solid ${rc}`,borderRadius:16,padding:"18px 22px",transition:"all 0.2s"}}>
-              <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-                {/* Step number + reorder arrows */}
-                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:0,minWidth:28,flexShrink:0,paddingTop:2}}>
-                  <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.85rem",color:"#6b7280",marginBottom:2}}>{idx+1}</span>
-                  <button onClick={()=>moveStep(idx,-1)} disabled={idx===0} style={{background:"none",border:"none",cursor:idx===0?"default":"pointer",color:"#9ca3af",fontSize:"1rem",padding:"6px 8px",lineHeight:1,opacity:idx===0?0.25:1,minWidth:32,minHeight:32,display:"flex",alignItems:"center",justifyContent:"center"}}>▲</button>
-                  <button onClick={()=>moveStep(idx,1)} disabled={idx===steps.length-1} style={{background:"none",border:"none",cursor:idx===steps.length-1?"default":"pointer",color:"#9ca3af",fontSize:"1rem",padding:"6px 8px",lineHeight:1,opacity:idx===steps.length-1?0.25:1,minWidth:32,minHeight:32,display:"flex",alignItems:"center",justifyContent:"center"}}>▼</button>
-                </div>
-                {/* Main content */}
-                <div style={{flex:1,minWidth:0}}>
-                  {/* Top row: name + cost + delete always inline */}
-                  <div style={{display:"flex",alignItems:"flex-start",gap:8}}>
-                    <input type="text" value={step.name} onChange={e=>updateStep(idx,"name",e.target.value)} placeholder="What happens at this step?" style={{flex:1,minWidth:0,padding:"6px 0",border:"none",borderBottom:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",background:"transparent"}}/>
-                    <div style={{textAlign:"right",flexShrink:0}}>
-                      <div style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1.2rem",color:rc}}>£{cost.toFixed(0)}</div>
-                      <div style={{fontSize:"0.72rem",color:"#6b7280"}}>{step.minutes}m</div>
+          {/* Panel 2 — Run frequency */}
+          <Card style={{ flexShrink: 0, width: 180, padding: 0, overflow: "hidden" }}>
+            <button onClick={() => setFreqOpen(!freqOpen)}
+              style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px",
+                background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", gap: 6 }}>
+              <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.82rem", color: "#2d6a4f" }}>{annualVolume} times per year</span>
+              <span style={{ fontSize: "0.8rem", color: "#6b7280", flexShrink: 0, transform: freqOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>▾</span>
+            </button>
+            {freqOpen && (
+              <div style={{ padding: "0 16px 16px", borderTop: "1px solid #e5e2dc" }}>
+                <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", display: "block", marginTop: 14, marginBottom: 8, lineHeight: 1.4 }}>
+                  How often does this happen?
+                </label>
+                <NumberInput value={annualVolume} onChange={setAnnualVolume} suffix="/year" />
+              </div>
+            )}
+          </Card>
+
+        </div>
+
+        {/* ── Horizontal scroll-snap step row ── */}
+        <div ref={scrollRef}
+          style={{ display: "flex", gap: 12, overflowX: "auto", scrollSnapType: "x proximity",
+            paddingBottom: 12, paddingRight: 40, /* peek: narrower than card width */
+            /* hide scrollbar but keep scrollable */
+            msOverflowStyle: "none", scrollbarWidth: "none" }}
+          className="step-scroll-row">
+          {steps.map((step, idx) => {
+            const role = roles.find(r => r.id === step.roleId);
+            const rc = role ? getRoleColor(role, roles) : "#e5e2dc";
+            const cost = role ? (step.minutes / 60) * role.rate : 0;
+            const wt = WORK_TYPES.find(w => w.value === step.workType) || WORK_TYPES[0];
+            const borderColor = wtBorderColor(step.workType || "manual");
+            const costColor = step.workType === "decision" ? "#b3413a" : "#2d6a4f";
+            const isAutoOpp = step.workType === "manual" && isSaveable(step);
+            const isDelay = step.workType === "waiting";
+
+            // Card header bg: muted tint of the border colour
+            const headerBg = step.workType === "decision" ? "rgba(179,65,58,0.08)"
+              : step.workType === "waiting" ? "rgba(184,134,46,0.10)"
+              : "rgba(45,106,79,0.08)";
+
+            return (
+              <div key={step.id} ref={el => cardRefs.current[idx] = el}
+                style={{ flexShrink: 0, width: 218, scrollSnapAlign: "start",
+                  background: "#fff", border: "1px solid #e5e2dc",
+                  borderTop: `3px solid ${borderColor}`,
+                  borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column", gap: 0,
+                  boxSizing: "border-box" }}>
+
+                {/* Coloured header section */}
+                <div style={{ background: headerBg, padding: "10px 12px 10px" }}>
+                  {/* ‹ number › cost × */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+                      <button onClick={() => moveStep(idx, -1)} disabled={idx === 0}
+                        style={{ background: "none", border: "none", cursor: idx === 0 ? "default" : "pointer",
+                          color: borderColor, fontSize: "1.3rem", padding: "2px 4px", opacity: idx === 0 ? 0.3 : 1,
+                          minWidth: 28, minHeight: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
+                      <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "1rem", color: borderColor, minWidth: 24, textAlign: "center" }}>{idx + 1}</span>
+                      <button onClick={() => moveStep(idx, 1)} disabled={idx === steps.length - 1}
+                        style={{ background: "none", border: "none", cursor: idx === steps.length - 1 ? "default" : "pointer",
+                          color: borderColor, fontSize: "1.3rem", padding: "2px 4px", opacity: idx === steps.length - 1 ? 0.3 : 1,
+                          minWidth: 28, minHeight: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
                     </div>
-                    <button onClick={()=>removeStep(idx)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1.1rem",padding:"0 2px",flexShrink:0,marginTop:2}}>×</button>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "1.1rem", color: costColor }}>£{cost.toFixed(0)}</span>
+                      <button onClick={() => removeStep(idx)}
+                        style={{ background: "none", border: "none", color: "#b84a5a", cursor: "pointer", fontSize: "1rem", padding: "0 2px", lineHeight: 1 }}>×</button>
+                    </div>
                   </div>
-                  {/* Controls row: wraps on mobile */}
-                  <div style={{display:"flex",gap:8,marginTop:10,flexWrap:"wrap",alignItems:"center"}}>
-                    <Select value={step.roleId} onChange={v=>updateStep(idx,"roleId",v)} options={roles.map(r=>({value:r.id,label:r.name}))} style={{width:170}}/>
-                    <NumberInput value={step.minutes} onChange={v=>updateStep(idx,"minutes",v)} suffix="min" min={1}/>
-                    <Select value={step.friction} onChange={v=>updateStep(idx,"friction",v)} options={FRICTION_LEVELS.map(f=>({value:f.value,label:`${f.label} friction`}))} style={{width:160}}/>
-                    <Select value={step.workType||"manual"} onChange={v=>updateStep(idx,"workType",v)} options={WORK_TYPES.map(w=>({value:w.value,label:`${w.icon} ${w.short}`}))} style={{width:128,background:wt.bg,color:wt.color,fontWeight:600,border:`1px solid ${wt.color}30`}}/>
-                    {isAutoOpportunity&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.78rem",fontWeight:700,padding:"4px 10px",borderRadius:100,background:"#d4ede2",color:"#1b4332",whiteSpace:"nowrap"}}>⚡ Automation opportunity</span>}
-                    {isDelayRisk&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.78rem",fontWeight:700,padding:"4px 10px",borderRadius:100,background:"#faf0d6",color:"#8a6a1e",whiteSpace:"nowrap"}}>⏳ Delay risk</span>}
+                  {/* Step name */}
+                  <StepNameArea value={step.name} onChange={v => updateStep(idx, "name", v)} />
+
+                </div>{/* end coloured header */}
+
+                {/* Fields — stacked with labels */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 12px 0" }}>
+                  {/* Role */}
+                  <div>
+                    <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>Who does this?</div>
+                    <Select value={step.roleId} onChange={v => updateStep(idx, "roleId", v)}
+                      options={roles.map(r => ({ value: r.id, label: r.name }))}
+                      style={{ width: "100%", fontSize: "0.8rem", padding: "6px 28px 6px 10px",
+                        background: rc.startsWith("rgb") ? rc.replace("rgb(","rgba(").replace(")",",0.09)") : `${rc}18`,
+                        color: rc,
+                        border: `1px solid ${rc.startsWith("rgb") ? rc.replace("rgb(","rgba(").replace(")",",0.3)") : `${rc}50`}` }} />
                   </div>
+                  {/* Minutes */}
+                  <div>
+                    <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>How long? (min)</div>
+                    <input type="number" min={1} value={step.minutes}
+                      onChange={e => updateStep(idx, "minutes", Number(e.target.value) || 1)}
+                      style={{ width: "100%", padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e2dc",
+                        background: "#EFEFEF", fontFamily: "'Outfit',sans-serif", fontWeight: 700,
+                        fontSize: "0.88rem", color: "#1a1f2e", outline: "none", boxSizing: "border-box" }} />
+                  </div>
+                  {/* Type */}
+                  <div>
+                    <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>What kind of work?</div>
+                    <Select value={step.workType || "manual"} onChange={v => updateStep(idx, "workType", v)}
+                      options={WORK_TYPES.map(w => ({ value: w.value, label: `${w.icon} ${w.label}` }))}
+                      style={{ width: "100%", fontSize: "0.78rem", padding: "6px 28px 6px 10px",
+                        background: wt.bg, color: wt.color, fontWeight: 600, border: `1px solid ${wt.color}30` }} />
+                  </div>
+                </div>
+
+                {/* Badges row */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 10, padding: "0 12px 12px" }}>
+                  <FrictionCycler value={step.friction} onChange={v => updateStep(idx, "friction", v)} />
+                  {isAutoOpp && <span title="This step could be handled by automation" style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 8px", borderRadius: 100, fontSize: "0.68rem", fontWeight: 700, background: "#d4ede2", color: "#1b4332", whiteSpace: "nowrap", cursor: "help" }}>⚡ Automatable</span>}
+                  {isDelay && <span title="This step introduces client-facing wait time" style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 8px", borderRadius: 100, fontSize: "0.68rem", fontWeight: 700, background: "#faf0d6", color: "#8a6a1e", whiteSpace: "nowrap", cursor: "help" }}>⏳ Delay risk</span>}
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+
+          {/* Add step card */}
+          <div style={{ flexShrink: 0, width: 160, scrollSnapAlign: "start",
+            border: "2px dashed #e5e2dc", borderRadius: 14, display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer",
+            color: "#6b7280", padding: 20, boxSizing: "border-box" }}
+            onClick={addStep}>
+            <span style={{ fontSize: "1.5rem", lineHeight: 1 }}>+</span>
+            <span style={{ fontSize: "0.8rem", fontWeight: 500, fontFamily: "'DM Sans',sans-serif", textAlign: "center" }}>Add step</span>
+          </div>
+        </div>
+
       </div>
-      <button onClick={addStep} style={{width:"100%",padding:16,marginTop:12,borderRadius:12,border:"2px dashed #e5e2dc",background:"transparent",color:"#6b7280",fontSize:"0.9rem",fontWeight:500,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>+ Add step</button>
-      <div style={{marginTop:32,display:"flex",justifyContent:"space-between"}}>
-        <Button onClick={onBack}>← {fromTemplate ? "Templates" : "Back"}</Button>
-        <Button primary onClick={onNext} disabled={steps.filter(s=>s.name.trim()).length===0}>See the results →</Button>
+
+      {/* ── Sticky bottom action bar ── */}
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 60,
+        background: "rgba(250,249,247,0.97)", backdropFilter: "blur(12px)",
+        borderTop: "1px solid #e5e2dc", padding: "12px 20px",
+        display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ maxWidth: 1080, width: "100%", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Button onClick={onBack}>← {fromTemplate ? "Templates" : "Back"}</Button>
+          <Button primary onClick={onNext} disabled={steps.filter(s => s.name.trim()).length === 0}>See the results →</Button>
+        </div>
       </div>
     </div>
   );
@@ -1074,7 +1275,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
   useEffect(()=>{
     const el=headerSentinelRef.current;
     if(!el)return;
-    const obs=new IntersectionObserver(([entry])=>setIsHeaderStuck(!entry.isIntersecting),{threshold:0,rootMargin:"-100px 0px 0px 0px"});
+    const obs=new IntersectionObserver(([entry])=>setIsHeaderStuck(!entry.isIntersecting),{threshold:0,rootMargin:"-48px 0px 0px 0px"});
     obs.observe(el);
     return()=>obs.disconnect();
   },[]);
@@ -1095,7 +1296,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
   const anim=(d)=>({opacity:revealed?1:0,transform:revealed?"translateY(0)":"translateY(20px)",transition:`all 0.6s ease ${d}s`});
 
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"68px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
       {showAuth && <AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={(user)=>{setShowAuth(false);onSave();}} />}
 
       {isDeepLink&&(
@@ -1110,15 +1311,18 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
 
       <div style={{background:"#1a1f2e",borderRadius:20,padding:"60px 40px",textAlign:"center",color:"#fff",margin:"0 0 40px",...anim(0)}}>
         <Badge>Your results</Badge>
-        <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.5rem,3.5vw,2rem)",fontWeight:700,lineHeight:1.2,margin:"20px 0 8px",color:"#fff"}}>Each "{processName}" costs you</h2>
-        <div style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(3rem,8vw,4.5rem)",fontWeight:700,color:"#6ee7a8",letterSpacing:"-0.02em",margin:"8px 0"}}>£{totalCost.toFixed(0)}</div>
-        <p style={{color:"rgba(255,255,255,0.6)",fontSize:"1.05rem",marginBottom:32}}>across {totalHours.toFixed(1)} hours and {new Set(steps.map(s=>s.roleId)).size} roles</p>
+        <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.5rem,3.5vw,2rem)",fontWeight:700,lineHeight:1.2,margin:"20px 0 8px",color:"#fff"}}>Automating "{processName}" could save you</h2>
+        <div style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(3rem,8vw,4.5rem)",fontWeight:700,color:"#6ee7a8",letterSpacing:"-0.02em",margin:"8px 0"}}>£{potentialSaving.toLocaleString("en-GB",{maximumFractionDigits:0})}/yr</div>
+        {(()=>{const {minDaysSaved,maxDaysSaved}=calcDelayDays(steps);return minDaysSaved>0&&(<p style={{color:"rgba(110,231,168,0.8)",fontSize:"1.05rem",margin:"4px 0 0",fontWeight:600}}>🚀 {minDaysSaved}–{maxDaysSaved} days faster per run</p>);})()}
+        <p style={{color:"rgba(255,255,255,0.4)",fontSize:"0.85rem",marginTop:6,marginBottom:32}}>based on {totalHours.toFixed(1)}h · £{totalCost.toFixed(0)}/run · {annualVolume}× per year</p>
         {(()=>{
-          const {minDays,maxDays}=calcDelayDays(steps);
+          const {minDays,maxDays,minDaysSaved,maxDaysSaved,attentionMinsFreed}=calcDelayDays(steps);
+          const fmtM=(m)=>m>=60?`${Math.floor(m/60)}h ${m%60>0?m%60+"m":""}`.trim():`${m}m`;
           const panels=[
+            {label:"Cost per run",value:`£${totalCost.toFixed(0)}`,sub:`${totalHours.toFixed(1)}h per run`,bg:"rgba(255,255,255,0.06)",color:"#fff"},
             {label:"Annual cost",value:`£${annualCost.toLocaleString("en-GB",{maximumFractionDigits:0})}`,sub:`${annualVolume}× per year`,bg:"rgba(255,255,255,0.06)",color:"#fff"},
-            {label:"Potential saving",value:`£${potentialSaving.toLocaleString("en-GB",{maximumFractionDigits:0})}`,sub:"per year with automation",bg:"rgba(45,106,79,0.2)",color:"#6ee7a8"},
             {label:"Client-facing delay",value:`${minDays}–${maxDays} days`,sub:"per process run",bg:"rgba(184,74,90,0.2)",color:"#f5a0aa"},
+            ...(attentionMinsFreed>0?[{label:"Team time freed",value:fmtM(attentionMinsFreed),sub:"per run from waiting steps",bg:"rgba(255,255,255,0.06)",color:"#c4942a"}]:[]),
           ];
           return(
             <div style={{display:"flex",gap:1,background:"rgba(255,255,255,0.1)",borderRadius:12,overflow:"hidden",maxWidth:680,margin:"0 auto"}}>
@@ -1203,7 +1407,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
         <div ref={headerSentinelRef} style={{height:1,marginBottom:-1}}/>
         <Card style={{marginBottom:20,padding:0,overflow:"clip",...anim(0.3)}}>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <thead style={{position:"sticky",top:100,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 3px 10px rgba(0,0,0,0.08), -4px 0 0 #fff, 4px 0 0 #fff":"-4px 0 0 #fff, 4px 0 0 #fff"}}>
+            <thead style={{position:"sticky",top:48,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 3px 10px rgba(0,0,0,0.08), -4px 0 0 #fff, 4px 0 0 #fff":"-4px 0 0 #fff, 4px 0 0 #fff"}}>
               <tr><th colSpan={6} style={{padding:"20px 24px 8px",fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,color:"#1a1f2e",textAlign:"left",borderBottom:"none",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",background:"#fff"}}>Full step breakdown</th></tr>
               <tr>{[["Step",""],["Owner","col-owner"],["Time","col-time"],["Cost",""],["Friction","col-friction"],["Type","col-type"]].map(([h,cn])=><th key={h} className={cn} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"8px 16px 12px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600,background:"#fff"}}>{h}</th>)}</tr>
             </thead>
@@ -1226,7 +1430,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
                   <td className="col-time" style={{padding:"12px 16px",fontSize:"0.85rem",color:"#3d4455"}}>{step.minutes}m</td>
                   <td style={{padding:"12px 16px",fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.9rem",color:role?getRoleColor(role,roles):"#2d6a4f"}}>£{cost.toFixed(0)}</td>
                   <td className="col-friction" style={{padding:"12px 16px"}}><FrictionBadge level={step.friction}/></td>
-                  <td className="col-type" style={{padding:"12px 16px"}}><span style={{fontSize:"0.72rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:wt.bg,color:wt.color,whiteSpace:"nowrap",display:"inline-block"}}>{wt.icon} {wt.short}</span></td>
+                  <td className="col-type" style={{padding:"12px 16px"}}><span style={{fontSize:"0.72rem",fontWeight:600,padding:"3px 10px",borderRadius:100,background:wt.bg,color:wt.color,whiteSpace:"nowrap",display:"inline-block"}}>{wt.icon} {wt.label}</span></td>
                 </tr>);})}</tbody>
           </table>
         </Card>
@@ -1300,7 +1504,7 @@ export default function CostClock() {
     setProcessName(t.name);setAnnualVolume(t.annualVolume);
     setSteps(t.steps.map((s,i)=>({...s,id:Date.now()+i})));
     setTemplateUsed(t.id);setSavedIdx(null);
-    setScreen(t.steps.length>0?"build":"setup");
+    setScreen("build");
   };
 
   // Restore session & load data
@@ -1429,7 +1633,7 @@ export default function CostClock() {
           <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"rgba(250,249,247,0.97)",backdropFilter:"blur(12px)",borderBottom:"1px solid #e5e2dc"}}>
             {/* Row 1: logo + auth */}
             <div style={{maxWidth:1080,width:"100%",margin:"0 auto",padding:"0 20px",height:48,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",padding:0,opacity:navMounted?1:0,transition:"opacity 0.4s ease",marginLeft:20,marginTop:5}}>
+              <button onClick={reset} style={{background:"none",border:"none",cursor:"pointer",padding:0,opacity:navMounted?1:0,transition:"opacity 0.4s ease",marginTop:5}}>
                 <img src="/logo_costclock_svg.svg" alt="costclock by workthru" style={{height:28,width:"auto",display:"block"}}/>
               </button>
               {user?(
@@ -1438,42 +1642,12 @@ export default function CostClock() {
                 <button onClick={()=>setShowAuth(true)} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign in</button>
               )}
             </div>
-            {/* Row 2: nav tabs */}
-            <div style={{borderTop:"1px solid #e5e2dc",display:"flex",maxWidth:1080,width:"100%",margin:"0 auto"}}>
-              {[["Setup","setup"],["Map steps","build"],["Results","results"]].map(([label,scr],i)=>{
-                const screens=["setup","build","results"];
-                const curIdx=screens.indexOf(screen);
-                const isActive=screen===scr;
-                const isComplete=i<curIdx;
-                const isReachable=i<=curIdx;
-                return(
-                  <button key={scr} onClick={()=>isReachable&&setScreen(scr)} style={{
-                    flex:1,padding:"8px 8px",border:"none",borderBottom:isActive?"2px solid #2d6a4f":"2px solid transparent",
-                    background:isActive?"rgba(45,106,79,0.06)":"transparent",
-                    color:isActive?"#2d6a4f":isReachable?"#1a1f2e":"#b0b8c1",
-                    fontFamily:"'DM Sans',sans-serif",fontWeight:isActive?700:500,
-                    fontSize:"0.82rem",cursor:isReachable?"pointer":"default",
-                    transition:"all 0.15s",letterSpacing:"0.01em",
-                    display:"flex",flexDirection:"column",alignItems:"center",gap:2,
-                  }}>
-                    <div style={{display:"flex",alignItems:"center",gap:5}}>
-                      {isComplete && <span style={{fontSize:"0.7rem",color:"#2d6a4f",fontWeight:700}}>✓</span>}
-                      <span>{label}</span>
-                    </div>
-                    <div style={{fontSize:"0.65rem",color:isActive?"#2d6a4f":"#b0b8c1",fontWeight:400,letterSpacing:"0.04em"}}>
-                      {isComplete?"complete":isActive?"in progress":""}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
           </nav>
         )}
 
         <div style={{ opacity:screenFading?0:1, transition:"opacity 0.2s ease" }}>
           {screen==="welcome"&&<WelcomeScreen onTemplate={handleTemplate} savedProcesses={saved} onLoadSaved={handleLoad} onDeleteSaved={handleDelete} onSignIn={()=>setShowAuth(true)}/>}
-          {screen==="setup"&&<SetupScreen roles={roles} setRoles={setRoles} processName={processName} setProcessName={setProcessName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("build")} onBack={reset}/>}
-          {screen==="build"&&<BuildScreen roles={roles} setRoles={setRoles} steps={steps} setSteps={setSteps} processName={processName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("results")} onBack={()=>setScreen(templateUsed?"welcome":"setup")} fromTemplate={!!templateUsed}/>}
+          {screen==="build"&&<BuildScreen roles={roles} setRoles={setRoles} steps={steps} setSteps={setSteps} processName={processName} setProcessName={setProcessName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("results")} onBack={()=>setScreen("welcome")} fromTemplate={!!templateUsed}/>}
           {screen==="results"&&<ResultsScreen roles={roles} steps={steps} processName={processName} annualVolume={annualVolume} templateUsed={templateUsed} onBack={()=>setScreen("build")} onReset={reset} onSave={handleSave} isSaved={savedIdx!==null} isDeepLink={isDeepLink}/>}
         </div>
 
