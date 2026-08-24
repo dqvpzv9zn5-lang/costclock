@@ -883,7 +883,7 @@ function StepNameArea({ value, onChange }) {
       placeholder="What happens at this step?"
       rows={1}
       style={{ width:"100%", resize:"none", overflow:"hidden", border:"none", outline:"none", background:"transparent",
-        fontFamily:"'Outfit',sans-serif", fontWeight:600, fontSize:"0.88rem", color:"#1a1f2e",
+        fontFamily:"'Outfit',sans-serif", fontWeight:600, fontSize:"0.88rem", color:"#1a1f2e", caretColor:"#1a1f2e",
         lineHeight:1.4, padding:0, boxSizing:"border-box" }}
     />
   );
@@ -947,7 +947,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
     <div style={{ position: "relative", zIndex: 1 }}>
 
       {/* ── Dark pinned hero panel ── */}
-      <div style={{ position: "sticky", top: 100, zIndex: 50 }}>
+      <div style={{ position: "sticky", top: 48, zIndex: 50 }}>
         <div style={{ background: "#1a1f2e", backgroundImage: "url(/topography-dark.svg)", backgroundSize: "600px 600px",
           padding: "20px 0 0", color: "#fff" }}>
           <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
@@ -1089,41 +1089,47 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
             const isAutoOpp = step.workType === "manual" && isSaveable(step);
             const isDelay = step.workType === "waiting";
 
+            // Card header bg: muted tint of the border colour
+            const headerBg = step.workType === "decision" ? "rgba(179,65,58,0.08)"
+              : step.workType === "waiting" ? "rgba(184,134,46,0.10)"
+              : "rgba(45,106,79,0.08)";
+
             return (
               <div key={step.id} ref={el => cardRefs.current[idx] = el}
                 style={{ flexShrink: 0, width: 218, scrollSnapAlign: "start",
                   background: "#fff", border: "1px solid #e5e2dc",
                   borderTop: `3px solid ${borderColor}`,
-                  borderRadius: 14, padding: "14px 14px 12px", display: "flex", flexDirection: "column", gap: 0,
+                  borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column", gap: 0,
                   boxSizing: "border-box" }}>
 
-                {/* Header row: ‹ number › cost × */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-                    <button onClick={() => moveStep(idx, -1)} disabled={idx === 0}
-                      style={{ background: "none", border: "none", cursor: idx === 0 ? "default" : "pointer",
-                        color: "#9ca3af", fontSize: "1rem", padding: "2px 4px", opacity: idx === 0 ? 0.25 : 1,
-                        minWidth: 28, minHeight: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
-                    <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.8rem", color: "#6b7280", minWidth: 20, textAlign: "center" }}>{idx + 1}</span>
-                    <button onClick={() => moveStep(idx, 1)} disabled={idx === steps.length - 1}
-                      style={{ background: "none", border: "none", cursor: idx === steps.length - 1 ? "default" : "pointer",
-                        color: "#9ca3af", fontSize: "1rem", padding: "2px 4px", opacity: idx === steps.length - 1 ? 0.25 : 1,
-                        minWidth: 28, minHeight: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
+                {/* Coloured header section */}
+                <div style={{ background: headerBg, padding: "10px 12px 10px" }}>
+                  {/* ‹ number › cost × */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+                      <button onClick={() => moveStep(idx, -1)} disabled={idx === 0}
+                        style={{ background: "none", border: "none", cursor: idx === 0 ? "default" : "pointer",
+                          color: borderColor, fontSize: "1rem", padding: "2px 4px", opacity: idx === 0 ? 0.3 : 1,
+                          minWidth: 28, minHeight: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
+                      <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.8rem", color: borderColor, minWidth: 20, textAlign: "center" }}>{idx + 1}</span>
+                      <button onClick={() => moveStep(idx, 1)} disabled={idx === steps.length - 1}
+                        style={{ background: "none", border: "none", cursor: idx === steps.length - 1 ? "default" : "pointer",
+                          color: borderColor, fontSize: "1rem", padding: "2px 4px", opacity: idx === steps.length - 1 ? 0.3 : 1,
+                          minWidth: 28, minHeight: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "1.1rem", color: costColor }}>£{cost.toFixed(0)}</span>
+                      <button onClick={() => removeStep(idx)}
+                        style={{ background: "none", border: "none", color: "#b84a5a", cursor: "pointer", fontSize: "1rem", padding: "0 2px", lineHeight: 1 }}>×</button>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "1.1rem", color: costColor }}>£{cost.toFixed(0)}</span>
-                    <button onClick={() => removeStep(idx)}
-                      style={{ background: "none", border: "none", color: "#b84a5a", cursor: "pointer", fontSize: "1rem", padding: "0 2px", lineHeight: 1 }}>×</button>
-                  </div>
-                </div>
+                  {/* Step name */}
+                  <StepNameArea value={step.name} onChange={v => updateStep(idx, "name", v)} />
 
-                {/* Step name — auto-grow textarea */}
-                <StepNameArea value={step.name} onChange={v => updateStep(idx, "name", v)} />
-
-                <div style={{ flex: 1 }} />
+                </div>{/* end coloured header */}
 
                 {/* Fields — stacked with labels */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 12px 0" }}>
                   {/* Role */}
                   <div>
                     <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>Role</div>
@@ -1151,7 +1157,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
                 </div>
 
                 {/* Badges row */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 10 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 10, padding: "0 12px 12px" }}>
                   <FrictionCycler value={step.friction} onChange={v => updateStep(idx, "friction", v)} />
                   {isAutoOpp && <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 8px", borderRadius: 100, fontSize: "0.68rem", fontWeight: 700, background: "#d4ede2", color: "#1b4332", whiteSpace: "nowrap" }}>⚡ Auto</span>}
                   {isDelay && <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 8px", borderRadius: 100, fontSize: "0.68rem", fontWeight: 700, background: "#faf0d6", color: "#8a6a1e", whiteSpace: "nowrap" }}>⏳ Delay</span>}
@@ -1192,7 +1198,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
   useEffect(()=>{
     const el=headerSentinelRef.current;
     if(!el)return;
-    const obs=new IntersectionObserver(([entry])=>setIsHeaderStuck(!entry.isIntersecting),{threshold:0,rootMargin:"-100px 0px 0px 0px"});
+    const obs=new IntersectionObserver(([entry])=>setIsHeaderStuck(!entry.isIntersecting),{threshold:0,rootMargin:"-48px 0px 0px 0px"});
     obs.observe(el);
     return()=>obs.disconnect();
   },[]);
@@ -1213,7 +1219,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
   const anim=(d)=>({opacity:revealed?1:0,transform:revealed?"translateY(0)":"translateY(20px)",transition:`all 0.6s ease ${d}s`});
 
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
+    <div style={{maxWidth:1080,margin:"0 auto",padding:"68px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
       {showAuth && <AuthModal mode="register" onClose={()=>setShowAuth(false)} onAuth={(user)=>{setShowAuth(false);onSave();}} />}
 
       {isDeepLink&&(
@@ -1321,7 +1327,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
         <div ref={headerSentinelRef} style={{height:1,marginBottom:-1}}/>
         <Card style={{marginBottom:20,padding:0,overflow:"clip",...anim(0.3)}}>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <thead style={{position:"sticky",top:100,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 3px 10px rgba(0,0,0,0.08), -4px 0 0 #fff, 4px 0 0 #fff":"-4px 0 0 #fff, 4px 0 0 #fff"}}>
+            <thead style={{position:"sticky",top:48,zIndex:40,background:"#fff",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",boxShadow:isHeaderStuck?"0 3px 10px rgba(0,0,0,0.08), -4px 0 0 #fff, 4px 0 0 #fff":"-4px 0 0 #fff, 4px 0 0 #fff"}}>
               <tr><th colSpan={6} style={{padding:"20px 24px 8px",fontFamily:"'Outfit',sans-serif",fontSize:"1.05rem",fontWeight:700,color:"#1a1f2e",textAlign:"left",borderBottom:"none",borderRadius:isHeaderStuck?"0":"16px 16px 0 0",background:"#fff"}}>Full step breakdown</th></tr>
               <tr>{[["Step",""],["Owner","col-owner"],["Time","col-time"],["Cost",""],["Friction","col-friction"],["Type","col-type"]].map(([h,cn])=><th key={h} className={cn} style={{textAlign:"left",fontSize:"0.7rem",textTransform:"uppercase",letterSpacing:"0.06em",color:"#6b7280",padding:"8px 16px 12px",borderBottom:"1.5px solid #e5e2dc",fontWeight:600,background:"#fff"}}>{h}</th>)}</tr>
             </thead>
@@ -1555,35 +1561,6 @@ export default function CostClock() {
               ):(
                 <button onClick={()=>setShowAuth(true)} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign in</button>
               )}
-            </div>
-            {/* Row 2: nav tabs — 2 steps now Setup is merged into Build */}
-            <div style={{borderTop:"1px solid #e5e2dc",display:"flex",maxWidth:1080,width:"100%",margin:"0 auto"}}>
-              {[["Building","build"],["Results","results"]].map(([label,scr],i)=>{
-                const screens=["build","results"];
-                const curIdx=screens.indexOf(screen);
-                const isActive=screen===scr;
-                const isComplete=i<curIdx;
-                const isReachable=i<=curIdx;
-                return(
-                  <button key={scr} onClick={()=>isReachable&&setScreen(scr)} style={{
-                    flex:1,padding:"8px 8px",border:"none",borderBottom:isActive?"2px solid #2d6a4f":"2px solid transparent",
-                    background:isActive?"rgba(45,106,79,0.06)":"transparent",
-                    color:isActive?"#2d6a4f":isReachable?"#1a1f2e":"#b0b8c1",
-                    fontFamily:"'DM Sans',sans-serif",fontWeight:isActive?700:500,
-                    fontSize:"0.82rem",cursor:isReachable?"pointer":"default",
-                    transition:"all 0.15s",letterSpacing:"0.01em",
-                    display:"flex",flexDirection:"column",alignItems:"center",gap:2,
-                  }}>
-                    <div style={{display:"flex",alignItems:"center",gap:5}}>
-                      {isComplete && <span style={{fontSize:"0.7rem",color:"#2d6a4f",fontWeight:700}}>✓</span>}
-                      <span>{label}</span>
-                    </div>
-                    <div style={{fontSize:"0.65rem",color:isActive?"#2d6a4f":"#b0b8c1",fontWeight:400,letterSpacing:"0.04em"}}>
-                      {isComplete?"complete":isActive?"in progress":""}
-                    </div>
-                  </button>
-                );
-              })}
             </div>
           </nav>
         )}
