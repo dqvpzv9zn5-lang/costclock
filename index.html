@@ -93,10 +93,9 @@
       }
     }
     /* Two-panel row: stack vertically on narrow screens */
+    /* panel-row is always flex-row — no stacking breakpoint.
+       Frequency panel (width:180) stays compact; roles panel takes the rest. */
     .panel-row { display: flex; gap: 12px; align-items: flex-start; }
-    @media (max-width: 600px) {
-      .panel-row { flex-direction: column; }
-    }
     /* Safe-area / bottom-bar clearance on mobile.
        The fixed action bar is ~56px; add extra for iOS home indicator. */
     .build-content-pad {
@@ -119,16 +118,20 @@
       top: calc(48px + env(safe-area-inset-top, 0px));
     }
     /* ── Mobile: overflow containment ──
-       overflow-x: clip (NOT hidden) clips paint overflow without creating a new
-       scroll container — unlike hidden, clip does not break position:sticky on
-       child elements (.build-hero-sticky relies on this). */
-    .build-outer { overflow-x: clip; }
+       overflow-x: hidden on .build-outer would break position:sticky
+       (.build-hero-sticky), so we contain horizontal overflow on the CONTENT div
+       instead — it is a sibling of the sticky hero, not its ancestor, so sticky
+       is unaffected. The scroll-snap rows (step cards, role cards) are inside this
+       div and will still scroll internally; their scroll area just won't leak out. */
+    .build-content { overflow-x: hidden; }
 
     /* ── iOS zoom prevention (mobile only) ──
        iOS Safari zooms in on focus when input font-size < 16px.
        Scoped to mobile only so desktop select/input sizes are unaffected. */
     @media (max-width: 600px) {
-      input, select, textarea { font-size: 1rem !important; }
+      /* Native <select> elements open a picker, not a keyboard, so they don't
+         trigger iOS auto-zoom. Only text inputs and textareas need the 1rem floor. */
+      input, textarea { font-size: 1rem !important; }
     }
 
     /* ── Hero panel detail chips: collapse on mobile ── */

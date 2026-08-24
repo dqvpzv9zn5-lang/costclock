@@ -992,7 +992,8 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
     <div className="build-outer" style={{ position: "relative", zIndex: 1 }}>
 
       {/* ── Dark pinned hero panel ── */}
-      <div className="build-hero-sticky" style={{ position: "sticky", top: 48, zIndex: 50 }}>
+      {/* top value comes from .build-hero-sticky CSS class (safe-area-aware); don't override inline */}
+      <div className="build-hero-sticky" style={{ position: "sticky", zIndex: 50 }}>
         <div style={{ background: "#1a1f2e", backgroundImage: "url(/topography-dark.svg)", backgroundSize: "600px 600px",
           padding: "20px 0 0", color: "#fff" }}>
           <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
@@ -1067,7 +1068,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
         </div>
       </div>
 
-      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "20px 20px 140px", position: "relative", zIndex: 1 }} className="page-pad build-content-pad">
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "20px 20px 140px", position: "relative", zIndex: 1 }} className="page-pad build-content-pad build-content">
 
         {/* ── Two-panel row: Team roles | Frequency ── */}
         <div className="panel-row" style={{ marginBottom: 20 }}>
