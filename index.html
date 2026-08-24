@@ -10,12 +10,19 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 16px; scroll-behavior: smooth; }
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+      /* Suppress pull-to-refresh on mobile browsers without blocking horizontal
+         scroll-snap gestures on child elements (those use touch-action: pan-x) */
+      overscroll-behavior-y: contain;
+    }
     body {
       font-family: 'DM Sans', -apple-system, sans-serif;
       background: #efefef;
       color: #1a1f2e;
       -webkit-font-smoothing: antialiased;
+      overscroll-behavior-y: contain;
     }
     #root { min-height: 100vh; }
     @media (max-width: 900px) {
@@ -39,6 +46,9 @@
     }
     /* Hide scrollbar on horizontal step row */
     .step-scroll-row::-webkit-scrollbar { display: none; }
+    /* Allow horizontal pan gestures on scroll-snap rows without interfering
+       with the page's vertical scroll or pull-to-refresh suppression */
+    .step-scroll-row { touch-action: pan-x; }
     /* Editable field affordance — hover/focus reveals input styling */
     .editable-field {
       border-radius: 6px;
