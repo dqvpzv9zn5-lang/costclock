@@ -438,9 +438,9 @@ function FrictionBadge({ level }) {
   return <span style={{ display:"inline-block",padding:"3px 12px",borderRadius:100,fontSize:"0.72rem",fontWeight:600,background:f.color,color:f.text }}>{f.label}</span>;
 }
 
-function Card({ children, style, hover, onClick }) {
+function Card({ children, style, hover, onClick, className }) {
   const [h, setH] = useState(false);
-  return <div onClick={onClick} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)} style={{ background:"#fff",border:h&&hover?"1.5px solid #2d6a4f":"1px solid #e5e2dc",borderRadius:16,padding:28,transition:"all 0.3s",transform:h&&hover?"translateY(-2px)":"none",boxShadow:h&&hover?"0 8px 30px rgba(26,31,46,0.1)":"none",cursor:onClick?"pointer":"default",...style }}>{children}</div>;
+  return <div className={className} onClick={onClick} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)} style={{ background:"#fff",border:h&&hover?"1.5px solid #2d6a4f":"1px solid #e5e2dc",borderRadius:16,padding:28,transition:"all 0.3s",transform:h&&hover?"translateY(-2px)":"none",boxShadow:h&&hover?"0 8px 30px rgba(26,31,46,0.1)":"none",cursor:onClick?"pointer":"default",...style }}>{children}</div>;
 }
 
 function NumberInput({ value, onChange, prefix, suffix, min=0 }) {
@@ -1078,7 +1078,8 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
         <div className="panel-row" style={{ marginBottom: 20 }}>
 
           {/* Panel 1 — Team roles & rates */}
-          <Card style={{ flex: 1, minWidth: 0, padding: 0, overflow: "hidden" }}>
+          <Card className={rolesOpen ? "roles-card-open" : ""}
+            style={{ flex: 1, minWidth: 0, padding: 0, overflow: rolesOpen ? "visible" : "hidden" }}>
             <button onClick={() => setRolesOpen(!rolesOpen)}
               style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px",
                 background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", gap: 8 }}>
@@ -1095,10 +1096,10 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
               <span style={{ fontSize: "0.8rem", color: "#6b7280", flexShrink: 0, transform: rolesOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>▾</span>
             </button>
             {rolesOpen && (
-              <div style={{ padding: "0 20px 20px", borderTop: "1px solid #e5e2dc" }}>
+              <div className="roles-expand-inner" style={{ padding: "0 20px 20px", borderTop: "1px solid #e5e2dc" }}>
                 {/* Horizontal scroll-snap role cards */}
                 <div style={{ display: "flex", gap: 12, overflowX: "auto", scrollSnapType: "x proximity",
-                  paddingBottom: 12, paddingTop: 16, paddingRight: 40, msOverflowStyle: "none", scrollbarWidth: "none" }}
+                  paddingBottom: 12, paddingTop: 16, msOverflowStyle: "none", scrollbarWidth: "none" }}
                   className="step-scroll-row">
                   {roles.map((role, i) => { const rc = getRoleColor(role, roles); return (
                     <div key={role.id}
@@ -1139,6 +1140,8 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
                     <span style={{ fontSize: "1.4rem", lineHeight: 1, color: "#6b7280" }}>+</span>
                     <span style={{ fontSize: "0.78rem", fontWeight: 500, fontFamily: "'DM Sans',sans-serif", color: "#6b7280", textAlign: "center" }}>Add role</span>
                   </div>
+                  {/* trailing spacer — fixes flex scroll right-padding bug */}
+                  <div style={{ flexShrink: 0, width: 16 }} />
                 </div>
                 <p style={{ fontSize: "0.72rem", color: "#6b7280", marginTop: 4, lineHeight: 1.6 }}>
                   Hourly rates: annual salary × {BURDEN_MULTIPLIER} (NI, pension & overhead) ÷ {PRODUCTIVE_HOURS.toLocaleString()} productive hours/year.
@@ -1147,8 +1150,9 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
             )}
           </Card>
 
-          {/* Panel 2 — Run frequency */}
-          <Card style={{ flexShrink: 0, width: 180, padding: 0, overflow: "hidden" }}>
+          {/* Panel 2 — Run frequency: hidden while roles panel is expanded */}
+          <Card style={{ flexShrink: 0, width: 180, padding: 0, overflow: "hidden",
+            ...(rolesOpen ? { display: "none" } : {}) }}>
             <button onClick={() => setFreqOpen(!freqOpen)}
               style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px",
                 background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", gap: 6 }}>
@@ -1170,10 +1174,9 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
         {/* ── Horizontal scroll-snap step row ── */}
         <div ref={scrollRef}
           style={{ display: "flex", gap: 12, overflowX: "auto", scrollSnapType: "x proximity",
-            paddingBottom: 12, paddingRight: 40, /* peek: narrower than card width */
-            /* hide scrollbar but keep scrollable */
+            paddingBottom: 12,
             msOverflowStyle: "none", scrollbarWidth: "none" }}
-          className="step-scroll-row">
+          className="step-scroll-row card-scroll-row">
           {steps.map((step, idx) => {
             const role = roles.find(r => r.id === step.roleId);
             const rc = role ? getRoleColor(role, roles) : "#e5e2dc";
@@ -1273,6 +1276,8 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
             <span style={{ fontSize: "1.5rem", lineHeight: 1 }}>+</span>
             <span style={{ fontSize: "0.8rem", fontWeight: 500, fontFamily: "'DM Sans',sans-serif", textAlign: "center" }}>Add step</span>
           </div>
+          {/* trailing spacer — fixes flex scroll right-padding bug; preserves peek affordance */}
+          <div style={{ flexShrink: 0, width: 20 }} />
         </div>
 
       </div>
