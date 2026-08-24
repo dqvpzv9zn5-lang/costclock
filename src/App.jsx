@@ -852,212 +852,330 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
   );
 }
 
-function SetupScreen({ roles, setRoles, processName, setProcessName, annualVolume, setAnnualVolume, onNext, onBack }) {
-  const addRole=()=>{setRoles([...roles,{id:`r-${Date.now()}`,name:"New Role",salary:35000,rate:salaryToRate(35000)}]);};
-  const updateRole=(i,f,v)=>{
-    const u=[...roles];
-    if(f==="salary"){u[i]={...u[i],salary:v,rate:salaryToRate(v)};}
-    else if(f==="rate"){u[i]={...u[i],rate:v,salary:rateToSalary(v)};}
-    else{u[i]={...u[i],[f]:v};}
-    setRoles(u);
-  };
-  const removeRole=(i)=>{if(roles.length>1)setRoles(roles.filter((_,j)=>j!==i));};
+// ═══════════════════════════════════════════════════
+// BUILD SCREEN — merged Setup + Map steps, horizontal step cards
+// ═══════════════════════════════════════════════════
+
+// Cycling friction badge: tap to advance through levels
+function FrictionCycler({ value, onChange }) {
+  const idx = FRICTION_LEVELS.findIndex(f => f.value === value);
+  const f = FRICTION_LEVELS[Math.max(0, idx)];
+  const next = () => onChange(FRICTION_LEVELS[(idx + 1) % FRICTION_LEVELS.length].value);
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
-      <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Set up your team and process</h2>
-      <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:36,lineHeight:1.7}}>Define the roles in your team. Enter their annual salary and we'll calculate the true fully-loaded hourly cost.</p>
-      <Card style={{marginBottom:20}}>
-        <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280",display:"block",marginBottom:10}}>Process name</label>
-        <input type="text" value={processName} onChange={e=>setProcessName(e.target.value)} placeholder="e.g. Client Onboarding" style={{width:"100%",padding:"10px 14px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",marginBottom:16,boxSizing:"border-box"}}/>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <span style={{fontSize:"0.85rem",color:"#3d4455"}}>How many times per year?</span>
-          <NumberInput value={annualVolume} onChange={setAnnualVolume} suffix="/year"/>
-        </div>
-      </Card>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-        <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280"}}>Team roles</label>
-        <button onClick={addRole} style={{fontSize:"0.8rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>+ Add role</button>
-      </div>
-      <div style={{display:"flex",flexDirection:"column",gap:8}}>
-        {roles.map((role,i)=>{const rc=getRoleColor(role,roles);return(
-          <Card key={role.id} style={{padding:"12px 20px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-              <div style={{width:10,height:10,borderRadius:"50%",background:rc,flexShrink:0}}/>
-              <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:"1 1 140px",minWidth:120,padding:"5px 10px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",fontWeight:600,outline:"none",background:"transparent"}}/>
-              <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-                <SalaryInput value={role.salary||rateToSalary(role.rate)} onChange={v=>updateRole(i,"salary",v)}/>
-              </div>
-              <div style={{fontSize:"0.78rem",color:"#6b7280",flexShrink:0}}>→</div>
-              <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
-                <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1rem",color:rc}}>£{Math.round(role.rate)}/hr</span>
-                <span style={{fontSize:"0.72rem",color:"#6b7280"}}>fully loaded</span>
-              </div>
-              {roles.length>1&&<button onClick={()=>removeRole(i)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1rem",padding:4,marginLeft:"auto",flexShrink:0}}>×</button>}
-            </div>
-          </Card>
-        )})}
-      </div>
-      <p style={{fontSize:"0.72rem",color:"#6b7280",marginTop:10,lineHeight:1.6}}>Hourly rates are calculated automatically: annual salary × {BURDEN_MULTIPLIER} (employer NI, pension & overhead) ÷ {PRODUCTIVE_HOURS.toLocaleString()} productive hours per year.</p>
-      <div style={{marginTop:32,display:"flex",justifyContent:"space-between"}}>
-        <Button onClick={onBack}>← Back</Button>
-        <Button primary onClick={onNext} disabled={!processName}>Next: Map the steps →</Button>
-      </div>
-    </div>
+    <button onClick={next} title="Tap to change friction level"
+      style={{ display:"inline-flex", alignItems:"center", gap:4, padding:"3px 10px", borderRadius:100,
+        fontSize:"0.72rem", fontWeight:700, background:f.color, color:f.text,
+        border:"none", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
+      {f.label}
+    </button>
   );
 }
 
-function BuildScreen({ roles, setRoles, steps, setSteps, processName, annualVolume, setAnnualVolume, onNext, onBack, fromTemplate }) {
+// Auto-growing textarea for step name
+function StepNameArea({ value, onChange }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) { ref.current.style.height = "auto"; ref.current.style.height = ref.current.scrollHeight + "px"; }
+  }, [value]);
+  return (
+    <textarea ref={ref} value={value}
+      onChange={e => { onChange(e.target.value); if (ref.current) { ref.current.style.height = "auto"; ref.current.style.height = ref.current.scrollHeight + "px"; } }}
+      placeholder="What happens at this step?"
+      rows={1}
+      style={{ width:"100%", resize:"none", overflow:"hidden", border:"none", outline:"none", background:"transparent",
+        fontFamily:"'Outfit',sans-serif", fontWeight:600, fontSize:"0.88rem", color:"#1a1f2e",
+        lineHeight:1.4, padding:0, boxSizing:"border-box" }}
+    />
+  );
+}
+
+function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcessName, annualVolume, setAnnualVolume, onNext, onBack, fromTemplate }) {
   const [rolesOpen, setRolesOpen] = useState(false);
-  const [isBarStuck, setIsBarStuck] = useState(false);
-  const sentinelRef = useRef(null);
-  useEffect(()=>{
-    const el = sentinelRef.current;
-    if(!el) return;
-    const obs = new IntersectionObserver(([entry])=>setIsBarStuck(!entry.isIntersecting),{threshold:0,rootMargin:"-100px 0px 0px 0px"});
-    obs.observe(el);
-    return ()=>obs.disconnect();
-  },[]);
-  const addStep=()=>setSteps([...steps,{id:Date.now(),name:"",roleId:roles[0]?.id||"",minutes:15,friction:"low",workType:"manual"}]);
-  const updateStep=(i,f,v)=>{const u=[...steps];u[i]={...u[i],[f]:v};setSteps(u);};
-  const removeStep=(i)=>setSteps(steps.filter((_,j)=>j!==i));
-  const moveStep=(i,dir)=>{const u=[...steps];const to=i+dir;if(to<0||to>=u.length)return;[u[i],u[to]]=[u[to],u[i]];setSteps(u);};
-  const addRole=()=>{setRoles([...roles,{id:`r-${Date.now()}`,name:"New Role",salary:35000,rate:salaryToRate(35000)}]);};
-  const updateRole=(i,f,v)=>{
-    const u=[...roles];
-    if(f==="salary"){u[i]={...u[i],salary:v,rate:salaryToRate(v)};}
-    else if(f==="rate"){u[i]={...u[i],rate:v,salary:rateToSalary(v)};}
-    else{u[i]={...u[i],[f]:v};}
+  const scrollRef = useRef(null);
+  const cardRefs = useRef([]);
+
+  const addStep = () => {
+    const newStep = { id: Date.now(), name: "", roleId: roles[0]?.id || "", minutes: 15, friction: "low", workType: "manual" };
+    setSteps(prev => {
+      const updated = [...prev, newStep];
+      // Scroll to new card after render
+      setTimeout(() => {
+        const last = cardRefs.current[updated.length - 1];
+        if (last) last.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+      }, 50);
+      return updated;
+    });
+  };
+
+  const updateStep = (i, f, v) => { const u = [...steps]; u[i] = { ...u[i], [f]: v }; setSteps(u); };
+  const removeStep = (i) => setSteps(steps.filter((_, j) => j !== i));
+
+  const moveStep = (i, dir) => {
+    const u = [...steps];
+    const to = i + dir;
+    if (to < 0 || to >= u.length) return;
+    [u[i], u[to]] = [u[to], u[i]];
+    setSteps(u);
+    setTimeout(() => {
+      const el = cardRefs.current[to];
+      if (el) el.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    }, 30);
+  };
+
+  const addRole = () => { setRoles([...roles, { id: `r-${Date.now()}`, name: "New Role", salary: 35000, rate: salaryToRate(35000) }]); };
+  const updateRole = (i, f, v) => {
+    const u = [...roles];
+    if (f === "salary") { u[i] = { ...u[i], salary: v, rate: salaryToRate(v) }; }
+    else if (f === "rate") { u[i] = { ...u[i], rate: v, salary: rateToSalary(v) }; }
+    else { u[i] = { ...u[i], [f]: v }; }
     setRoles(u);
   };
-  const removeRole=(i)=>{if(roles.length>1)setRoles(roles.filter((_,j)=>j!==i));};
-  const totalMinutes=steps.reduce((s,st)=>s+st.minutes,0);
-  const totalCost=steps.reduce((s,st)=>{const r=roles.find(rl=>rl.id===st.roleId);return s+(r?(st.minutes/60)*r.rate:0);},0);
+  const removeRole = (i) => { if (roles.length > 1) setRoles(roles.filter((_, j) => j !== i)); };
+
+  const { totalCost, annualCost, potentialSaving } = calcCosts(roles, steps, annualVolume);
+  const totalMinutes = steps.reduce((s, st) => s + st.minutes, 0);
+  const totalHours = totalMinutes / 60;
+  const { minDays, maxDays, waitingMins } = calcDelayDays(steps);
+  const automatableMins = steps.filter(s => s.workType === "manual" && isSaveable(s)).reduce((sum, s) => sum + s.minutes, 0);
+  const saveableCount = steps.filter(s => isSaveable(s)).length;
+  const fmtMins = (m) => m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
+
+  // Work-type border colour per spec: manual→green, decision→red, waiting→amber
+  const wtBorderColor = (wt) => wt === "decision" ? "#b3413a" : wt === "waiting" ? "#b8862e" : "#2d6a4f";
 
   return (
-    <div style={{maxWidth:1080,margin:"0 auto",padding:"120px 40px 80px",position:"relative",zIndex:1}} className="page-pad">
-      <h2 style={{fontFamily:"'Outfit',sans-serif",fontSize:"clamp(1.6rem,3.5vw,2.2rem)",fontWeight:700,lineHeight:1.2,letterSpacing:"-0.02em",margin:"20px 0 8px"}}>Map the steps in "{processName}"</h2>
-      <p style={{fontSize:"1rem",color:"#3d4455",marginBottom:20,lineHeight:1.7}}>Walk through the process from start to finish. Estimates are fine.</p>
+    <div style={{ position: "relative", zIndex: 1 }}>
 
-      {/* Collapsible roles & settings panel */}
-      <Card style={{marginBottom:20,padding:0,overflow:"hidden"}}>
-        <button onClick={()=>setRolesOpen(!rolesOpen)} style={{width:"100%",display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"14px 20px",background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",gap:8}}>
-          <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:6,flex:1,minWidth:0}}>
-            <span style={{fontSize:"0.82rem",fontWeight:600,color:"#1a1f2e",whiteSpace:"nowrap"}}>Team roles & rates</span>
-            {roles.map(r=>{const rc=getRoleColor(r,roles);return(
-              <span key={r.id} style={{fontSize:"0.68rem",fontWeight:600,padding:"2px 8px",borderRadius:100,background:`${rc}15`,color:rc,whiteSpace:"nowrap"}}>
-                {r.name.split(" ")[0]} £{Math.round(r.rate)}/hr
-              </span>
-            )})}
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0,paddingTop:2}}>
-            <span style={{fontSize:"0.72rem",color:"#6b7280",whiteSpace:"nowrap"}}>{annualVolume}×/yr</span>
-            <span style={{fontSize:"0.8rem",color:"#6b7280",transform:rolesOpen?"rotate(180deg)":"rotate(0)",transition:"transform 0.2s"}}>▾</span>
-          </div>
-        </button>
-        {rolesOpen && (
-          <div style={{padding:"0 20px 20px",borderTop:"1px solid #e5e2dc"}}>
-            <div style={{display:"flex",alignItems:"center",gap:12,marginTop:16,marginBottom:16}}>
-              <span style={{fontSize:"0.82rem",color:"#3d4455"}}>How many times per year?</span>
-              <NumberInput value={annualVolume} onChange={setAnnualVolume} suffix="/year"/>
+      {/* ── Dark pinned hero panel ── */}
+      <div style={{ position: "sticky", top: 100, zIndex: 50 }}>
+        <div style={{ background: "#1a1f2e", backgroundImage: "url(/topography-dark.svg)", backgroundSize: "600px 600px",
+          padding: "20px 0 0", color: "#fff" }}>
+          <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            {/* Process name editable */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Process</div>
+              <input value={processName} onChange={e => setProcessName(e.target.value)} placeholder="Name your process"
+                style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "clamp(1rem,2.5vw,1.25rem)", color: "#fff",
+                  background: "transparent", border: "none", outline: "none", width: "100%", padding: 0 }} />
             </div>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <label style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6b7280"}}>Team roles</label>
-              <button onClick={addRole} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>+ Add role</button>
+            {/* Hero cost figure */}
+            <div style={{ textAlign: "right", flexShrink: 0 }}>
+              <div style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "clamp(2rem,5vw,3rem)", color: "#6ee7a8", lineHeight: 1, letterSpacing: "-0.02em" }}>
+                £{totalCost.toFixed(0)}
+              </div>
+              <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)", marginTop: 3 }}>per run · {totalHours.toFixed(1)}h</div>
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {roles.map((role,i)=>{const rc=getRoleColor(role,roles);return(
-                <div key={role.id} style={{padding:"12px 14px",borderRadius:10,background:"#EFEFEF",border:"1px solid #e5e2dc"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                    <div style={{width:10,height:10,borderRadius:"50%",background:rc,flexShrink:0}}/>
-                    <input type="text" value={role.name} onChange={e=>updateRole(i,"name",e.target.value)} style={{flex:1,minWidth:100,padding:"4px 8px",borderRadius:6,border:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",fontWeight:600,outline:"none",background:"#fff"}}/>
-                    {roles.length>1&&<button onClick={()=>removeRole(i)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"0.9rem",padding:"0 4px"}}>×</button>}
-                  </div>
-                  <div style={{display:"flex",alignItems:"center",gap:12,paddingLeft:20}}>
-                    <div style={{display:"flex",alignItems:"center",gap:4}}>
-                      <span style={{fontSize:"0.75rem",color:"#6b7280"}}>Salary</span>
-                      <SalaryInput value={role.salary||rateToSalary(role.rate)} onChange={v=>updateRole(i,"salary",v)}/>
-                    </div>
-                    <div style={{fontSize:"0.75rem",color:"#6b7280"}}>→</div>
-                    <div style={{display:"flex",alignItems:"center",gap:4}}>
-                      <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.95rem",color:rc}}>£{Math.round(role.rate)}/hr</span>
-                      <span style={{fontSize:"0.68rem",color:"#6b7280"}}>fully loaded</span>
-                    </div>
-                  </div>
-                </div>
-              )})}
-            </div>
-            <p style={{fontSize:"0.72rem",color:"#6b7280",marginTop:10,lineHeight:1.6}}>Hourly rates are calculated automatically: annual salary × {BURDEN_MULTIPLIER} (employer NI, pension & overhead) ÷ {PRODUCTIVE_HOURS.toLocaleString()} productive hours per year.</p>
           </div>
-        )}
-      </Card>
+          {/* Stat chips row */}
+          <div style={{ maxWidth: 1080, margin: "0 auto", padding: "12px 20px 0", overflowX: "auto", display: "flex", gap: 8, flexWrap: "nowrap", paddingBottom: 16 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(255,255,255,0.08)", flexShrink: 0 }}>
+              <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>Annual</span>
+              <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#fff", whiteSpace: "nowrap" }}>£{annualCost.toLocaleString("en-GB", { maximumFractionDigits: 0 })}</span>
+            </div>
+            {potentialSaving > 0 && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(45,106,79,0.3)", flexShrink: 0 }}>
+                <span style={{ fontSize: "0.7rem", color: "#6ee7a8", whiteSpace: "nowrap" }}>Saving</span>
+                <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#6ee7a8", whiteSpace: "nowrap" }}>£{potentialSaving.toLocaleString("en-GB", { maximumFractionDigits: 0 })}/yr</span>
+              </div>
+            )}
+            {automatableMins > 0 && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(110,231,168,0.1)", flexShrink: 0 }}>
+                <span style={{ fontSize: "0.82rem" }}>⚡</span>
+                <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#6ee7a8", whiteSpace: "nowrap" }}>{fmtMins(automatableMins)} automatable</span>
+              </div>
+            )}
+            {waitingMins > 0 && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(184,74,90,0.2)", flexShrink: 0 }}>
+                <span style={{ fontSize: "0.82rem" }}>🕐</span>
+                <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#f5a0aa", whiteSpace: "nowrap" }}>{minDays}–{maxDays} days delay</span>
+              </div>
+            )}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(255,255,255,0.06)", flexShrink: 0 }}>
+              <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>Steps</span>
+              <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#fff", whiteSpace: "nowrap" }}>{steps.length}</span>
+            </div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(255,255,255,0.06)", flexShrink: 0 }}>
+              <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>Opportunities</span>
+              <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#c4942a", whiteSpace: "nowrap" }}>{saveableCount}/{steps.length}</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <div ref={sentinelRef} style={{height:1,marginTop:-1}}/>
-      {(()=>{
-        const automatableMins=steps.filter(s=>s.workType==="manual"&&isSaveable(s)).reduce((sum,s)=>sum+s.minutes,0);
-        const delayMins=steps.filter(s=>s.workType==="waiting").reduce((sum,s)=>sum+s.minutes,0);
-        const fmtMins=(m)=>m>=60?`${Math.floor(m/60)}h ${m%60}m`:`${m}m`;
-        return(
-          <div style={{position:"sticky",top:100,zIndex:50,background:"rgba(250,249,247,0.95)",backdropFilter:"blur(12px)",borderRadius:isBarStuck?"0 0 12px 12px":12,border:"1px solid #e5e2dc",borderTop:isBarStuck?"none":"1px solid #e5e2dc",padding:"14px 20px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
-            <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
-              <span style={{fontSize:"0.8rem",color:"#6b7280",whiteSpace:"nowrap"}}>Steps: <strong style={{color:"#1a1f2e"}}>{steps.length}</strong></span>
-              <span style={{fontSize:"0.8rem",color:"#6b7280",whiteSpace:"nowrap"}}>Time: <strong style={{color:"#1a1f2e"}}>{totalMinutes>=60?`${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m`:`${totalMinutes}m`}</strong></span>
-              <span style={{fontSize:"0.8rem",color:"#6b7280",whiteSpace:"nowrap"}}>Cost: <strong style={{fontFamily:"'Outfit',sans-serif",color:"#2d6a4f"}}>£{totalCost.toFixed(0)}</strong></span>
-              {automatableMins>0&&<span style={{fontSize:"0.78rem",color:"#1b4332",background:"#d4ede2",padding:"2px 8px",borderRadius:100,fontWeight:600,whiteSpace:"nowrap"}}>⚡ {fmtMins(automatableMins)} auto</span>}
-              {(()=>{const {waitingMins,minDays,maxDays}=calcDelayDays(steps);if(!waitingMins)return null;return(<span style={{fontSize:"0.78rem",color:"#b84a5a",background:"#f5e0e3",padding:"2px 8px",borderRadius:100,fontWeight:600,whiteSpace:"nowrap"}}>🕐 {minDays}–{maxDays} days delay</span>);})()}
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "20px 20px 80px", position: "relative", zIndex: 1 }} className="page-pad">
+
+        {/* ── Collapsible roles & process settings strip ── */}
+        <Card style={{ marginBottom: 20, padding: 0, overflow: "hidden" }}>
+          <button onClick={() => setRolesOpen(!rolesOpen)}
+            style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "14px 20px",
+              background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", gap: 8 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#1a1f2e", whiteSpace: "nowrap" }}>Team roles & rates</span>
+              {roles.map(r => { const rc = getRoleColor(r, roles); return (
+                <span key={r.id} style={{ fontSize: "0.68rem", fontWeight: 600, padding: "2px 8px", borderRadius: 100, background: `${rc}15`, color: rc, whiteSpace: "nowrap" }}>
+                  {r.name.split(" ")[0]} £{Math.round(r.rate)}/hr
+                </span>
+              ); })}
             </div>
-            <span style={{fontSize:"0.82rem",color:"#6b7280"}}>Saving opportunities: <strong style={{color:"#c4942a"}}>{steps.filter(s=>isSaveable(s)).length}/{steps.length}</strong></span>
-          </div>
-        );
-      })()}
-      <div style={{display:"flex",flexDirection:"column",gap:10}}>
-        {steps.map((step,idx)=>{
-          const role=roles.find(r=>r.id===step.roleId);
-          const rc=role?getRoleColor(role,roles):"#e5e2dc";
-          const cost=role?(step.minutes/60)*role.rate:0;
-          const wt=WORK_TYPES.find(w=>w.value===step.workType)||WORK_TYPES[0];
-          const isAutoOpportunity=step.workType==="manual"&&isSaveable(step);
-          const isDelayRisk=step.workType==="waiting";
-          const cardBg=isAutoOpportunity?"linear-gradient(135deg, #f0faf5 0%, #ffffff 60%)":isDelayRisk?"linear-gradient(135deg, #fdf8ec 0%, #ffffff 60%)":"#ffffff";
-          const cardBorder=isAutoOpportunity?"1px solid #a8dcc0":isDelayRisk?"1px solid #e8dbb8":"1px solid #e5e2dc";
-          return(
-            <div key={step.id} style={{background:cardBg,border:cardBorder,borderLeft:isAutoOpportunity?"4px solid #2d6a4f":isDelayRisk?"4px solid #c4942a":`4px solid ${rc}`,borderRadius:16,padding:"18px 22px",transition:"all 0.2s"}}>
-              <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-                {/* Step number + reorder arrows */}
-                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:0,minWidth:28,flexShrink:0,paddingTop:2}}>
-                  <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.85rem",color:"#6b7280",marginBottom:2}}>{idx+1}</span>
-                  <button onClick={()=>moveStep(idx,-1)} disabled={idx===0} style={{background:"none",border:"none",cursor:idx===0?"default":"pointer",color:"#9ca3af",fontSize:"1rem",padding:"6px 8px",lineHeight:1,opacity:idx===0?0.25:1,minWidth:32,minHeight:32,display:"flex",alignItems:"center",justifyContent:"center"}}>▲</button>
-                  <button onClick={()=>moveStep(idx,1)} disabled={idx===steps.length-1} style={{background:"none",border:"none",cursor:idx===steps.length-1?"default":"pointer",color:"#9ca3af",fontSize:"1rem",padding:"6px 8px",lineHeight:1,opacity:idx===steps.length-1?0.25:1,minWidth:32,minHeight:32,display:"flex",alignItems:"center",justifyContent:"center"}}>▼</button>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, paddingTop: 2 }}>
+              <span style={{ fontSize: "0.72rem", color: "#6b7280", whiteSpace: "nowrap" }}>{annualVolume}×/yr</span>
+              <span style={{ fontSize: "0.8rem", color: "#6b7280", transform: rolesOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>▾</span>
+            </div>
+          </button>
+          {rolesOpen && (
+            <div style={{ padding: "0 20px 20px", borderTop: "1px solid #e5e2dc" }}>
+              {/* Process name + volume when panel is open */}
+              <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 16, marginBottom: 16, flexWrap: "wrap" }}>
+                <div style={{ flex: 1, minWidth: 160 }}>
+                  <label style={{ fontSize: "0.68rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6b7280", display: "block", marginBottom: 6 }}>Process name</label>
+                  <input type="text" value={processName} onChange={e => setProcessName(e.target.value)} placeholder="e.g. Client Onboarding"
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #e5e2dc", background: "#EFEFEF",
+                      fontFamily: "'DM Sans',sans-serif", fontSize: "0.88rem", color: "#1a1f2e", outline: "none", boxSizing: "border-box" }} />
                 </div>
-                {/* Main content */}
-                <div style={{flex:1,minWidth:0}}>
-                  {/* Top row: name + cost + delete always inline */}
-                  <div style={{display:"flex",alignItems:"flex-start",gap:8}}>
-                    <input type="text" value={step.name} onChange={e=>updateStep(idx,"name",e.target.value)} placeholder="What happens at this step?" style={{flex:1,minWidth:0,padding:"6px 0",border:"none",borderBottom:"1px solid #e5e2dc",fontFamily:"'DM Sans',sans-serif",fontSize:"0.92rem",color:"#1a1f2e",outline:"none",background:"transparent"}}/>
-                    <div style={{textAlign:"right",flexShrink:0}}>
-                      <div style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1.2rem",color:rc}}>£{cost.toFixed(0)}</div>
-                      <div style={{fontSize:"0.72rem",color:"#6b7280"}}>{step.minutes}m</div>
-                    </div>
-                    <button onClick={()=>removeStep(idx)} style={{background:"none",border:"none",color:"#b84a5a",cursor:"pointer",fontSize:"1.1rem",padding:"0 2px",flexShrink:0,marginTop:2}}>×</button>
-                  </div>
-                  {/* Controls row: wraps on mobile */}
-                  <div style={{display:"flex",gap:8,marginTop:10,flexWrap:"wrap",alignItems:"center"}}>
-                    <Select value={step.roleId} onChange={v=>updateStep(idx,"roleId",v)} options={roles.map(r=>({value:r.id,label:r.name}))} style={{width:170}}/>
-                    <NumberInput value={step.minutes} onChange={v=>updateStep(idx,"minutes",v)} suffix="min" min={1}/>
-                    <Select value={step.friction} onChange={v=>updateStep(idx,"friction",v)} options={FRICTION_LEVELS.map(f=>({value:f.value,label:`${f.label} friction`}))} style={{width:160}}/>
-                    <Select value={step.workType||"manual"} onChange={v=>updateStep(idx,"workType",v)} options={WORK_TYPES.map(w=>({value:w.value,label:`${w.icon} ${w.short}`}))} style={{width:128,background:wt.bg,color:wt.color,fontWeight:600,border:`1px solid ${wt.color}30`}}/>
-                    {isAutoOpportunity&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.78rem",fontWeight:700,padding:"4px 10px",borderRadius:100,background:"#d4ede2",color:"#1b4332",whiteSpace:"nowrap"}}>⚡ Automation opportunity</span>}
-                    {isDelayRisk&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:"0.78rem",fontWeight:700,padding:"4px 10px",borderRadius:100,background:"#faf0d6",color:"#8a6a1e",whiteSpace:"nowrap"}}>⏳ Delay risk</span>}
-                  </div>
+                <div>
+                  <label style={{ fontSize: "0.68rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6b7280", display: "block", marginBottom: 6 }}>Times per year</label>
+                  <NumberInput value={annualVolume} onChange={setAnnualVolume} suffix="/year" />
                 </div>
               </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <label style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6b7280" }}>Team roles</label>
+                <button onClick={addRole} style={{ fontSize: "0.78rem", color: "#2d6a4f", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>+ Add role</button>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {roles.map((role, i) => { const rc = getRoleColor(role, roles); return (
+                  <div key={role.id} style={{ padding: "12px 14px", borderRadius: 10, background: "#EFEFEF", border: "1px solid #e5e2dc" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                      <div style={{ width: 10, height: 10, borderRadius: "50%", background: rc, flexShrink: 0 }} />
+                      <input type="text" value={role.name} onChange={e => updateRole(i, "name", e.target.value)}
+                        style={{ flex: 1, minWidth: 100, padding: "4px 8px", borderRadius: 6, border: "1px solid #e5e2dc",
+                          fontFamily: "'DM Sans',sans-serif", fontSize: "0.88rem", fontWeight: 600, outline: "none", background: "#fff" }} />
+                      {roles.length > 1 && <button onClick={() => removeRole(i)} style={{ background: "none", border: "none", color: "#b84a5a", cursor: "pointer", fontSize: "0.9rem", padding: "0 4px" }}>×</button>}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, paddingLeft: 20 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>Salary</span>
+                        <SalaryInput value={role.salary || rateToSalary(role.rate)} onChange={v => updateRole(i, "salary", v)} />
+                      </div>
+                      <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>→</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.95rem", color: rc }}>£{Math.round(role.rate)}/hr</span>
+                        <span style={{ fontSize: "0.68rem", color: "#6b7280" }}>fully loaded</span>
+                      </div>
+                    </div>
+                  </div>
+                ); })}
+              </div>
+              <p style={{ fontSize: "0.72rem", color: "#6b7280", marginTop: 10, lineHeight: 1.6 }}>
+                Hourly rates: annual salary × {BURDEN_MULTIPLIER} (NI, pension & overhead) ÷ {PRODUCTIVE_HOURS.toLocaleString()} productive hours/year.
+              </p>
             </div>
-          );
-        })}
-      </div>
-      <button onClick={addStep} style={{width:"100%",padding:16,marginTop:12,borderRadius:12,border:"2px dashed #e5e2dc",background:"transparent",color:"#6b7280",fontSize:"0.9rem",fontWeight:500,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>+ Add step</button>
-      <div style={{marginTop:32,display:"flex",justifyContent:"space-between"}}>
-        <Button onClick={onBack}>← {fromTemplate ? "Templates" : "Back"}</Button>
-        <Button primary onClick={onNext} disabled={steps.filter(s=>s.name.trim()).length===0}>See the results →</Button>
+          )}
+        </Card>
+
+        {/* ── Horizontal scroll-snap step row ── */}
+        <div ref={scrollRef}
+          style={{ display: "flex", gap: 12, overflowX: "auto", scrollSnapType: "x proximity",
+            paddingBottom: 12, paddingRight: 40, /* peek: narrower than card width */
+            /* hide scrollbar but keep scrollable */
+            msOverflowStyle: "none", scrollbarWidth: "none" }}
+          className="step-scroll-row">
+          {steps.map((step, idx) => {
+            const role = roles.find(r => r.id === step.roleId);
+            const rc = role ? getRoleColor(role, roles) : "#e5e2dc";
+            const cost = role ? (step.minutes / 60) * role.rate : 0;
+            const wt = WORK_TYPES.find(w => w.value === step.workType) || WORK_TYPES[0];
+            const borderColor = wtBorderColor(step.workType || "manual");
+            const costColor = step.workType === "decision" ? "#b3413a" : "#2d6a4f";
+            const isAutoOpp = step.workType === "manual" && isSaveable(step);
+            const isDelay = step.workType === "waiting";
+
+            return (
+              <div key={step.id} ref={el => cardRefs.current[idx] = el}
+                style={{ flexShrink: 0, width: 218, scrollSnapAlign: "start",
+                  background: "#fff", border: "1px solid #e5e2dc",
+                  borderTop: `3px solid ${borderColor}`,
+                  borderRadius: 14, padding: "14px 14px 12px", display: "flex", flexDirection: "column", gap: 0,
+                  boxSizing: "border-box" }}>
+
+                {/* Header row: ‹ number › cost × */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+                    <button onClick={() => moveStep(idx, -1)} disabled={idx === 0}
+                      style={{ background: "none", border: "none", cursor: idx === 0 ? "default" : "pointer",
+                        color: "#9ca3af", fontSize: "1rem", padding: "2px 4px", opacity: idx === 0 ? 0.25 : 1,
+                        minWidth: 28, minHeight: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
+                    <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.8rem", color: "#6b7280", minWidth: 20, textAlign: "center" }}>{idx + 1}</span>
+                    <button onClick={() => moveStep(idx, 1)} disabled={idx === steps.length - 1}
+                      style={{ background: "none", border: "none", cursor: idx === steps.length - 1 ? "default" : "pointer",
+                        color: "#9ca3af", fontSize: "1rem", padding: "2px 4px", opacity: idx === steps.length - 1 ? 0.25 : 1,
+                        minWidth: 28, minHeight: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "1.1rem", color: costColor }}>£{cost.toFixed(0)}</span>
+                    <button onClick={() => removeStep(idx)}
+                      style={{ background: "none", border: "none", color: "#b84a5a", cursor: "pointer", fontSize: "1rem", padding: "0 2px", lineHeight: 1 }}>×</button>
+                  </div>
+                </div>
+
+                {/* Step name — auto-grow textarea */}
+                <StepNameArea value={step.name} onChange={v => updateStep(idx, "name", v)} />
+
+                <div style={{ flex: 1 }} />
+
+                {/* Fields — stacked with labels */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+                  {/* Role */}
+                  <div>
+                    <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>Role</div>
+                    <Select value={step.roleId} onChange={v => updateStep(idx, "roleId", v)}
+                      options={roles.map(r => ({ value: r.id, label: r.name }))}
+                      style={{ width: "100%", fontSize: "0.8rem", padding: "6px 28px 6px 10px" }} />
+                  </div>
+                  {/* Minutes */}
+                  <div>
+                    <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>Minutes</div>
+                    <input type="number" min={1} value={step.minutes}
+                      onChange={e => updateStep(idx, "minutes", Number(e.target.value) || 1)}
+                      style={{ width: "100%", padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e2dc",
+                        background: "#EFEFEF", fontFamily: "'Outfit',sans-serif", fontWeight: 700,
+                        fontSize: "0.88rem", color: "#1a1f2e", outline: "none", boxSizing: "border-box" }} />
+                  </div>
+                  {/* Type */}
+                  <div>
+                    <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 3 }}>Type</div>
+                    <Select value={step.workType || "manual"} onChange={v => updateStep(idx, "workType", v)}
+                      options={WORK_TYPES.map(w => ({ value: w.value, label: `${w.icon} ${w.short}` }))}
+                      style={{ width: "100%", fontSize: "0.8rem", padding: "6px 28px 6px 10px",
+                        background: wt.bg, color: wt.color, fontWeight: 600, border: `1px solid ${wt.color}30` }} />
+                  </div>
+                </div>
+
+                {/* Badges row */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 10 }}>
+                  <FrictionCycler value={step.friction} onChange={v => updateStep(idx, "friction", v)} />
+                  {isAutoOpp && <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 8px", borderRadius: 100, fontSize: "0.68rem", fontWeight: 700, background: "#d4ede2", color: "#1b4332", whiteSpace: "nowrap" }}>⚡ Auto</span>}
+                  {isDelay && <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 8px", borderRadius: 100, fontSize: "0.68rem", fontWeight: 700, background: "#faf0d6", color: "#8a6a1e", whiteSpace: "nowrap" }}>⏳ Delay</span>}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Add step card */}
+          <div style={{ flexShrink: 0, width: 160, scrollSnapAlign: "start",
+            border: "2px dashed #e5e2dc", borderRadius: 14, display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer",
+            color: "#6b7280", padding: 20, boxSizing: "border-box" }}
+            onClick={addStep}>
+            <span style={{ fontSize: "1.5rem", lineHeight: 1 }}>+</span>
+            <span style={{ fontSize: "0.8rem", fontWeight: 500, fontFamily: "'DM Sans',sans-serif", textAlign: "center" }}>Add step</span>
+          </div>
+        </div>
+
+        {/* ── Actions ── */}
+        <div style={{ marginTop: 24, display: "flex", justifyContent: "space-between" }}>
+          <Button onClick={onBack}>← {fromTemplate ? "Templates" : "Back"}</Button>
+          <Button primary onClick={onNext} disabled={steps.filter(s => s.name.trim()).length === 0}>See the results →</Button>
+        </div>
       </div>
     </div>
   );
@@ -1300,7 +1418,7 @@ export default function CostClock() {
     setProcessName(t.name);setAnnualVolume(t.annualVolume);
     setSteps(t.steps.map((s,i)=>({...s,id:Date.now()+i})));
     setTemplateUsed(t.id);setSavedIdx(null);
-    setScreen(t.steps.length>0?"build":"setup");
+    setScreen("build");
   };
 
   // Restore session & load data
@@ -1438,10 +1556,10 @@ export default function CostClock() {
                 <button onClick={()=>setShowAuth(true)} style={{fontSize:"0.78rem",color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sign in</button>
               )}
             </div>
-            {/* Row 2: nav tabs */}
+            {/* Row 2: nav tabs — 2 steps now Setup is merged into Build */}
             <div style={{borderTop:"1px solid #e5e2dc",display:"flex",maxWidth:1080,width:"100%",margin:"0 auto"}}>
-              {[["Setup","setup"],["Map steps","build"],["Results","results"]].map(([label,scr],i)=>{
-                const screens=["setup","build","results"];
+              {[["Building","build"],["Results","results"]].map(([label,scr],i)=>{
+                const screens=["build","results"];
                 const curIdx=screens.indexOf(screen);
                 const isActive=screen===scr;
                 const isComplete=i<curIdx;
@@ -1472,8 +1590,7 @@ export default function CostClock() {
 
         <div style={{ opacity:screenFading?0:1, transition:"opacity 0.2s ease" }}>
           {screen==="welcome"&&<WelcomeScreen onTemplate={handleTemplate} savedProcesses={saved} onLoadSaved={handleLoad} onDeleteSaved={handleDelete} onSignIn={()=>setShowAuth(true)}/>}
-          {screen==="setup"&&<SetupScreen roles={roles} setRoles={setRoles} processName={processName} setProcessName={setProcessName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("build")} onBack={reset}/>}
-          {screen==="build"&&<BuildScreen roles={roles} setRoles={setRoles} steps={steps} setSteps={setSteps} processName={processName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("results")} onBack={()=>setScreen(templateUsed?"welcome":"setup")} fromTemplate={!!templateUsed}/>}
+          {screen==="build"&&<BuildScreen roles={roles} setRoles={setRoles} steps={steps} setSteps={setSteps} processName={processName} setProcessName={setProcessName} annualVolume={annualVolume} setAnnualVolume={setAnnualVolume} onNext={()=>setScreen("results")} onBack={()=>setScreen("welcome")} fromTemplate={!!templateUsed}/>}
           {screen==="results"&&<ResultsScreen roles={roles} steps={steps} processName={processName} annualVolume={annualVolume} templateUsed={templateUsed} onBack={()=>setScreen("build")} onReset={reset} onSave={handleSave} isSaved={savedIdx!==null} isDeepLink={isDeepLink}/>}
         </div>
 
