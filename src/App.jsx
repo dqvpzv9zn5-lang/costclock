@@ -446,7 +446,7 @@ function Card({ children, style, hover, onClick }) {
 function NumberInput({ value, onChange, prefix, suffix, min=0 }) {
   return <div style={{display:"flex",alignItems:"center",gap:4}}>
     {prefix&&<span style={{fontSize:"0.85rem",color:"#6b7280",fontWeight:500}}>{prefix}</span>}
-    <input type="number" value={value} min={min} onChange={e=>onChange(Number(e.target.value)||0)} style={{width:70,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"cost.95rem",color:"#1a1f2e",outline:"none",textAlign:"center"}}/>
+    <input type="number" value={value} min={min} onChange={e=>onChange(Number(e.target.value)||0)} style={{width:70,padding:"8px 10px",borderRadius:8,border:"1px solid #e5e2dc",background:"#EFEFEF",fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"0.95rem",color:"#1a1f2e",outline:"none",textAlign:"center"}}/>
     {suffix&&<span style={{fontSize:"0.8rem",color:"#6b7280"}}>{suffix}</span>}
   </div>;
 }
@@ -924,6 +924,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
   const [rolesOpen, setRolesOpen] = useState(false);
   const [freqOpen, setFreqOpen] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [heroDetailsOpen, setHeroDetailsOpen] = useState(false);
   const scrollRef = useRef(null);
   const cardRefs = useRef([]);
 
@@ -1021,8 +1022,9 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
               </>)}
             </div>
           </div>
-          {/* Stat chips row */}
-          <div style={{ maxWidth: 1080, margin: "0 auto", padding: "12px 20px 0", display: "flex", gap: 8, flexWrap: "wrap", paddingBottom: 16 }}>
+          {/* Stat chips row — always visible on desktop, toggle-hidden on mobile */}
+          <div className={`hero-chips${heroDetailsOpen ? " open" : ""}`}
+            style={{ maxWidth: 1080, margin: "0 auto", padding: "12px 20px 0", display: "flex", gap: 8, flexWrap: "wrap", paddingBottom: 16 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 100, background: "rgba(255,255,255,0.08)", flexShrink: 0 }}>
               <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>Cost/run</span>
               <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#fff", whiteSpace: "nowrap" }}>£{totalCost.toFixed(0)}</span>
@@ -1058,6 +1060,10 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
               <span style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 700, fontSize: "0.88rem", color: "#c4942a", whiteSpace: "nowrap" }}>{saveableCount}/{steps.length}</span>
             </div>
           </div>
+          {/* Mobile-only: "View details" toggle for the chip row */}
+          <button className="hero-chips-toggle" onClick={() => setHeroDetailsOpen(o => !o)}>
+            {heroDetailsOpen ? "▲ Hide details" : "▼ View details"}
+          </button>
         </div>
       </div>
 
@@ -1073,11 +1079,13 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
                 background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", gap: 8 }}>
               <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
                 <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#1a1f2e", whiteSpace: "nowrap" }}>Team roles & rates</span>
-                {roles.map(r => { const rc = getRoleColor(r, roles); return (
-                  <span key={r.id} style={{ fontSize: "0.68rem", fontWeight: 600, padding: "2px 8px", borderRadius: 100, background: `${rc}15`, color: rc, whiteSpace: "nowrap", flexShrink: 0 }}>
-                    {r.name.split(" ")[0]} £{Math.round(r.rate)}/hr
-                  </span>
-                ); })}
+                <div className="roles-preview-chips" style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+                  {roles.map(r => { const rc = getRoleColor(r, roles); return (
+                    <span key={r.id} style={{ fontSize: "0.68rem", fontWeight: 600, padding: "2px 8px", borderRadius: 100, background: `${rc}15`, color: rc, whiteSpace: "nowrap", flexShrink: 0 }}>
+                      {r.name.split(" ")[0]} £{Math.round(r.rate)}/hr
+                    </span>
+                  ); })}
+                </div>
               </div>
               <span style={{ fontSize: "0.8rem", color: "#6b7280", flexShrink: 0, transform: rolesOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>▾</span>
             </button>
@@ -1275,8 +1283,7 @@ function BuildScreen({ roles, setRoles, steps, setSteps, processName, setProcess
         <div style={{ maxWidth: 1080, width: "100%", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Button onClick={onBack}>← {fromTemplate ? "Templates" : "Back"}</Button>
           <span style={{ fontSize: "0.72rem", color: "#9ca3af", fontFamily: "'DM Sans',sans-serif", textAlign: "center" }}>
-            <a href="https://www.workthru.co.uk" target="_blank" rel="noopener noreferrer" style={{ color: "#2d6a4f", textDecoration: "none", fontWeight: 600 }}>workthru.co.uk</a>
-            {" · "}Operational audits & workflow automation for SMEs
+            <a href="https://www.workthru.co.uk" target="_blank" rel="noopener noreferrer" style={{ color: "#2d6a4f", textDecoration: "none", fontWeight: 500 }}>by workthru</a>
           </span>
           <Button primary onClick={onNext} disabled={steps.filter(s => s.name.trim()).length === 0}>See the results →</Button>
         </div>

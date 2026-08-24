@@ -118,6 +118,33 @@
     .build-hero-sticky {
       top: calc(48px + env(safe-area-inset-top, 0px));
     }
+    /* ── Mobile: overflow containment ── */
+    /* Prevent role/step scroll rows from creating page-level horizontal overflow
+       which causes mobile browsers to zoom out to fit the scroll area width */
+    .build-outer { overflow-x: hidden; }
+
+    /* ── iOS zoom prevention ──
+       iOS Safari zooms in when focusing an input with font-size < 16px.
+       Force 1rem on all inputs so focus never triggers an unwanted zoom.
+       Visual sizing is handled via padding/width on each input, not font-size. */
+    input, select, textarea { font-size: 1rem !important; }
+
+    /* ── Hero panel detail chips: collapse on mobile ── */
+    /* On desktop the chips row is always visible (display:flex set inline). */
+    /* On mobile, hide by default; show when .open is added by React state. */
+    .hero-chips-toggle { display: none; }
+    @media (max-width: 600px) {
+      .hero-chips { display: none !important; }
+      .hero-chips.open { display: flex !important; }
+      .hero-chips-toggle { display: flex; align-items: center; gap: 4px;
+        background: none; border: none; cursor: pointer;
+        font-size: 0.72rem; color: rgba(255,255,255,0.45); font-family: 'DM Sans',sans-serif;
+        padding: 8px 20px 14px; width: 100%; }
+    }
+
+    /* ── Roles collapsed label: hide rate chips on mobile ── */
+    @media (max-width: 600px) { .roles-preview-chips { display: none !important; } }
+
     /* Results table: progressive column hiding on narrow screens */
     @media (max-width: 760px) {
       .col-friction { display: none; }
