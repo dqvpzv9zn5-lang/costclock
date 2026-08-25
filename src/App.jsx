@@ -417,7 +417,7 @@ function generateReport(processName, roles, steps, annualVolume) {
     const wt = WORK_TYPES.find(w => w.value === st.workType);
     t += `\n${String(i+1).padStart(2)}. ${st.name}\n    Owner: ${r?.name||"—"}  ·  Time: ${st.minutes}m  ·  Cost: £${c.toFixed(0)}  ·  Friction: ${st.friction}  ·  ${wt?.label||"Manual"}${isSaveable(st)?"  ★ Saving opportunity":""}\n`;
   });
-  t += `\n${"═".repeat(56)}\n\nThis is one process. What about the rest?\nBook a free call: cal.com/workthru/15min\nworkthru.co.uk\n`;
+  t += `\n${"═".repeat(56)}\n\nThis is one process. What about the rest?\nBook a free call: cal.com/workthru/costclock-call\nworkthru.co.uk\n`;
   return t;
 }
 
@@ -804,7 +804,7 @@ function WelcomeScreen({ onTemplate, savedProcesses, onLoadSaved, onDeleteSaved,
               <p style={{ fontSize:"0.88rem", color:"#2d6a4f", lineHeight:1.6, marginBottom:20 }}>
                 You've mapped the cost. Now let's build the plan. Book a free 15-minute call to talk through your biggest opportunities and what automation could realistically save your firm.
               </p>
-              <a href="https://cal.com/workthru/15min?overlayCalendar=true&source=costclock-saved" target="_blank" rel="noopener noreferrer"
+              <a href="https://cal.com/workthru/costclock-call" target="_blank" rel="noopener noreferrer"
                 style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"12px 22px", borderRadius:10, background:"#2d6a4f", color:"#ffffff", fontFamily:"'DM Sans',sans-serif", fontWeight:600, fontSize:"0.9rem", textDecoration:"none", alignSelf:"flex-start" }}>
                 Book a free discovery call →
               </a>
@@ -1492,7 +1492,7 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
           <h3 style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.4rem",fontWeight:700,marginBottom:12}}>This is one process. <em style={{fontStyle:"italic",color:"#c4942a",fontWeight:500}}>What about the rest?</em></h3>
           <p style={{color:"rgba(255,255,255,0.6)",fontSize:"0.95rem",maxWidth:440,margin:"0 auto 24px",lineHeight:1.7}}>A full Workthru operational audit maps 3–5 core processes across your entire practice, with stakeholder interviews and a prioritised automation roadmap.</p>
           <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
-            <a href="https://cal.com/workthru/15min?overlayCalendar=true&source=costclock" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,padding:"14px 28px",borderRadius:10,background:"#fff",color:"#1a1f2e",fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"1rem",textDecoration:"none"}}>Book a free discovery call →</a>
+            <a href="https://cal.com/workthru/costclock-call" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,padding:"14px 28px",borderRadius:10,background:"#fff",color:"#1a1f2e",fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"1rem",textDecoration:"none"}}>Book a free discovery call →</a>
             <a href="https://www.workthru.co.uk" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,padding:"14px 28px",borderRadius:10,border:"1.5px solid rgba(255,255,255,0.25)",color:"#fff",fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"0.92rem",textDecoration:"none"}}>Learn more about Workthru</a>
           </div>
         </div>
