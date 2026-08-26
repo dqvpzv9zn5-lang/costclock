@@ -575,8 +575,8 @@ function AuthModal({ onClose, onAuth, mode: initMode }) {
         {mode === "register" && !magicSent && (
           <>
             <Badge>Free — no credit card</Badge>
-            <h3 style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.4rem",fontWeight:700,margin:"16px 0 8px"}}>Save your process & get AI insights</h3>
-            <p style={{fontSize:"0.88rem",color:"#6b7280",lineHeight:1.6,marginBottom:24}}>Register to save your work and receive a personalised AI analysis of your process data — free.</p>
+            <h3 style={{fontFamily:"'Outfit',sans-serif",fontSize:"1.4rem",fontWeight:700,margin:"16px 0 8px"}}>Save your results</h3>
+            <p style={{fontSize:"0.88rem",color:"#6b7280",lineHeight:1.6,marginBottom:24}}>Register to save your process data and come back to it anytime — free, no obligation.</p>
             {error && <div style={{background:"#f5e0e3",color:"#b84a5a",padding:"10px 14px",borderRadius:8,fontSize:"0.85rem",marginBottom:16}}>{error}</div>}
             <div style={{display:"flex",flexDirection:"column",gap:14}}>
               <div>
@@ -613,7 +613,7 @@ function AuthModal({ onClose, onAuth, mode: initMode }) {
               </div>
             </div>
             <Button primary onClick={handleRegister} disabled={loading} style={{width:"100%",justifyContent:"center",marginTop:20}}>
-              {loading ? "Creating account..." : "Save & get AI analysis →"}
+              {loading ? "Creating account..." : "Save my results →"}
             </Button>
             <p style={{fontSize:"0.78rem",color:"#6b7280",textAlign:"center",marginTop:12}}>
               Already registered? <button onClick={()=>setMode("login")} style={{color:"#2d6a4f",fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:"0.78rem"}}>Sign in</button>
@@ -1394,8 +1394,8 @@ function ResultsScreen({ roles, steps, processName, annualVolume, templateUsed, 
             onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(45,106,79,0.3)";}}
             onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 4px 16px rgba(45,106,79,0.25)";}}>
             <div>
-              <div style={{color:"#fff",fontFamily:"'Outfit',sans-serif",fontSize:"1.15rem",fontWeight:700,marginBottom:4}}>Save your results & get a free AI analysis</div>
-              <div style={{color:"rgba(255,255,255,0.65)",fontSize:"0.85rem"}}>Register to save your process data and receive personalised insights — free, no obligation.</div>
+              <div style={{color:"#fff",fontFamily:"'Outfit',sans-serif",fontSize:"1.15rem",fontWeight:700,marginBottom:4}}>Save your results</div>
+              <div style={{color:"rgba(255,255,255,0.65)",fontSize:"0.85rem"}}>Register to save your process data and come back to it anytime — free, no obligation.</div>
             </div>
             <div style={{background:"#fff",color:"#1b4332",padding:"12px 24px",borderRadius:10,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:"0.92rem",flexShrink:0,marginLeft:20}}>Save & register →</div>
           </div>
